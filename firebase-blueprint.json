@@ -1,0 +1,118 @@
+{
+  "entities": {
+    "Subscription": {
+      "title": "Subscription",
+      "description": "A recurring service or product subscription",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "maxLength": 128, "description": "The user ID of the owner" },
+        "name": { "type": "string", "maxLength": 100 },
+        "icon": { "type": "string", "maxLength": 50 },
+        "notes": { "type": "string", "maxLength": 1000 },
+        "price": { "type": "number" },
+        "currency": { "type": "string", "enum": ["USD", "UZS"] },
+        "paymentDate": { "type": "string", "description": "ISO format date or similar" },
+        "paymentTime": { "type": "string" },
+        "recurringFrequency": { "type": "string", "maxLength": 50 },
+        "status": { "type": "string", "enum": ["upcoming", "due_today", "paid", "overdue", "skipped"] },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["userId", "name", "price", "currency", "paymentDate", "createdAt", "updatedAt"]
+    },
+    "RecurringBill": {
+      "title": "Recurring Bill",
+      "description": "A recurring bill like internet or rent",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 100 },
+        "icon": { "type": "string", "maxLength": 50 },
+        "notes": { "type": "string", "maxLength": 1000 },
+        "price": { "type": "number" },
+        "currency": { "type": "string", "enum": ["USD", "UZS"] },
+        "dueDate": { "type": "string" },
+        "dueTime": { "type": "string" },
+        "recurringFrequency": { "type": "string", "maxLength": 50 },
+        "status": { "type": "string", "enum": ["upcoming", "due_today", "paid", "overdue", "skipped"] },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["userId", "name", "price", "currency", "dueDate", "createdAt", "updatedAt"]
+    },
+    "OneTimePurchase": {
+      "title": "One Time Purchase",
+      "description": "A single one-time payment",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 100 },
+        "icon": { "type": "string", "maxLength": 50 },
+        "notes": { "type": "string", "maxLength": 1000 },
+        "price": { "type": "number" },
+        "currency": { "type": "string", "enum": ["USD", "UZS"] },
+        "purchaseDate": { "type": "string" },
+        "paymentTime": { "type": "string" },
+        "status": { "type": "string", "enum": ["upcoming", "due_today", "paid", "overdue", "skipped"] },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["userId", "name", "price", "currency", "purchaseDate", "createdAt", "updatedAt"]
+    },
+    "Reminder": {
+      "title": "Reminder",
+      "description": "A scheduled reminder for a payment",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "maxLength": 128 },
+        "itemId": { "type": "string", "maxLength": 128 },
+        "itemType": { "type": "string", "enum": ["subscription", "bill", "purchase"] },
+        "scheduledTime": { "type": "string", "description": "ISO string representation of exact scheduled time" },
+        "duration": { "type": "number" },
+        "unit": { "type": "string" },
+        "timing": { "type": "string", "enum": ["before", "on", "after"] },
+        "channel": { "type": "string", "enum": ["in_app", "telegram"] },
+        "status": { "type": "string", "enum": ["pending", "sent", "missed"] },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["userId", "itemId", "itemType", "scheduledTime", "channel", "status", "createdAt", "updatedAt"]
+    },
+    "UserConfig": {
+      "title": "User Config",
+      "description": "User preferences and telegram configuration",
+      "type": "object",
+      "properties": {
+        "displayCurrency": { "type": "string", "enum": ["USD", "UZS"] },
+        "exchangeRate": { "type": "number" },
+        "telegramBotToken": { "type": "string", "maxLength": 200 },
+        "telegramChatId": { "type": "string", "maxLength": 50 },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["displayCurrency", "exchangeRate", "createdAt", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "users/{userId}/subscriptions/{subscriptionId}": {
+      "schema": { "$ref": "#/entities/Subscription" },
+      "description": "User subscriptions"
+    },
+    "users/{userId}/bills/{billId}": {
+      "schema": { "$ref": "#/entities/RecurringBill" },
+      "description": "User recurring bills"
+    },
+    "users/{userId}/purchases/{purchaseId}": {
+      "schema": { "$ref": "#/entities/OneTimePurchase" },
+      "description": "User one time purchases"
+    },
+    "users/{userId}/reminders/{reminderId}": {
+      "schema": { "$ref": "#/entities/Reminder" },
+      "description": "User reminders"
+    },
+    "users/{userId}/config/main": {
+      "schema": { "$ref": "#/entities/UserConfig" },
+      "description": "User settings and config"
+    }
+  }
+}

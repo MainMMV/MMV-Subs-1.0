@@ -1,0 +1,6 @@
+{
+  "name": "MMV Subs",
+  "description": "Personal payment tracking, recurring bills, subscriptions, and reminders",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

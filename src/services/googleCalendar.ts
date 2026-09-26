@@ -1,0 +1,247 @@
+import { 
+  GoogleAuthProvider, 
+  signInWithPopup, 
+  onAuthStateChanged, 
+  signOut, 
+  User 
+} from "firebase/auth";
+import { auth } from "../firebase";
+import { PaymentItem, GoogleCalendarSyncState } from "../types";
+import { formatCurrency } from "../utils/calculations";
+
+export const CALENDAR_SCOPE = "https://www.googleapis.com/auth/calendar.events";
+
+const googleProvider = new GoogleAuthProvider();
+googleProvider.addScope(CALENDAR_SCOPE);
+googleProvider.setCustomParameters({
+  prompt: "consent",
+});
+
+let cachedAccessToken: string | null = null;
+let isSigningIn = false;
+
+const STORAGE_KEY_CALENDAR_STATE = "mmv_subs_gcal_state_v1";
+
+/**
+ * Initialize Google Calendar Auth state listener
+ */
+export const initGoogleCalendarAuth = (
+  onStateChange: (state: GoogleCalendarSyncState) => void
+) => {
+  return onAuthStateChanged(auth, async (user: User | null) => {
+    if (user && cachedAccessToken) {
+      const state: GoogleCalendarSyncState = {
+        isConnected: true,
+        userEmail: user.email,
+        userName: user.displayName,
+        userPhoto: user.photoURL,
+        lastSyncedAt: getStoredSyncTimestamp(),
+        syncedEventCount: getStoredSyncedCount(),
+      };
+      saveStoredCalendarState(state);
+      onStateChange(state);
+    } else {
+      if (!isSigningIn) {
+        cachedAccessToken = null;
+        const state: GoogleCalendarSyncState = {
+          isConnected: false,
+          userEmail: null,
+          userName: null,
+          userPhoto: null,
+          lastSyncedAt: getStoredSyncTimestamp(),
+          syncedEventCount: getStoredSyncedCount(),
+        };
+        onStateChange(state);
+      }
+    }
+  });
+};
+
+/**
+ * Sign in with Google using popup to obtain Calendar access token
+ */
+export const signInGoogleCalendar = async (): Promise<{
+  user: User;
+  accessToken: string;
+} | null> => {
+  try {
+    isSigningIn = true;
+    const result = await signInWithPopup(auth, googleProvider);
+    const credential = GoogleAuthProvider.credentialFromResult(result);
+    if (!credential?.accessToken) {
+      throw new Error("Failed to obtain Google Calendar access token.");
+    }
+    cachedAccessToken = credential.accessToken;
+    return { user: result.user, accessToken: cachedAccessToken };
+  } catch (error: any) {
+    console.error("Google Sign-In Error:", error);
+    throw error;
+  } finally {
+    isSigningIn = false;
+  }
+};
+
+/**
+ * Disconnect Google Calendar & clear auth
+ */
+export const disconnectGoogleCalendar = async (): Promise<void> => {
+  await signOut(auth);
+  cachedAccessToken = null;
+  localStorage.removeItem(STORAGE_KEY_CALENDAR_STATE);
+};
+
+export const getCalendarAccessToken = (): string | null => {
+  return cachedAccessToken;
+};
+
+function getStoredSyncTimestamp(): string | null {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_CALENDAR_STATE);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return parsed.lastSyncedAt || null;
+    }
+  } catch {
+    // fallback
+  }
+  return null;
+}
+
+function getStoredSyncedCount(): number {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_CALENDAR_STATE);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return parsed.syncedEventCount || 0;
+    }
+  } catch {
+    // fallback
+  }
+  return 0;
+}
+
+function saveStoredCalendarState(state: GoogleCalendarSyncState) {
+  try {
+    localStorage.setItem(STORAGE_KEY_CALENDAR_STATE, JSON.stringify(state));
+  } catch {
+    // ignore
+  }
+}
+
+export interface SyncResult {
+  success: boolean;
+  totalSynced: number;
+  createdCount: number;
+  failedCount: number;
+  errors: string[];
+}
+
+/**
+ * Sync active payment items to Google Calendar.
+ * Creates clean all-day events with 24h & 1h notification popups.
+ */
+export async function syncItemsToGoogleCalendar(
+  items: PaymentItem[],
+  options: {
+    syncSubscriptions: boolean;
+    syncBills: boolean;
+    selectedItemIds?: string[];
+  }
+): Promise<SyncResult> {
+  const token = getCalendarAccessToken();
+  if (!token) {
+    throw new Error("Google Calendar is not connected. Please sign in with Google first.");
+  }
+
+  const eligibleItems = items.filter((item) => {
+    if (options.selectedItemIds && !options.selectedItemIds.includes(item.id)) return false;
+    if (item.type === "subscription" && !options.syncSubscriptions) return false;
+    if (item.type === "bill" && !options.syncBills) return false;
+    if (item.type === "purchase") return false; // Recurring items only
+    if (item.manualStatus === "paid" || item.manualStatus === "skipped") return false;
+    return Boolean(item.date);
+  });
+
+  let createdCount = 0;
+  let failedCount = 0;
+  const errors: string[] = [];
+
+  for (const item of eligibleItems) {
+    try {
+      const summary = `[MMV Subs] ${item.name} Due (${formatCurrency(item.price, item.currency)})`;
+      const description = [
+        `Payment reminder generated by MMV Subs`,
+        `Item: ${item.name}`,
+        `Amount: ${formatCurrency(item.price, item.currency)}`,
+        `Type: ${item.type === "subscription" ? "Subscription" : "Recurring Bill"}`,
+        `Due Date: ${item.date}`,
+        item.notes ? `Notes: ${item.notes}` : "",
+      ]
+        .filter(Boolean)
+        .join("\n");
+
+      // Prepare event payload
+      const eventPayload = {
+        summary,
+        description,
+        start: {
+          date: item.date,
+        },
+        end: {
+          date: item.date,
+        },
+        reminders: {
+          useDefault: false,
+          overrides: [
+            { method: "popup", minutes: 1440 }, // 1 day before
+            { method: "popup", minutes: 120 },  // 2 hours before
+          ],
+        },
+        extendedProperties: {
+          private: {
+            mmvSubsId: item.id,
+            mmvSubsType: item.type,
+          },
+        },
+      };
+
+      const res = await fetch("https://www.googleapis.com/calendar/v3/calendars/primary/events", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(eventPayload),
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData?.error?.message || `HTTP ${res.status}`);
+      }
+
+      createdCount++;
+    } catch (err: any) {
+      failedCount++;
+      errors.push(`${item.name}: ${err?.message || "Failed to create event"}`);
+    }
+  }
+
+  const lastSyncedAt = new Date().toISOString();
+  const stateUpdate: GoogleCalendarSyncState = {
+    isConnected: true,
+    userEmail: auth.currentUser?.email || null,
+    userName: auth.currentUser?.displayName || null,
+    userPhoto: auth.currentUser?.photoURL || null,
+    lastSyncedAt,
+    syncedEventCount: createdCount,
+  };
+  saveStoredCalendarState(stateUpdate);
+
+  return {
+    success: failedCount === 0 || createdCount > 0,
+    totalSynced: createdCount,
+    createdCount,
+    failedCount,
+    errors,
+  };
+}

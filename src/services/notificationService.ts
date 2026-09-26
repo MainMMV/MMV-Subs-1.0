@@ -1,0 +1,200 @@
+import { PaymentItem, InAppNotification, CurrencyCode } from "../types";
+import { getItemStatus, formatCurrency } from "../utils/calculations";
+
+const STORAGE_KEYS = {
+  READ_IDS: "mmv_subs_read_notifications_v1",
+  DISMISSED_IDS: "mmv_subs_dismissed_notifications_v1",
+  LAST_PUSHED_LOG: "mmv_subs_last_pushed_log_v1",
+  PUSH_PREF: "mmv_subs_browser_push_enabled_v1",
+};
+
+/**
+ * Scan payment items and build normalized in-app notifications
+ */
+export function generateInAppNotifications(
+  items: PaymentItem[],
+  now: Date = new Date()
+): InAppNotification[] {
+  const readIds = getStoredIds(STORAGE_KEYS.READ_IDS);
+  const dismissedIds = getStoredIds(STORAGE_KEYS.DISMISSED_IDS);
+
+  const todayStr = now.toISOString().slice(0, 10);
+  const notifications: InAppNotification[] = [];
+
+  items.forEach((item) => {
+    // If marked paid or skipped for this cycle, no pending notification
+    if (item.manualStatus === "paid" || item.manualStatus === "skipped") return;
+    if (!item.date) return;
+
+    const [year, month, day] = item.date.split("-").map(Number);
+    const itemDate = new Date(year, month - 1, day);
+    const todayZero = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    const diffMs = itemDate.getTime() - todayZero.getTime();
+    const daysUntilDue = Math.round(diffMs / (1000 * 60 * 60 * 24));
+
+    let urgency: "overdue" | "due_today" | "upcoming" | null = null;
+
+    if (daysUntilDue < 0) {
+      urgency = "overdue";
+    } else if (daysUntilDue === 0) {
+      urgency = "due_today";
+    } else if (daysUntilDue <= 7) {
+      urgency = "upcoming";
+    }
+
+    if (!urgency) return;
+
+    const notifId = `notif-${item.id}-${item.date}`;
+    if (dismissedIds.has(notifId)) return;
+
+    notifications.push({
+      id: notifId,
+      itemId: item.id,
+      itemName: item.name,
+      itemType: item.type,
+      price: item.price,
+      currency: item.currency,
+      dueDate: item.date,
+      daysUntilDue,
+      urgency,
+      createdAt: now.toISOString(),
+      read: readIds.has(notifId),
+      dismissed: false,
+    });
+  });
+
+  // Sort by urgency: overdue first, then due today, then upcoming nearest
+  return notifications.sort((a, b) => {
+    const urgencyScore = { overdue: 0, due_today: 1, upcoming: 2 };
+    if (urgencyScore[a.urgency] !== urgencyScore[b.urgency]) {
+      return urgencyScore[a.urgency] - urgencyScore[b.urgency];
+    }
+    return a.daysUntilDue - b.daysUntilDue;
+  });
+}
+
+/**
+ * Mark notification as read
+ */
+export function markNotificationAsRead(id: string) {
+  const readIds = getStoredIds(STORAGE_KEYS.READ_IDS);
+  readIds.add(id);
+  localStorage.setItem(STORAGE_KEYS.READ_IDS, JSON.stringify(Array.from(readIds)));
+}
+
+/**
+ * Mark all notifications as read
+ */
+export function markAllNotificationsAsRead(notifications: InAppNotification[]) {
+  const readIds = getStoredIds(STORAGE_KEYS.READ_IDS);
+  notifications.forEach((n) => readIds.add(n.id));
+  localStorage.setItem(STORAGE_KEYS.READ_IDS, JSON.stringify(Array.from(readIds)));
+}
+
+/**
+ * Dismiss a notification
+ */
+export function dismissNotification(id: string) {
+  const dismissedIds = getStoredIds(STORAGE_KEYS.DISMISSED_IDS);
+  dismissedIds.add(id);
+  localStorage.setItem(STORAGE_KEYS.DISMISSED_IDS, JSON.stringify(Array.from(dismissedIds)));
+}
+
+/**
+ * Request browser notification permission
+ */
+export async function requestBrowserPushPermission(): Promise<NotificationPermission> {
+  if (!("Notification" in window)) {
+    return "denied";
+  }
+  const perm = await Notification.requestPermission();
+  if (perm === "granted") {
+    localStorage.setItem(STORAGE_KEYS.PUSH_PREF, "true");
+  }
+  return perm;
+}
+
+export function isBrowserPushEnabled(): boolean {
+  if (!("Notification" in window)) return false;
+  return Notification.permission === "granted" && localStorage.getItem(STORAGE_KEYS.PUSH_PREF) !== "false";
+}
+
+export function setBrowserPushEnabled(enabled: boolean) {
+  localStorage.setItem(STORAGE_KEYS.PUSH_PREF, enabled ? "true" : "false");
+}
+
+/**
+ * Trigger native browser notification for high-priority due payments
+ * Includes 12-hour deduplication to prevent alert spamming.
+ */
+export function triggerBrowserDueAlerts(notifications: InAppNotification[]) {
+  if (!isBrowserPushEnabled()) return;
+
+  const urgentItems = notifications.filter(
+    (n) => n.urgency === "due_today" || (n.urgency === "upcoming" && n.daysUntilDue <= 1)
+  );
+
+  if (urgentItems.length === 0) return;
+
+  const lastPushedMap: Record<string, number> = (() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.LAST_PUSHED_LOG);
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  })();
+
+  const nowMs = Date.now();
+  const TWELVE_HOURS = 12 * 60 * 60 * 1000;
+
+  urgentItems.slice(0, 3).forEach((item) => {
+    const lastTime = lastPushedMap[item.id] || 0;
+    if (nowMs - lastTime < TWELVE_HOURS) {
+      return; // Already notified recently
+    }
+
+    try {
+      const title = item.urgency === "due_today"
+        ? `Payment Due Today: ${item.itemName}`
+        : `Payment Due Tomorrow: ${item.itemName}`;
+
+      const body = `${formatCurrency(item.price, item.currency)} is due on ${item.dueDate}. Click to review in MMV Subs.`;
+
+      const notification = new Notification(title, {
+        body,
+        icon: "/favicon.ico",
+        tag: item.id,
+      });
+
+      notification.onclick = () => {
+        window.focus();
+        notification.close();
+      };
+
+      lastPushedMap[item.id] = nowMs;
+    } catch (e) {
+      console.warn("Could not dispatch browser notification:", e);
+    }
+  });
+
+  try {
+    localStorage.setItem(STORAGE_KEYS.LAST_PUSHED_LOG, JSON.stringify(lastPushedMap));
+  } catch {
+    // ignore
+  }
+}
+
+function getStoredIds(key: string): Set<string> {
+  try {
+    const raw = localStorage.getItem(key);
+    if (raw) {
+      const arr = JSON.parse(raw);
+      if (Array.isArray(arr)) return new Set(arr);
+    }
+  } catch {
+    // fallback
+  }
+  return new Set();
+}
