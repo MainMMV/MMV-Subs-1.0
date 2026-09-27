@@ -53,7 +53,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const [rateSavedMessage, setRateSavedMessage] = useState(false);
 
   // Telegram state
-  const [tgBotToken, setTgBotToken] = useState(telegramConfig.botToken || "");
   const [tgChatId, setTgChatId] = useState(telegramConfig.chatId || "");
   const [tgEnabled, setTgEnabled] = useState(telegramConfig.isEnabled || false);
   const [testStatus, setTestStatus] = useState<string | null>(null);
@@ -73,7 +72,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     e.preventDefault();
     onUpdateTelegramConfig({
       ...telegramConfig,
-      botToken: tgBotToken.trim(),
+      // The shared bot token stays in the Telegram worker environment only.
+      botToken: "",
       chatId: tgChatId.trim(),
       isEnabled: tgEnabled,
     });
@@ -82,32 +82,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   };
 
   const handleTestTelegram = async () => {
-    if (!tgBotToken.trim() || !tgChatId.trim()) {
-      setTestStatus("Please provide both Bot Token and Chat ID first.");
+    if (!tgChatId.trim()) {
+      setTestStatus("Please enter the Chat ID shown by the bot after /start.");
       return;
     }
     setIsTesting(true);
-    setTestStatus(null);
-    try {
-      const res = await fetch(`https://api.telegram.org/bot${tgBotToken.trim()}/sendMessage`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          chat_id: tgChatId.trim(),
-          text: "🔔 MMV subs: Test notification received successfully! Your payment tracking and reminders are connected.",
-        }),
-      });
-      const data = await res.json();
-      if (data.ok) {
-        setTestStatus("Test notification sent successfully to Telegram!");
-      } else {
-        setTestStatus(`Telegram error: ${data.description || "Failed to send"}`);
-      }
-    } catch (err: any) {
-      setTestStatus(`Network error: ${err?.message || "Failed to contact Telegram API"}`);
-    } finally {
-      setIsTesting(false);
-    }
+    setTestStatus("Open the MMV Subs bot in Telegram and send /start. Your connected dashboard will appear after this setting is saved.");
+    setTimeout(() => setIsTesting(false), 300);
   };
 
   const handleExportData = () => {
@@ -316,21 +297,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         <form onSubmit={handleSaveTelegram} className="space-y-3">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-neutral-700 mb-1">
-                Bot Token
-              </label>
-              <input
-                type="text"
-                placeholder="e.g. 123456789:ABCdefGHI..."
-                value={tgBotToken}
-                onChange={(e) => setTgBotToken(e.target.value)}
-                className="w-full px-3 py-1.5 text-xs rounded-lg border border-neutral-300 focus:outline-none focus:border-neutral-900 font-mono"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-neutral-700 mb-1">
-                Chat ID
-              </label>
+              <label className="block text-xs font-medium text-neutral-700 mb-1">Telegram Chat ID</label>
               <input
                 type="text"
                 placeholder="e.g. 987654321"
@@ -338,6 +305,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 onChange={(e) => setTgChatId(e.target.value)}
                 className="w-full px-3 py-1.5 text-xs rounded-lg border border-neutral-300 focus:outline-none focus:border-neutral-900 font-mono"
               />
+              <p className="mt-1 text-[11px] text-neutral-500">Start the MMV Subs bot and copy the Chat ID it shows.</p>
+            </div>
+            <div>
+              <p className="pt-6 text-xs text-neutral-500">The bot token is managed securely by the Telegram worker and is never stored in this browser.</p>
             </div>
           </div>
 

@@ -2,7 +2,6 @@ import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
 import dotenv from "dotenv";
-import { startCronJobs } from "./server-cron.js";
 
 dotenv.config();
 
@@ -168,7 +167,6 @@ async function startServer() {
 
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`MMV Subs server running on http://0.0.0.0:${PORT}`);
-    startCronJobs();
   });
 }
 

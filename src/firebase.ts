@@ -7,7 +7,18 @@ export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app, (firebaseConfig as any).firestoreDatabaseId || "ai-studio-mmvsubs-7f61226f-682f-4402-823f-82cb55675031");
 
-export const syncToFirebase = async (subscriptions: any, telegramConfig: any) => {
+/**
+ * Keeps the data required by the separate Telegram worker in Firestore.
+ * Telegram credentials are intentionally not required by the worker: its one
+ * bot token belongs only in the worker's environment variables.
+ */
+export const syncToFirebase = async (
+  items: any,
+  telegramConfig: any,
+  habits: any[] = [],
+  habitLogs: Record<string, any> = {},
+  goals: any[] = []
+) => {
   try {
     let user = auth.currentUser;
     if (!user) {
@@ -15,9 +26,15 @@ export const syncToFirebase = async (subscriptions: any, telegramConfig: any) =>
       user = cred.user;
     }
     const syncRef = doc(db, `users/${user.uid}/sync/data`);
+    const { botToken: _ignoredBotToken, ...safeTelegramConfig } = telegramConfig || {};
     await setDoc(syncRef, {
-      subscriptions,
-      telegramConfig,
+      items,
+      // Kept for compatibility with the first server-cron implementation.
+      subscriptions: items,
+      telegramConfig: safeTelegramConfig,
+      habits,
+      habitLogs,
+      goals,
       updatedAt: new Date().toISOString()
     });
     console.log("Synced to Firebase backend for Telegram Cron jobs");

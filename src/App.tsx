@@ -373,13 +373,13 @@ export default function App() {
     });
   };
 
-  // Sync to Firebase in background for Telegram reminders
+  // Sync all bot-visible sections in the background for Telegram reminders.
   useEffect(() => {
     const timer = setTimeout(() => {
-      syncToFirebase(items, telegramConfig);
+      syncToFirebase(items, telegramConfig, habits, habitLogs, goals);
     }, 1500);
     return () => clearTimeout(timer);
-  }, [items, telegramConfig]);
+  }, [items, telegramConfig, habits, habitLogs, goals]);
 
   // Handler: Open Add Modal or New Item Chooser Modal
   const handleOpenAddModal = (presetType?: ItemType) => {
