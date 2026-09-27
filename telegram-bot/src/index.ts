@@ -248,6 +248,7 @@ async function handleMessage(message: NonNullable<Update["message"]>) {
 
 async function poll() {
   if (stopping) return;
+  let retryDelay = 250;
   try {
     const updates = await telegram<Update[]>("getUpdates", { offset: updateOffset, timeout: 25, allowed_updates: ["message", "callback_query"] });
     for (const update of updates) {
@@ -257,8 +258,22 @@ async function poll() {
     }
   } catch (error) {
     console.error("Telegram polling error:", error);
+    retryDelay = 3_000;
   }
-  if (!stopping) setTimeout(poll, 250);
+  if (!stopping) setTimeout(poll, retryDelay);
+}
+
+async function startPolling() {
+  while (!stopping) {
+    try {
+      await telegram<boolean>("deleteWebhook", { drop_pending_updates: false });
+      console.log("Telegram webhook cleared; long polling enabled.");
+      return poll();
+    } catch (error) {
+      console.error("Could not prepare Telegram polling; retrying in 5 seconds:", error);
+      await new Promise((resolve) => setTimeout(resolve, 5_000));
+    }
+  }
 }
 
 console.log(`MMV Subs Telegram bot started. Time zone: ${TZ}`);
@@ -274,7 +289,7 @@ const healthServer = createServer((request, response) => {
 healthServer.listen(PORT, "0.0.0.0", () => console.log(`Health server listening on 0.0.0.0:${PORT}`));
 void runScheduler().catch((error) => console.error("Initial scheduler error:", error));
 const schedulerTimer = setInterval(() => void runScheduler().catch((error) => console.error("Scheduler error:", error)), 30_000);
-void poll();
+void startPolling();
 
 function shutdown(signal: string) {
   if (stopping) return;
