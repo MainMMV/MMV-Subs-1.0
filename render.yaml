@@ -9,7 +9,6 @@ services:
     startCommand: npm start
     autoDeployTrigger: commit
     healthCheckPath: /health
-    maxShutdownDelaySeconds: 30
     envVars:
       - key: NODE_VERSION
         value: "22"
