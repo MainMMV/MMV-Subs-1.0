@@ -272,7 +272,7 @@ const healthServer = createServer((request, response) => {
   response.end("MMV Subs Telegram Bot is running.");
 });
 healthServer.listen(PORT, "0.0.0.0", () => console.log(`Health server listening on 0.0.0.0:${PORT}`));
-void runScheduler();
+void runScheduler().catch((error) => console.error("Initial scheduler error:", error));
 const schedulerTimer = setInterval(() => void runScheduler().catch((error) => console.error("Scheduler error:", error)), 30_000);
 void poll();
 

@@ -1,5 +1,5 @@
 import { cert, getApps, initializeApp } from "firebase-admin/app";
-import { FieldPath, getFirestore, type DocumentReference } from "firebase-admin/firestore";
+import { getFirestore, type DocumentReference } from "firebase-admin/firestore";
 import type { Goal, Habit, LocalClock, PaymentItem, UserData } from "./types.js";
 
 const rawServiceAccount = process.env.FIREBASE_SERVICE_ACCOUNT;
@@ -25,10 +25,11 @@ export function getLocalClock(now = new Date(), timeZone = process.env.TIME_ZONE
 }
 
 export async function listUserStates(): Promise<UserState[]> {
-  // Every sync document has the same document ID, so this collection-group
-  // query works even when its parent users/{uid} document has no fields.
-  const snapshot = await db.collectionGroup("sync").where(FieldPath.documentId(), "==", "data").get();
-  return snapshot.docs.map((doc) => ({
+  // A collection-group documentId filter requires a full document path, not
+  // the shared leaf ID "data". Read the small sync group and filter the leaf
+  // ID in memory so every users/{uid}/sync/data document is discovered.
+  const snapshot = await db.collectionGroup("sync").get();
+  return snapshot.docs.filter((doc) => doc.id === "data").map((doc) => ({
     uid: doc.ref.parent.parent?.id || "unknown",
     ref: doc.ref,
     data: doc.data() as UserData,
