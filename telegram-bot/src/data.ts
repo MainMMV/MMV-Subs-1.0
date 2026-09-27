@@ -7,7 +7,8 @@ if (!rawServiceAccount) throw new Error("FIREBASE_SERVICE_ACCOUNT is not configu
 
 const serviceAccount = JSON.parse(rawServiceAccount);
 const app = getApps()[0] ?? initializeApp({ credential: cert(serviceAccount), projectId: serviceAccount.project_id });
-export const db = getFirestore(app);
+const databaseId = process.env.FIRESTORE_DATABASE_ID || "ai-studio-mmvsubs-7f61226f-682f-4402-823f-82cb55675031";
+export const db = getFirestore(app, databaseId);
 
 export interface UserState {
   uid: string;
