@@ -229,7 +229,10 @@ export const HabitModal: React.FC<HabitModalProps> = ({
   const weekdayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-900/40 backdrop-blur-2xs select-none">
+    <div 
+      onClick={onClose} 
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-900/40 backdrop-blur-2xs select-none"
+    >
       <div 
         className="w-full max-w-lg bg-white rounded-lg border border-neutral-200 shadow-xl overflow-hidden max-h-[90vh] flex flex-col animate-in fade-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
@@ -539,35 +542,17 @@ export const HabitModal: React.FC<HabitModalProps> = ({
               </div>
             )}
 
-            {/* Time of Day */}
-            <div className="grid grid-cols-2 gap-2.5">
-              <div>
-                <label className="text-xs font-medium text-neutral-700 block mb-1">
-                  Time of Day
-                </label>
-                <select
-                  value={timeOfDay}
-                  onChange={(e: any) => setTimeOfDay(e.target.value)}
-                  className="w-full text-xs p-2 rounded-lg border border-neutral-200 bg-neutral-50 focus:bg-white"
-                >
-                  <option value="anytime">Anytime</option>
-                  <option value="morning">Morning</option>
-                  <option value="afternoon">Afternoon</option>
-                  <option value="evening">Evening</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="text-xs font-medium text-neutral-700 block mb-1">
-                  Tracking Start Date
-                </label>
-                <input
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="w-full text-xs p-2 rounded-lg border border-neutral-200 bg-neutral-50 focus:bg-white"
-                />
-              </div>
+            {/* Tracking Start Date */}
+            <div>
+              <label className="text-xs font-medium text-neutral-700 block mb-1">
+                Tracking Start Date
+              </label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="w-full text-xs p-2 rounded-lg border border-neutral-200 bg-neutral-50 focus:bg-white"
+              />
             </div>
           </div>
 

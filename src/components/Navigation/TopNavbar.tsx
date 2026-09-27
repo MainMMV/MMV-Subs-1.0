@@ -6,12 +6,12 @@ import {
   ArrowRightLeft,
   DollarSign
 } from "lucide-react";
-import { CurrencyCode, AppPage } from "../../types";
+import { CurrencyDisplayMode, AppPage } from "../../types";
 
 interface TopNavbarProps {
   currentPage: AppPage;
-  displayCurrency: CurrencyCode;
-  onToggleCurrency: () => void;
+  displayCurrency?: CurrencyDisplayMode;
+  onSelectCurrencyMode?: (mode: CurrencyDisplayMode) => void;
   exchangeRateUsdToUzs: number;
   notificationCount: number;
   onOpenNotifications: () => void;
@@ -22,7 +22,7 @@ interface TopNavbarProps {
 export const TopNavbar: React.FC<TopNavbarProps> = ({
   currentPage,
   displayCurrency,
-  onToggleCurrency,
+  onSelectCurrencyMode,
   exchangeRateUsdToUzs,
   notificationCount,
   onOpenNotifications,
@@ -68,17 +68,6 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
         >
           <span>1 USD = {exchangeRateUsdToUzs.toLocaleString()} UZS</span>
         </div>
-
-        {/* Currency Switcher */}
-        <button
-          type="button"
-          onClick={onToggleCurrency}
-          className="flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-neutral-700 bg-neutral-100 hover:bg-neutral-200 border border-neutral-200 rounded-lg transition-colors"
-          title="Toggle Currency Display"
-        >
-          <ArrowRightLeft size={12} />
-          <span>{displayCurrency}</span>
-        </button>
 
         {/* In-App Notifications Button */}
         <button

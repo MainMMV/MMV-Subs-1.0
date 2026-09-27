@@ -1,14 +1,14 @@
 import React, { useState } from "react";
 import { Filter, LayoutGrid, List } from "lucide-react";
 import { motion } from "motion/react";
-import { PaymentItem, CurrencyCode } from "../types";
+import { PaymentItem, CurrencyCode, CurrencyDisplayMode } from "../types";
 import { PaymentItemRow } from "../components/PaymentItemRow";
 import { PaymentItemCard } from "../components/PaymentItemCard";
 import { getItemStatus } from "../utils/calculations";
 
 interface OneTimePurchasesViewProps {
   items: PaymentItem[];
-  displayCurrency: CurrencyCode;
+  displayCurrency: CurrencyDisplayMode;
   exchangeRateUsdToUzs: number;
   onViewDetail?: (item: PaymentItem) => void;
   onEdit: (item: PaymentItem) => void;

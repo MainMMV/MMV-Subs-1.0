@@ -94,13 +94,13 @@ export const HabitCard: React.FC<HabitCardProps> = ({
 
   return (
     <div
-      className={`p-3.5 rounded-lg border transition-all ${
+      className={`p-3.5 rounded-lg border transition-all h-full flex flex-col justify-between ${
         habit.isPaused
-          ? "bg-neutral-50/70 border-neutral-200/80 opacity-70"
+          ? "bg-neutral-100/60 border-neutral-200 opacity-70"
           : isCompleted
-          ? "bg-neutral-50/50 border-emerald-200/80 shadow-2xs"
+          ? "bg-emerald-50/20 border-emerald-300/40 shadow-2xs"
           : isSkipped
-          ? "bg-neutral-50 border-neutral-200/80 opacity-75"
+          ? "bg-neutral-100/40 border-neutral-200 opacity-75"
           : "bg-white border-neutral-200 hover:border-neutral-300 shadow-2xs"
       }`}
     >
@@ -133,7 +133,7 @@ export const HabitCard: React.FC<HabitCardProps> = ({
           {/* Details */}
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className={`text-xs font-medium truncate ${isCompleted ? "text-neutral-900 line-through text-neutral-500" : "text-neutral-900"}`}>
+              <span className={`text-xs font-medium truncate ${isCompleted ? "text-neutral-400 line-through" : "text-neutral-900"}`}>
                 {habit.name}
               </span>
 

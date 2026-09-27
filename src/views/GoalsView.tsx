@@ -11,14 +11,14 @@ import {
   List
 } from "lucide-react";
 import { motion } from "motion/react";
-import { SpendingGoal, CurrencyCode, PaymentItem, PaymentHistoryRecord } from "../types";
+import { SpendingGoal, CurrencyCode, CurrencyDisplayMode, PaymentItem, PaymentHistoryRecord } from "../types";
 import { formatCurrency, convertCurrency } from "../utils/calculations";
 
 interface GoalsViewProps {
   goals: SpendingGoal[];
   items: PaymentItem[];
   records: PaymentHistoryRecord[];
-  displayCurrency: CurrencyCode;
+  displayCurrency: CurrencyDisplayMode;
   exchangeRateUsdToUzs: number;
   onOpenAddGoal: () => void;
   onEditGoal: (goal: SpendingGoal) => void;

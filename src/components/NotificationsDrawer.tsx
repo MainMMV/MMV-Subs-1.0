@@ -123,7 +123,10 @@ export const NotificationsDrawer: React.FC<NotificationsDrawerProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-neutral-900/30 backdrop-blur-xs select-none">
+    <div 
+      onClick={onClose} 
+      className="fixed inset-0 z-50 flex justify-end bg-neutral-900/30 backdrop-blur-xs select-none"
+    >
       <div 
         className="w-full max-w-md h-full bg-white shadow-xl border-l border-neutral-200 flex flex-col animate-in slide-in-from-right duration-200"
         onClick={(e) => e.stopPropagation()}
@@ -201,7 +204,7 @@ export const NotificationsDrawer: React.FC<NotificationsDrawerProps> = ({
         )}
 
         {/* Tab switch */}
-        <div className="p-3 border-b border-neutral-100 bg-neutral-50/70">
+        <div className="p-3 border-b border-neutral-100 bg-neutral-100/60">
           <div className="flex rounded-lg bg-neutral-200/60 p-0.5 text-xs font-medium">
             <button
               onClick={() => setActiveTab("urgent")}

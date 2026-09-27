@@ -5,10 +5,12 @@ import {
   ItemType, 
   PaymentHistoryRecord, 
   CurrencyCode, 
+  CurrencyDisplayMode,
   TelegramConfig, 
   ItemReminder,
   SpendingGoal,
-  GoogleCalendarSyncState
+  GoogleCalendarSyncState,
+  AppTheme
 } from "./types";
 import { 
   INITIAL_ITEMS, 
@@ -32,6 +34,7 @@ import { DeleteConfirmModal } from "./components/Modals/DeleteConfirmModal";
 import { UndoToast } from "./components/UndoToast";
 import { NotificationsDrawer } from "./components/NotificationsDrawer";
 import { GoogleCalendarSyncModal } from "./components/GoogleCalendarSyncModal";
+import { NewItemSelectModal, NewItemType } from "./components/Modals/NewItemSelectModal";
 import { HomeView } from "./views/HomeView";
 import { SubscriptionsView } from "./views/SubscriptionsView";
 import { RecurringBillsView } from "./views/RecurringBillsView";
@@ -44,22 +47,46 @@ import { Habit, HabitLog } from "./types";
 import { getDefaultHabits, getDefaultHabitLogs } from "./data/defaultHabits";
 
 const STORAGE_KEYS = {
-  ITEMS: "mmv_subs_items_v2",
-  HISTORY: "mmv_subs_history_v2",
+  ITEMS: "mmv_subs_items_v3",
+  HISTORY: "mmv_subs_history_v3",
   CURRENCY: "mmv_subs_currency_v2",
   RATE: "mmv_subs_rate_v2",
   TELEGRAM: "mmv_subs_telegram_v2",
   GOALS: "mmv_subs_goals_v2",
   HABITS: "mmv_subs_habits_v2",
   HABIT_LOGS: "mmv_subs_habit_logs_v2",
+  THEME: "mmv_subs_theme_v2",
 };
 
 export default function App() {
+  // Theme State: "warm-dark" is default
+  const [theme, setTheme] = useState<AppTheme>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.THEME);
+      return (saved === "light" || saved === "warm-dark") ? saved : "warm-dark";
+    } catch {
+      return "warm-dark";
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEYS.THEME, theme);
+    } catch {}
+    document.documentElement.setAttribute("data-theme", theme);
+    if (theme === "warm-dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [theme]);
+
   // Navigation State
   const [currentPage, setCurrentPage] = useState<AppPage>("home");
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [isNewItemSelectOpen, setIsNewItemSelectOpen] = useState(false);
+  const [isCreateHabitOpen, setIsCreateHabitOpen] = useState(false);
 
   // Items State (Subscriptions, Recurring Bills, One-Time Purchases)
   const [items, setItems] = useState<PaymentItem[]>(() => {
@@ -83,10 +110,13 @@ export default function App() {
     }
   });
 
-  // Display Currency State (USD or UZS only)
-  const [displayCurrency, setDisplayCurrency] = useState<CurrencyCode>(() => {
+  // Display Currency Priority Mode State (default, USD, or UZS)
+  const [displayCurrency, setDisplayCurrency] = useState<CurrencyDisplayMode>(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.CURRENCY);
-    return saved === "UZS" ? "UZS" : "USD";
+    if (saved === "default" || saved === "USD" || saved === "UZS") {
+      return saved as CurrencyDisplayMode;
+    }
+    return "default";
   });
 
   // Manual Exchange Rate (1 USD = X UZS)
@@ -351,24 +381,28 @@ export default function App() {
     return () => clearTimeout(timer);
   }, [items, telegramConfig]);
 
-  // Handler: Open Add Modal with sensible default type based on current view
+  // Handler: Open Add Modal or New Item Chooser Modal
   const handleOpenAddModal = (presetType?: ItemType) => {
-    if (currentPage === "goals") {
-      setEditingGoal(null);
-      setIsGoalModalOpen(true);
+    if (presetType) {
+      setDefaultNewType(presetType);
+      setEditingItem(null);
+      setIsItemModalOpen(true);
       return;
     }
-    let t: ItemType = "subscription";
-    if (presetType) {
-      t = presetType;
-    } else if (currentPage === "bills") {
-      t = "bill";
-    } else if (currentPage === "purchases") {
-      t = "purchase";
+    // Generic "New Item" action opens selector modal
+    setIsNewItemSelectOpen(true);
+  };
+
+  const handleSelectNewItemType = (type: NewItemType) => {
+    setIsNewItemSelectOpen(false);
+    if (type === "habit") {
+      setCurrentPage("habits");
+      setIsCreateHabitOpen(true);
+    } else {
+      setDefaultNewType(type);
+      setEditingItem(null);
+      setIsItemModalOpen(true);
     }
-    setDefaultNewType(t);
-    setEditingItem(null);
-    setIsItemModalOpen(true);
   };
 
   const handleEditItem = (item: PaymentItem) => {
@@ -674,10 +708,7 @@ export default function App() {
   const inAppNotifications = generateInAppNotifications(items);
   const activeNotificationsCount = inAppNotifications.filter((n) => !n.read).length;
 
-  // Filtered items if global search is used
-  const displayItems = searchQuery.trim()
-    ? items.filter((i) => i.name.toLowerCase().includes(searchQuery.toLowerCase()))
-    : items;
+  const displayItems = items;
 
   // Reset data handler
   const handleResetData = () => {
@@ -694,10 +725,7 @@ export default function App() {
       <div className="hidden md:block h-full">
         <Sidebar
           currentPage={currentPage}
-          onSelectPage={(p) => {
-            setCurrentPage(p);
-            setSearchQuery("");
-          }}
+          onSelectPage={(p) => setCurrentPage(p)}
           items={items}
           habitsCount={habits.filter((h) => !h.isPaused).length}
           isCollapsed={isSidebarCollapsed}
@@ -721,7 +749,6 @@ export default function App() {
               onSelectPage={(p) => {
                 setCurrentPage(p);
                 setIsMobileSidebarOpen(false);
-                setSearchQuery("");
               }}
               items={items}
               habitsCount={habits.filter((h) => !h.isPaused).length}
@@ -741,15 +768,11 @@ export default function App() {
         {/* Top Navbar */}
         <TopNavbar
           currentPage={currentPage}
-          displayCurrency={displayCurrency}
-          onToggleCurrency={() => setDisplayCurrency(displayCurrency === "USD" ? "UZS" : "USD")}
           exchangeRateUsdToUzs={exchangeRateUsdToUzs}
           notificationCount={activeNotificationsCount}
           onOpenNotifications={() => setIsNotificationsOpen(true)}
           onOpenAddModal={() => handleOpenAddModal()}
           onOpenMobileMenu={() => setIsMobileSidebarOpen(true)}
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
         />
 
         {/* View Router */}
@@ -782,6 +805,8 @@ export default function App() {
               onSaveHabit={handleSaveHabit}
               onDeleteHabit={handleDeleteHabit}
               onUpdateLog={handleUpdateHabitLog}
+              externalCreateHabitOpen={isCreateHabitOpen}
+              onCloseExternalCreateHabit={() => setIsCreateHabitOpen(false)}
             />
           )}
 
@@ -878,6 +903,8 @@ export default function App() {
               onResetData={handleResetData}
               onOpenCalendarSync={() => setIsCalendarSyncModalOpen(true)}
               calendarSyncState={calendarSyncState}
+              theme={theme}
+              onChangeTheme={setTheme}
             />
           )}
         </main>
@@ -1008,6 +1035,13 @@ export default function App() {
         items={items}
         syncState={calendarSyncState}
         onSyncStateChange={setCalendarSyncState}
+      />
+
+      {/* NEW ITEM TYPE SELECTOR MODAL */}
+      <NewItemSelectModal
+        isOpen={isNewItemSelectOpen}
+        onClose={() => setIsNewItemSelectOpen(false)}
+        onSelectType={handleSelectNewItemType}
       />
     </div>
   );

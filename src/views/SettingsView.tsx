@@ -11,14 +11,16 @@ import {
   CalendarSync,
   Bell,
   ExternalLink,
-  ShieldCheck
+  ShieldCheck,
+  Palette
 } from "lucide-react";
-import { CurrencyCode, TelegramConfig, PaymentItem, GoogleCalendarSyncState } from "../types";
+import { motion } from "motion/react";
+import { CurrencyCode, CurrencyDisplayMode, TelegramConfig, PaymentItem, GoogleCalendarSyncState, AppTheme } from "../types";
 import { isBrowserPushEnabled, requestBrowserPushPermission } from "../services/notificationService";
 
 interface SettingsViewProps {
-  displayCurrency: CurrencyCode;
-  onChangeDisplayCurrency: (curr: CurrencyCode) => void;
+  displayCurrency: CurrencyDisplayMode;
+  onChangeDisplayCurrency: (curr: CurrencyDisplayMode) => void;
   exchangeRateUsdToUzs: number;
   onUpdateExchangeRate: (rate: number) => void;
   telegramConfig: TelegramConfig;
@@ -27,6 +29,8 @@ interface SettingsViewProps {
   onResetData: () => void;
   onOpenCalendarSync?: () => void;
   calendarSyncState?: GoogleCalendarSyncState;
+  theme?: AppTheme;
+  onChangeTheme?: (theme: AppTheme) => void;
 }
 
 export const SettingsView: React.FC<SettingsViewProps> = ({
@@ -40,6 +44,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   onResetData,
   onOpenCalendarSync,
   calendarSyncState,
+  theme = "warm-dark",
+  onChangeTheme,
 }) => {
   const [rateInput, setRateInput] = useState(exchangeRateUsdToUzs.toString());
   const [browserPushActive, setBrowserPushActive] = useState<boolean>(() => isBrowserPushEnabled());
@@ -116,44 +122,141 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   };
 
   return (
-    <div className="space-y-6 w-full pb-16 select-none">
+    <motion.div 
+      initial={{ opacity: 0, y: 4 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.16, ease: "easeOut" }}
+      className="space-y-6 w-full pb-16 select-none"
+    >
       <div className="border-b border-neutral-200 pb-4">
         <h2 className="text-base font-medium text-neutral-900">Settings</h2>
       </div>
 
-      {/* 1. Currency & Manual Exchange Rate Configuration */}
+      {/* 1. Theme & Appearance (Warm Dark ChatGPT Default) */}
+      <div className="p-5 rounded-lg border border-neutral-200 bg-white space-y-4">
+        <div>
+          <h3 className="text-sm font-medium text-neutral-900 flex items-center gap-2">
+            <Palette size={16} className="text-neutral-700" />
+            <span>Theme & Appearance</span>
+          </h3>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {/* Warm Dark (Default) */}
+          <button
+            type="button"
+            onClick={() => onChangeTheme?.("warm-dark")}
+            className={`p-3.5 rounded-lg border text-left transition-all relative ${
+              theme === "warm-dark"
+                ? "border-[#ADC385] ring-1 ring-[#ADC385] bg-[#30343B]"
+                : "border-neutral-200 hover:border-neutral-300 bg-[#30343B]/80"
+            }`}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-medium text-[#EEEEEE]">Warm Dark</span>
+                <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-[#ADC385]/20 text-[#ADC385] border border-[#ADC385]/40">
+                  Default
+                </span>
+              </div>
+              {theme === "warm-dark" && (
+                <Check size={14} className="text-[#ADC385]" />
+              )}
+            </div>
+
+            {/* Color swatches preview */}
+            <div className="flex items-center gap-1.5 pt-1">
+              <div className="w-5 h-5 rounded bg-[#30343B] border border-[#55585A]" title="Main #30343B" />
+              <div className="w-5 h-5 rounded bg-[#25292E] border border-[#55585A]" title="Sidebar #25292E" />
+              <div className="w-5 h-5 rounded bg-[#454749] border border-[#55585A]" title="Surface #454749" />
+              <div className="w-5 h-5 rounded bg-[#5A5C59] border border-[#55585A]" title="Input #5A5C59" />
+              <div className="w-5 h-5 rounded bg-[#ADC385] border border-[#ADC385]" title="Accent #ADC385" />
+            </div>
+          </button>
+
+          {/* Warm Light Theme */}
+          <button
+            type="button"
+            onClick={() => onChangeTheme?.("light")}
+            style={{ backgroundColor: theme === "light" ? "#F8F6F1" : "#EFECE6", color: "#242320" }}
+            className={`p-3.5 rounded-lg border text-left transition-all relative ${
+              theme === "light"
+                ? "border-[#7A9154] ring-1 ring-[#7A9154]"
+                : "border-[#E4DFD5] hover:border-[#D8D2C5]"
+            }`}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-medium" style={{ color: "#242320" }}>Warm Light</span>
+              {theme === "light" && (
+                <Check size={14} style={{ color: "#7A9154" }} />
+              )}
+            </div>
+
+            {/* Color swatches preview */}
+            <div className="flex items-center gap-1.5 pt-1">
+              <div className="w-5 h-5 rounded bg-[#F8F6F1] border border-[#E5DFD4]" title="Main #F8F6F1" />
+              <div className="w-5 h-5 rounded bg-[#F1EEE7] border border-[#E5DFD4]" title="Sidebar #F1EEE7" />
+              <div className="w-5 h-5 rounded bg-[#FFFEFC] border border-[#E5DFD4]" title="Surface #FFFEFC" />
+              <div className="w-5 h-5 rounded bg-[#EDE8DF] border border-[#E5DFD4]" title="Secondary #EDE8DF" />
+              <div className="w-5 h-5 rounded bg-[#262421] border border-[#262421]" title="Accent #262421" />
+            </div>
+          </button>
+        </div>
+      </div>
+
+      {/* 2. Currency & Manual Exchange Rate Configuration */}
       <div className="p-5 rounded-lg border border-neutral-200 bg-white space-y-4">
         <div>
           <h3 className="text-sm font-medium text-neutral-900">Currency & Conversion</h3>
         </div>
 
-        {/* Display Currency */}
+        {/* Display Priority Mode: Default, USD, UZS */}
         <div>
           <label className="block text-xs font-medium text-neutral-700 mb-1.5">
-            Active Display Currency
+            Currency Priority & Display
           </label>
-          <div className="flex gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <button
+              type="button"
+              onClick={() => onChangeDisplayCurrency("default")}
+              className={`p-2.5 rounded-lg text-xs font-medium border text-left transition-colors ${
+                displayCurrency === "default"
+                  ? "bg-neutral-900 text-white border-neutral-900 shadow-2xs"
+                  : "bg-white text-neutral-700 border-neutral-200 hover:bg-neutral-50"
+              }`}
+            >
+              <span className="block font-medium">Default</span>
+              <span className={`text-[10px] block mt-0.5 ${displayCurrency === "default" ? "text-neutral-300" : "text-neutral-400"}`}>
+                Created currency on top
+              </span>
+            </button>
             <button
               type="button"
               onClick={() => onChangeDisplayCurrency("USD")}
-              className={`px-4 py-2 rounded-lg text-xs font-medium border transition-colors ${
+              className={`p-2.5 rounded-lg text-xs font-medium border text-left transition-colors ${
                 displayCurrency === "USD"
                   ? "bg-neutral-900 text-white border-neutral-900 shadow-2xs"
                   : "bg-white text-neutral-700 border-neutral-200 hover:bg-neutral-50"
               }`}
             >
-              USD ($)
+              <span className="block font-medium">USD ($)</span>
+              <span className={`text-[10px] block mt-0.5 ${displayCurrency === "USD" ? "text-neutral-300" : "text-neutral-400"}`}>
+                USD on top, UZS below
+              </span>
             </button>
             <button
               type="button"
               onClick={() => onChangeDisplayCurrency("UZS")}
-              className={`px-4 py-2 rounded-lg text-xs font-medium border transition-colors ${
+              className={`p-2.5 rounded-lg text-xs font-medium border text-left transition-colors ${
                 displayCurrency === "UZS"
                   ? "bg-neutral-900 text-white border-neutral-900 shadow-2xs"
                   : "bg-white text-neutral-700 border-neutral-200 hover:bg-neutral-50"
               }`}
             >
-              UZS (Uzbek Som)
+              <span className="block font-medium">UZS (Som)</span>
+              <span className={`text-[10px] block mt-0.5 ${displayCurrency === "UZS" ? "text-neutral-300" : "text-neutral-400"}`}>
+                UZS on top, USD below
+              </span>
             </button>
           </div>
         </div>
@@ -308,7 +411,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             </div>
           </div>
         ) : (
-          <div className="p-3 rounded-lg border border-neutral-200 bg-neutral-50/60 text-xs text-neutral-600 flex items-center justify-between">
+          <div className="p-3 rounded-lg border border-neutral-200 bg-neutral-100/60 text-xs text-neutral-600 flex items-center justify-between">
             <span>No Google account linked. Connect to keep due dates synchronized with your calendar.</span>
             {onOpenCalendarSync && (
               <button
@@ -403,6 +506,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           </button>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };

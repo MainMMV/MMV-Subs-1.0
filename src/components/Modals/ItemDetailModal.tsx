@@ -13,20 +13,21 @@ import {
   Trash2,
   AlertCircle
 } from "lucide-react";
-import { PaymentItem, CurrencyCode } from "../../types";
+import { PaymentItem, CurrencyDisplayMode } from "../../types";
 import { ServiceIcon } from "../ServiceIcon";
 import { 
   getItemStatus, 
   formatCurrency, 
   convertCurrency, 
-  formatFrequency 
+  formatFrequency,
+  getItemDualPrice
 } from "../../utils/calculations";
 
 interface ItemDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   item: PaymentItem | null;
-  displayCurrency: CurrencyCode;
+  displayCurrency: CurrencyDisplayMode;
   exchangeRateUsdToUzs: number;
   onEdit: (item: PaymentItem) => void;
   onManageReminders: (item: PaymentItem) => void;
@@ -78,8 +79,18 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
       ? "Due Time"
       : "Purchase Time";
 
+  const { topText, bottomText } = getItemDualPrice(
+    item.price,
+    item.currency,
+    displayCurrency,
+    exchangeRateUsdToUzs
+  );
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-900/40 backdrop-blur-xs select-none">
+    <div 
+      onClick={onClose} 
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-900/40 backdrop-blur-xs select-none"
+    >
       <div 
         className="w-full max-w-lg bg-white rounded-lg shadow-md border border-neutral-200 overflow-hidden animate-in fade-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
@@ -118,21 +129,15 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
             <div>
               <span className="text-[11px] text-neutral-500 block">Amount</span>
               <span className="text-base font-medium text-neutral-900">
-                {formatCurrency(item.price, item.currency)}
+                {topText}
               </span>
             </div>
             <div className="text-right">
               <span className="text-[11px] text-neutral-500 block">
-                ≈ {item.currency === "UZS" ? "USD Equivalent" : "UZS Equivalent"}
+                Equivalent
               </span>
               <span className="text-sm font-medium text-neutral-700">
-                ≈{" "}
-                {item.currency === "UZS"
-                  ? formatCurrency(
-                      exchangeRateUsdToUzs > 0 ? item.price / exchangeRateUsdToUzs : 0,
-                      "USD"
-                    )
-                  : formatCurrency(item.price * (exchangeRateUsdToUzs || 12800), "UZS")}
+                {bottomText}
               </span>
             </div>
             {item.frequency && (

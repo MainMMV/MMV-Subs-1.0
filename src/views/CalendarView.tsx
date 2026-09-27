@@ -8,7 +8,7 @@ import {
   TrendingUp
 } from "lucide-react";
 import { motion } from "motion/react";
-import { PaymentItem, CurrencyCode, GoogleCalendarSyncState } from "../types";
+import { PaymentItem, CurrencyCode, CurrencyDisplayMode, GoogleCalendarSyncState } from "../types";
 import { formatCurrency, convertCurrency } from "../utils/calculations";
 import { PaymentItemRow } from "../components/PaymentItemRow";
 import { CashFlowForecastPanel } from "../components/CashFlowForecastPanel";
@@ -17,7 +17,7 @@ type CalendarViewMode = "yearly" | "monthly" | "weekly" | "dayly";
 
 interface CalendarViewProps {
   items: PaymentItem[];
-  displayCurrency: CurrencyCode;
+  displayCurrency: CurrencyDisplayMode;
   exchangeRateUsdToUzs: number;
   onViewDetail?: (item: PaymentItem) => void;
   onEdit: (item: PaymentItem) => void;
@@ -280,7 +280,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
       </div>
 
       {/* Secondary Feature Action Bar: Google Calendar Sync & Cash Flow Forecaster */}
-      <div className="flex flex-wrap items-center justify-between gap-2.5 p-2 rounded-lg border border-neutral-200 bg-neutral-50/70 text-xs">
+      <div className="flex flex-wrap items-center justify-between gap-2.5 p-2 rounded-lg border border-neutral-200 bg-neutral-100/60 text-xs">
         <div className="flex items-center gap-2">
           {onOpenCalendarSync && (
             <button
@@ -329,192 +329,227 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
         />
       )}
 
-      {/* 1. YEARLY VIEW: 12 compact month cards */}
-      {calendarMode === "yearly" && (
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-            {MONTH_NAMES.map((mName, mIdx) => {
-              const prefix = `${year}-${String(mIdx + 1).padStart(2, "0")}`;
-              const mItems = items.filter((i) => i.date.startsWith(prefix));
-              const isCurrentM = new Date().getFullYear() === year && new Date().getMonth() === mIdx;
+      {/* 2-Column Responsive Layout: Left = Compact Calendar, Right = Payments on that day for every section */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start w-full">
+        {/* LEFT COLUMN: Calendar Section (col-span-7) */}
+        <div className="lg:col-span-7 space-y-3">
+          {/* 1. YEARLY VIEW: 12 compact month cards */}
+          {calendarMode === "yearly" && (
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                {MONTH_NAMES.map((mName, mIdx) => {
+                  const prefix = `${year}-${String(mIdx + 1).padStart(2, "0")}`;
+                  const mItems = items.filter((i) => i.date.startsWith(prefix));
+                  const isCurrentM = new Date().getFullYear() === year && new Date().getMonth() === mIdx;
 
-              return (
-                <div
-                  key={mName}
-                  onClick={() => {
-                    setCurrentDate(new Date(year, mIdx, 1));
-                    setSelectedDate(`${year}-${String(mIdx + 1).padStart(2, "0")}-01`);
-                    setCalendarMode("monthly");
-                  }}
-                  className={`p-3.5 rounded-lg border bg-white cursor-pointer hover:border-neutral-400 hover:shadow-2xs transition-all ${
-                    isCurrentM ? "border-neutral-900 ring-1 ring-neutral-900" : "border-neutral-200"
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-medium text-xs text-neutral-900">{mName}</span>
-                    <span className="text-[10px] text-neutral-400">{year}</span>
-                  </div>
+                  return (
+                    <div
+                      key={mName}
+                      onClick={() => {
+                        setCurrentDate(new Date(year, mIdx, 1));
+                        setSelectedDate(`${year}-${String(mIdx + 1).padStart(2, "0")}-01`);
+                        setCalendarMode("monthly");
+                      }}
+                      className={`p-2.5 rounded-lg border bg-white cursor-pointer hover:border-neutral-400 hover:shadow-2xs transition-all ${
+                        isCurrentM ? "border-neutral-900 ring-1 ring-neutral-900" : "border-neutral-200"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="font-medium text-xs text-neutral-900">{mName}</span>
+                        <span className="text-[10px] text-neutral-400">{year}</span>
+                      </div>
 
-                  <div className="py-2.5 flex items-center justify-center">
-                    {mItems.length > 0 ? (
-                      <span className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-neutral-900 text-white">
-                        {mItems.length} {mItems.length === 1 ? "item" : "items"}
+                      <div className="py-1 flex items-center justify-center">
+                        {mItems.length > 0 ? (
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-neutral-900 text-white">
+                            {mItems.length} {mItems.length === 1 ? "item" : "items"}
+                          </span>
+                        ) : (
+                          <span className="text-[10px] text-neutral-400">0 items</span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* 2. MONTHLY VIEW: Compact Square Days */}
+          {calendarMode === "monthly" && (
+            <div className="p-3 sm:p-3.5 rounded-lg border border-neutral-200 bg-white space-y-2">
+              {/* Weekday headers */}
+              <div className="grid grid-cols-7 text-center text-xs font-medium text-neutral-400 pb-1">
+                <span>Mo</span>
+                <span>Tu</span>
+                <span>We</span>
+                <span>Th</span>
+                <span>Fr</span>
+                <span>Sa</span>
+                <span>Su</span>
+              </div>
+
+              {/* Compact Square Day Cells Grid */}
+              <div className="grid grid-cols-7 gap-1 sm:gap-1.5">
+                {monthCalendarDays.map((d, idx) => {
+                  const dayItemsList = items.filter((i) => i.date === d.dateStr);
+                  const isSelected = d.dateStr === selectedDate;
+                  const isToday = d.dateStr === new Date().toISOString().slice(0, 10);
+
+                  return (
+                    <button
+                      key={`${d.dateStr}-${idx}`}
+                      type="button"
+                      onClick={() => setSelectedDate(d.dateStr)}
+                      className={`aspect-square p-1 rounded-md border flex flex-col items-center justify-center transition-all relative overflow-hidden ${
+                        isSelected
+                          ? "border-neutral-900 bg-neutral-50 ring-1.5 ring-neutral-900 shadow-2xs"
+                          : isToday
+                          ? "border-blue-300 bg-blue-50/30"
+                          : d.isCurrentMonth
+                          ? "border-neutral-100 bg-white hover:bg-neutral-50"
+                          : "border-transparent bg-neutral-50/40 text-neutral-300 opacity-60"
+                      }`}
+                    >
+                      {/* Day Number */}
+                      <span
+                        className={`text-xs font-medium leading-none ${
+                          isSelected
+                            ? "text-neutral-900"
+                            : isToday
+                            ? "text-blue-600 font-semibold"
+                            : d.isCurrentMonth
+                            ? "text-neutral-800"
+                            : "text-neutral-300"
+                        }`}
+                      >
+                        {d.dayNum}
                       </span>
-                    ) : (
-                      <span className="text-[11px] text-neutral-400">0 items</span>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-          <p className="text-[11px] text-neutral-400 text-center">
-            Click any month to view its detailed daily schedule.
-          </p>
-        </div>
-      )}
 
-      {/* 2. MONTHLY VIEW: Square Days (NxN) with clean centered item counts */}
-      {calendarMode === "monthly" && (
-        <div className="p-3 sm:p-4 rounded-lg border border-neutral-200 bg-white space-y-2.5">
-          {/* Weekday headers */}
-          <div className="grid grid-cols-7 text-center text-xs font-medium text-neutral-400 pb-1">
-            <span>Mo</span>
-            <span>Tu</span>
-            <span>We</span>
-            <span>Th</span>
-            <span>Fr</span>
-            <span>Sa</span>
-            <span>Su</span>
-          </div>
+                      {/* Clean item badge below number */}
+                      {dayItemsList.length > 0 ? (
+                        <span className="mt-1 w-4 h-4 rounded-full bg-neutral-900 text-white text-[9px] font-medium flex items-center justify-center shrink-0">
+                          {dayItemsList.length}
+                        </span>
+                      ) : isToday ? (
+                        <span className="mt-1 w-1.5 h-1.5 rounded-full bg-blue-600 shrink-0" />
+                      ) : null}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
-          {/* Square Day Cells Grid */}
-          <div className="grid grid-cols-7 gap-1 sm:gap-1.5">
-            {monthCalendarDays.map((d, idx) => {
-              const dayItemsList = items.filter((i) => i.date === d.dateStr);
-              const isSelected = d.dateStr === selectedDate;
-              const isToday = d.dateStr === new Date().toISOString().slice(0, 10);
+          {/* 3. WEEKLY VIEW: 7 Compact Square Days */}
+          {calendarMode === "weekly" && (
+            <div className="p-3 sm:p-3.5 rounded-lg border border-neutral-200 bg-white space-y-2">
+              <div className="grid grid-cols-7 gap-1 sm:gap-1.5">
+                {weekCalendarDays.map((d) => {
+                  const dayItemsList = items.filter((i) => i.date === d.dateStr);
+                  const isSelected = d.dateStr === selectedDate;
+                  const isToday = d.dateStr === new Date().toISOString().slice(0, 10);
 
-              return (
+                  return (
+                    <button
+                      key={d.dateStr}
+                      type="button"
+                      onClick={() => setSelectedDate(d.dateStr)}
+                      className={`aspect-square p-1.5 rounded-lg border flex flex-col items-center justify-center transition-all ${
+                        isSelected
+                          ? "border-neutral-900 bg-neutral-50 ring-1.5 ring-neutral-900 shadow-2xs"
+                          : isToday
+                          ? "border-blue-300 bg-blue-50/40"
+                          : "border-neutral-200 bg-white hover:bg-neutral-50"
+                      }`}
+                    >
+                      <span className="text-[10px] text-neutral-400 font-medium uppercase leading-none mb-1">
+                        {d.dayLabel}
+                      </span>
+                      <span
+                        className={`text-xs sm:text-sm font-medium leading-none ${
+                          isToday ? "text-blue-600 font-semibold" : "text-neutral-900"
+                        }`}
+                      >
+                        {d.dayNum}
+                      </span>
+
+                      {dayItemsList.length > 0 ? (
+                        <span className="mt-1.5 w-4 h-4 rounded-full bg-neutral-900 text-white text-[9px] font-medium flex items-center justify-center shrink-0">
+                          {dayItemsList.length}
+                        </span>
+                      ) : (
+                        <span className="mt-1.5 text-[10px] text-neutral-300 leading-none">—</span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* 4. DAYLY VIEW: Quick Date Selector */}
+          {calendarMode === "dayly" && (
+            <div className="p-5 rounded-lg border border-neutral-200 bg-white text-center space-y-3">
+              <CalendarIcon size={26} className="mx-auto text-neutral-400" />
+              <div>
+                <h3 className="text-sm font-medium text-neutral-900">{formattedSelectedDate}</h3>
+                <p className="text-xs text-neutral-500 mt-0.5">Day view schedule and payments</p>
+              </div>
+              <div className="flex items-center justify-center gap-2 pt-1">
                 <button
-                  key={`${d.dateStr}-${idx}`}
                   type="button"
-                  onClick={() => setSelectedDate(d.dateStr)}
-                  className={`aspect-square p-1 rounded-md border flex flex-col items-center justify-center transition-all relative overflow-hidden ${
-                    isSelected
-                      ? "border-neutral-900 bg-neutral-50 ring-1.5 ring-neutral-900 shadow-2xs"
-                      : isToday
-                      ? "border-blue-300 bg-blue-50/30"
-                      : d.isCurrentMonth
-                      ? "border-neutral-100 bg-white hover:bg-neutral-50"
-                      : "border-transparent bg-neutral-50/40 text-neutral-300 opacity-60"
-                  }`}
+                  onClick={handlePrev}
+                  className="px-3 py-1.5 rounded-lg border border-neutral-200 text-xs font-medium text-neutral-700 hover:bg-neutral-50"
                 >
-                  {/* Day Number */}
-                  <span
-                    className={`text-xs font-medium leading-none ${
-                      isSelected
-                        ? "text-neutral-900"
-                        : isToday
-                        ? "text-blue-600 font-semibold"
-                        : d.isCurrentMonth
-                        ? "text-neutral-800"
-                        : "text-neutral-300"
-                    }`}
-                  >
-                    {d.dayNum}
-                  </span>
-
-                  {/* Clean item badge below number: fits inside square without touching borders */}
-                  {dayItemsList.length > 0 ? (
-                    <span className="mt-1 w-4 h-4 rounded-full bg-neutral-900 text-white text-[9px] font-medium flex items-center justify-center shrink-0">
-                      {dayItemsList.length}
-                    </span>
-                  ) : isToday ? (
-                    <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-blue-600 shrink-0" />
-                  ) : null}
+                  Previous Day
                 </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* 3. WEEKLY VIEW: 7 Square Days stacked cleanly without horizontal collision */}
-      {calendarMode === "weekly" && (
-        <div className="p-3 sm:p-4 rounded-lg border border-neutral-200 bg-white space-y-2.5">
-          <div className="grid grid-cols-7 gap-1 sm:gap-2">
-            {weekCalendarDays.map((d) => {
-              const dayItemsList = items.filter((i) => i.date === d.dateStr);
-              const isSelected = d.dateStr === selectedDate;
-              const isToday = d.dateStr === new Date().toISOString().slice(0, 10);
-
-              return (
                 <button
-                  key={d.dateStr}
                   type="button"
-                  onClick={() => setSelectedDate(d.dateStr)}
-                  className={`aspect-square p-1.5 rounded-lg border flex flex-col items-center justify-center transition-all ${
-                    isSelected
-                      ? "border-neutral-900 bg-neutral-50 ring-1.5 ring-neutral-900 shadow-2xs"
-                      : isToday
-                      ? "border-blue-300 bg-blue-50/40"
-                      : "border-neutral-200 bg-white hover:bg-neutral-50"
-                  }`}
+                  onClick={handleToday}
+                  className="px-3 py-1.5 rounded-lg bg-neutral-900 text-white text-xs font-medium"
                 >
-                  <span className="text-[10px] text-neutral-400 font-medium uppercase leading-none mb-1">
-                    {d.dayLabel}
-                  </span>
-                  <span
-                    className={`text-xs sm:text-sm font-medium leading-none ${
-                      isToday ? "text-blue-600 font-semibold" : "text-neutral-900"
-                    }`}
-                  >
-                    {d.dayNum}
-                  </span>
-
-                  {dayItemsList.length > 0 ? (
-                    <span className="mt-1.5 w-4 h-4 rounded-full bg-neutral-900 text-white text-[9px] font-medium flex items-center justify-center shrink-0">
-                      {dayItemsList.length}
-                    </span>
-                  ) : (
-                    <span className="mt-1.5 text-[10px] text-neutral-300 leading-none">—</span>
-                  )}
+                  Today
                 </button>
-              );
-            })}
-          </div>
+                <button
+                  type="button"
+                  onClick={handleNext}
+                  className="px-3 py-1.5 rounded-lg border border-neutral-200 text-xs font-medium text-neutral-700 hover:bg-neutral-50"
+                >
+                  Next Day
+                </button>
+              </div>
+            </div>
+          )}
         </div>
-      )}
 
-      {/* 4. DAYLY VIEW OR SELECTED DAY DRAWER (Hidden in Yearly view) */}
-      {calendarMode !== "yearly" && (
-        <div className="p-3.5 sm:p-4 rounded-lg border border-neutral-200 bg-white space-y-3">
+        {/* RIGHT COLUMN: Payments on that day for EVERY section of calendar (col-span-5) */}
+        <div className="lg:col-span-5 p-3.5 sm:p-4 rounded-lg border border-neutral-200 bg-white space-y-3">
           <div className="flex items-center justify-between border-b border-neutral-100 pb-2.5">
             <div className="flex items-center gap-2">
               <CalendarIcon size={14} className="text-neutral-600" />
-              <h3 className="text-xs font-medium text-neutral-900">
+              <h3 className="text-xs font-medium text-neutral-900 truncate">
                 Payments on {formattedSelectedDate}
               </h3>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 shrink-0">
               {dayItems.length > 0 && (
                 <span className="text-[11px] text-neutral-500 font-medium">
-                  Total: {formatCurrency(dailyTotalUSD, "USD")} ≈ {formatCurrency(dailyTotalUZS, "UZS")}
+                  {formatCurrency(dailyTotalUSD, "USD")}
                 </span>
               )}
               <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-neutral-100 text-neutral-700">
-                {dayItems.length} {dayItems.length === 1 ? "item" : "items"}
+                {dayItems.length}
               </span>
             </div>
           </div>
 
           {dayItems.length === 0 ? (
-            <div className="py-8 text-center text-xs text-neutral-400">
-              No payments or subscriptions scheduled for this day.
+            <div className="py-12 text-center text-xs text-neutral-400">
+              No payments scheduled for this date.
             </div>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-2 max-h-[520px] overflow-y-auto pr-0.5">
               {dayItems.map((item) => (
                 <PaymentItemRow
                   key={item.id}
@@ -533,7 +568,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
             </div>
           )}
         </div>
-      )}
+      </div>
     </motion.div>
   );
 };

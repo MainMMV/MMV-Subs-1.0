@@ -53,9 +53,14 @@ export interface PaymentHistoryRecord {
 
 export type CurrencyCode = "USD" | "UZS";
 
+export type CurrencyDisplayMode = "default" | "USD" | "UZS";
+
+export type AppTheme = "warm-dark" | "light";
+
 export interface AppSettings {
-  displayCurrency: CurrencyCode;
+  displayCurrency: CurrencyDisplayMode;
   exchangeRateUsdToUzs: number; // e.g. 12800 (1 USD = 12800 UZS)
+  theme?: AppTheme;
 }
 
 export type AppPage = 
@@ -80,6 +85,7 @@ export interface SpendingGoal {
   currentAmount: number;
   currency: CurrencyCode;
   imageUrl?: string;
+  imagePositionY?: number; // 0 to 100 percentage for vertical focal repositioning
   period?: "monthly" | "yearly" | "custom";
   deadline?: string; // YYYY-MM-DD
   notes?: string;

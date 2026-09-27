@@ -27,7 +27,10 @@ export const HabitNotesModal: React.FC<HabitNotesModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-900/40 backdrop-blur-2xs select-none">
+    <div 
+      onClick={onClose} 
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-900/40 backdrop-blur-2xs select-none"
+    >
       <div 
         className="w-full max-w-sm bg-white rounded-lg border border-neutral-200 shadow-xl p-4 space-y-3 animate-in fade-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
@@ -100,7 +103,10 @@ export const HabitBackdateModal: React.FC<HabitBackdateModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-900/40 backdrop-blur-2xs select-none">
+    <div 
+      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-900/40 backdrop-blur-2xs select-none"
+    >
       <div 
         className="w-full max-w-sm bg-white rounded-lg border border-neutral-200 shadow-xl p-4 space-y-3 animate-in fade-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}

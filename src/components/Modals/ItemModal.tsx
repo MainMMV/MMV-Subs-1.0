@@ -173,7 +173,10 @@ export const ItemModal: React.FC<ItemModalProps> = ({
   const parsedPrice = parseFloat(price) || 0;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-900/40 backdrop-blur-xs overflow-y-auto select-none">
+    <div 
+      onClick={onClose} 
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-900/40 backdrop-blur-xs overflow-y-auto select-none"
+    >
       <div 
         className="w-full max-w-xl bg-white rounded-lg shadow-md border border-neutral-200 overflow-hidden my-6 animate-in fade-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
@@ -360,7 +363,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
 
             {/* Expandable Reminders Section */}
             {isRemindersSectionOpen && (
-              <div className="p-3 rounded-lg border border-neutral-200 bg-neutral-50/60 space-y-2.5 animate-in fade-in duration-100">
+              <div className="p-3 rounded-lg border border-neutral-200 bg-neutral-100/60 space-y-2.5 animate-in fade-in duration-100">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-medium text-neutral-700 flex items-center gap-1.5">
                     <Bell size={13} className="text-neutral-500" />

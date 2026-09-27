@@ -89,17 +89,26 @@ export const ItemActionMenu: React.FC<ItemActionMenuProps> = ({
   }, [isOpen]);
 
   const menuContent = isOpen && typeof document !== "undefined" && (
-    <div
-      ref={menuRef}
-      style={{
-        position: "fixed",
-        top: `${coords.top}px`,
-        left: `${coords.left}px`,
-        zIndex: 99999,
-      }}
-      className="w-48 bg-white rounded-lg shadow-md border border-neutral-200 py-1 text-xs select-none animate-in fade-in zoom-in-95 duration-100"
-      onClick={(e) => e.stopPropagation()}
-    >
+    <>
+      {/* Invisible full-screen backdrop so clicking anywhere outside closes the floating menu */}
+      <div
+        className="fixed inset-0 z-[99998]"
+        onClick={(e) => {
+          e.stopPropagation();
+          setIsOpen(false);
+        }}
+      />
+      <div
+        ref={menuRef}
+        style={{
+          position: "fixed",
+          top: `${coords.top}px`,
+          left: `${coords.left}px`,
+          zIndex: 99999,
+        }}
+        className="w-48 bg-white rounded-lg shadow-md border border-neutral-200 py-1 text-xs select-none animate-in fade-in zoom-in-95 duration-100"
+        onClick={(e) => e.stopPropagation()}
+      >
       <button
         type="button"
         onClick={() => {
@@ -162,6 +171,7 @@ export const ItemActionMenu: React.FC<ItemActionMenuProps> = ({
         <span>Delete</span>
       </button>
     </div>
+    </>
   );
 
   return (

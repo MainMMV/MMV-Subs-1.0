@@ -1,13 +1,13 @@
 import React from "react";
 import { Calendar, Check } from "lucide-react";
-import { PaymentItem, CurrencyCode } from "../types";
-import { getItemStatus, formatCurrency, formatFrequency } from "../utils/calculations";
+import { PaymentItem, CurrencyCode, CurrencyDisplayMode } from "../types";
+import { getItemStatus, formatFrequency, getItemDualPrice } from "../utils/calculations";
 import { ServiceIcon } from "./ServiceIcon";
 import { ItemActionMenu } from "./ItemActionMenu";
 
 interface PaymentItemRowProps {
   item: PaymentItem;
-  displayCurrency: CurrencyCode;
+  displayCurrency?: CurrencyDisplayMode | CurrencyCode;
   exchangeRateUsdToUzs: number;
   onClick?: (item: PaymentItem) => void;
   onEdit: (item: PaymentItem) => void;
@@ -21,6 +21,7 @@ interface PaymentItemRowProps {
 
 export const PaymentItemRow: React.FC<PaymentItemRowProps> = ({
   item,
+  displayCurrency = "default",
   exchangeRateUsdToUzs,
   onClick,
   onEdit,
@@ -36,18 +37,19 @@ export const PaymentItemRow: React.FC<PaymentItemRowProps> = ({
   const isDueToday = status === "due_today";
   const isOverdue = status === "overdue";
 
-  // Approximate opposite currency calculation
-  const approxText =
-    item.currency === "UZS"
-      ? formatCurrency(exchangeRateUsdToUzs > 0 ? item.price / exchangeRateUsdToUzs : 0, "USD")
-      : formatCurrency(item.price * (exchangeRateUsdToUzs || 12800), "UZS");
+  const { topText, bottomText } = getItemDualPrice(
+    item.price,
+    item.currency,
+    displayCurrency as CurrencyDisplayMode,
+    exchangeRateUsdToUzs
+  );
 
   return (
     <div
       onClick={() => onClick?.(item)}
       className={`p-3 sm:p-3.5 rounded-lg border transition-all text-xs select-none cursor-pointer ${
         isPaid
-          ? "border-neutral-200 bg-neutral-50/70 opacity-80"
+          ? "border-neutral-200 bg-emerald-50/15 opacity-80 hover:bg-emerald-50/25"
           : isOverdue
           ? "border-rose-200 bg-rose-50/20 hover:border-rose-300"
           : isDueToday
@@ -150,10 +152,10 @@ export const PaymentItemRow: React.FC<PaymentItemRowProps> = ({
                   isPaid ? "text-neutral-400" : "text-neutral-900"
                 }`}
               >
-                {formatCurrency(item.price, item.currency)}
+                {topText}
               </span>
               <span className="text-[10px] text-neutral-400 block -mt-0.5">
-                ≈ {approxText}
+                {bottomText}
               </span>
             </div>
 

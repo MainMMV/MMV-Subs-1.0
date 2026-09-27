@@ -608,8 +608,14 @@ export const HabitMatrixView: React.FC<HabitMatrixViewProps> = ({
 
       {/* Direct Cell Editing Modal */}
       {editingCell && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-900/40 backdrop-blur-2xs">
-          <div className="w-full max-w-sm bg-white rounded-lg border border-neutral-200 p-4 shadow-xl space-y-3">
+        <div 
+          onClick={() => setEditingCell(null)}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-900/40 backdrop-blur-2xs select-none"
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-sm bg-white rounded-lg border border-neutral-200 p-4 shadow-xl space-y-3 animate-in fade-in zoom-in-95 duration-150"
+          >
             <div className="flex items-center justify-between border-b border-neutral-100 pb-2">
               <div>
                 <h4 className="text-xs font-medium text-neutral-900">{editingCell.habit.name}</h4>

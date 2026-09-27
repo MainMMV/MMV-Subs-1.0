@@ -1,4 +1,4 @@
-import { PaymentItem, PaymentStatus, CurrencyCode, CustomFrequency, PaymentHistoryRecord } from "../types";
+import { PaymentItem, PaymentStatus, CurrencyCode, CurrencyDisplayMode, CustomFrequency, PaymentHistoryRecord } from "../types";
 
 /**
  * Currency conversion using manual exchange rate (1 USD = rate UZS)
@@ -32,6 +32,53 @@ export function formatCurrency(amount: number, currency: CurrencyCode): string {
     })}`;
   }
   return `${Math.round(safeAmount).toLocaleString("en-US")} UZS`;
+}
+
+/**
+ * Formats top primary price and bottom secondary price based on CurrencyDisplayMode:
+ * - "default": Shows the item's created currency on top, converted on bottom
+ * - "USD": USD always on top, UZS below
+ * - "UZS": UZS always on top, USD below
+ */
+export function getItemDisplayPrices(
+  item: PaymentItem,
+  mode: CurrencyDisplayMode = "default",
+  exchangeRateUsdToUzs: number = 12800
+): { primaryPrice: string; secondaryPrice: string } {
+  const rate = exchangeRateUsdToUzs || 12800;
+
+  const usdAmount = item.currency === "USD" ? item.price : (rate > 0 ? item.price / rate : 0);
+  const uzsAmount = item.currency === "UZS" ? item.price : item.price * rate;
+
+  const usdFormatted = formatCurrency(usdAmount, "USD");
+  const uzsFormatted = formatCurrency(uzsAmount, "UZS");
+
+  if (mode === "USD") {
+    return {
+      primaryPrice: usdFormatted,
+      secondaryPrice: `≈ ${uzsFormatted}`,
+    };
+  }
+
+  if (mode === "UZS") {
+    return {
+      primaryPrice: uzsFormatted,
+      secondaryPrice: `≈ ${usdFormatted}`,
+    };
+  }
+
+  // Default mode: display item's created currency on top
+  if (item.currency === "USD") {
+    return {
+      primaryPrice: usdFormatted,
+      secondaryPrice: `≈ ${uzsFormatted}`,
+    };
+  } else {
+    return {
+      primaryPrice: uzsFormatted,
+      secondaryPrice: `≈ ${usdFormatted}`,
+    };
+  }
 }
 
 /**
@@ -276,5 +323,65 @@ export function getNextRecurrenceDate(currentDateStr: string, frequency?: Custom
   const m = String(d.getMonth() + 1).padStart(2, "0");
   const dayStr = String(d.getDate()).padStart(2, "0");
   return `${y}-${m}-${dayStr}`;
+}
+
+/**
+ * Dual price formatter based on currency priority display mode:
+ * - Default: original created currency on top, equivalent converted below
+ * - USD: USD is always displayed on top; if created in UZS, written UZS sum goes below
+ * - UZS: UZS is always displayed on top; if created in USD, written USD sum goes below
+ */
+export function getItemDualPrice(
+  price: number,
+  currency: CurrencyCode,
+  mode: CurrencyDisplayMode,
+  exchangeRateUsdToUzs: number
+): { topText: string; bottomText: string } {
+  const rate = exchangeRateUsdToUzs > 0 ? exchangeRateUsdToUzs : 12800;
+
+  if (mode === "USD") {
+    if (currency === "USD") {
+      return {
+        topText: formatCurrency(price, "USD"),
+        bottomText: `≈ ${formatCurrency(price * rate, "UZS")}`,
+      };
+    } else {
+      const usdVal = price / rate;
+      return {
+        topText: formatCurrency(usdVal, "USD"),
+        bottomText: `≈ ${formatCurrency(price, "UZS")}`,
+      };
+    }
+  }
+
+  if (mode === "UZS") {
+    if (currency === "UZS") {
+      return {
+        topText: formatCurrency(price, "UZS"),
+        bottomText: `≈ ${formatCurrency(price / rate, "USD")}`,
+      };
+    } else {
+      const uzsVal = price * rate;
+      return {
+        topText: formatCurrency(uzsVal, "UZS"),
+        bottomText: `≈ ${formatCurrency(price, "USD")}`,
+      };
+    }
+  }
+
+  // Default mode: created currency on top, converted below
+  if (currency === "UZS") {
+    const usdVal = price / rate;
+    return {
+      topText: formatCurrency(price, "UZS"),
+      bottomText: `≈ ${formatCurrency(usdVal, "USD")}`,
+    };
+  } else {
+    const uzsVal = price * rate;
+    return {
+      topText: formatCurrency(price, "USD"),
+      bottomText: `≈ ${formatCurrency(uzsVal, "UZS")}`,
+    };
+  }
 }
 

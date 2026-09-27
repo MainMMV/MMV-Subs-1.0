@@ -1,1 +1,419 @@
 @import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg-main: #30343B;
+    --bg-sidebar: #25292E;
+    --bg-surface: #454749;
+    --bg-surface-2: #4C4F4F;
+    --bg-surface-input: #5A5C59;
+    --text-primary: #EEEEEE;
+    --text-warm: #B6B29B;
+    --text-muted: #99988A;
+    --accent: #ADC385;
+    --border-theme: #55585A;
+  }
+
+  *, ::before, ::after {
+    font-family: "Google Sans", "Google Sans Flex", -apple-system, BlinkMacSystemFont, sans-serif !important;
+  }
+
+  body {
+    font-family: "Google Sans", "Google Sans Flex", -apple-system, BlinkMacSystemFont, sans-serif !important;
+    font-weight: 400;
+  }
+}
+
+/* WARM DARK THEME (DEFAULT) - SPECS MATCHED EXACTLY */
+html[data-theme="warm-dark"],
+html[data-theme="warm-dark"] body {
+  background-color: #30343B !important;
+  color: #EEEEEE !important;
+}
+
+html[data-theme="warm-dark"] ::selection {
+  background-color: #ADC385 !important;
+  color: #25292E !important;
+}
+
+/* Sidebar & Darker Surface (#25292E) */
+html[data-theme="warm-dark"] aside,
+html[data-theme="warm-dark"] .sidebar-container,
+html[data-theme="warm-dark"] [data-sidebar="true"] {
+  background-color: #25292E !important;
+  border-color: #55585A !important;
+}
+
+/* App Header & Top Navbar */
+html[data-theme="warm-dark"] header {
+  background-color: #25292E !important;
+  border-color: #55585A !important;
+}
+
+/* Main Background containers (#30343B) and opacity variants */
+html[data-theme="warm-dark"] .bg-neutral-50,
+html[data-theme="warm-dark"] [class*="bg-neutral-50/"] {
+  background-color: #35383F !important;
+}
+
+/* Primary Surface cards & dialogs (#454749) */
+html[data-theme="warm-dark"] .bg-white,
+html[data-theme="warm-dark"] [class*="bg-white/"] {
+  background-color: #454749 !important;
+}
+
+/* Secondary Surface (#3C3F45) and sub-containers */
+html[data-theme="warm-dark"] .bg-neutral-100,
+html[data-theme="warm-dark"] [class*="bg-neutral-100/"] {
+  background-color: #3A3D43 !important;
+}
+
+/* Tertiary tracks / pill switcher containers */
+html[data-theme="warm-dark"] .bg-neutral-200,
+html[data-theme="warm-dark"] [class*="bg-neutral-200/"] {
+  background-color: #26292F !important;
+}
+
+/* Input background (#5A5C59) and borders (#55585A) */
+html[data-theme="warm-dark"] input,
+html[data-theme="warm-dark"] select,
+html[data-theme="warm-dark"] textarea {
+  background-color: #5A5C59 !important;
+  color: #EEEEEE !important;
+  border-color: #55585A !important;
+}
+
+html[data-theme="warm-dark"] input::placeholder,
+html[data-theme="warm-dark"] textarea::placeholder {
+  color: #99988A !important;
+}
+
+html[data-theme="warm-dark"] input:focus,
+html[data-theme="warm-dark"] select:focus,
+html[data-theme="warm-dark"] textarea:focus {
+  border-color: #ADC385 !important;
+  outline: none !important;
+}
+
+/* Borders & Dividers (#55585A) */
+html[data-theme="warm-dark"] .border-neutral-200,
+html[data-theme="warm-dark"] .border-neutral-100,
+html[data-theme="warm-dark"] .border-neutral-300 {
+  border-color: #55585A !important;
+}
+
+/* Subtle low-opacity borders for navigation buttons */
+.nav-item-border {
+  border-color: rgba(0, 0, 0, 0.06) !important;
+}
+.nav-item-border:hover {
+  border-color: rgba(0, 0, 0, 0.12) !important;
+}
+.nav-item-border-active {
+  border-color: rgba(0, 0, 0, 0.15) !important;
+}
+html[data-theme="warm-dark"] .nav-item-border {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+html[data-theme="warm-dark"] .nav-item-border:hover {
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+html[data-theme="warm-dark"] .nav-item-border-active {
+  border-color: rgba(173, 195, 133, 0.35) !important;
+}
+
+/* Typography Hierarchy */
+/* Primary text: Soft off-white (#EEEEEE) */
+html[data-theme="warm-dark"] .text-neutral-900,
+html[data-theme="warm-dark"] .text-neutral-800 {
+  color: #EEEEEE !important;
+}
+
+/* Warm primary/UI text: Beige-gray (#B6B29B) */
+html[data-theme="warm-dark"] .text-neutral-700,
+html[data-theme="warm-dark"] .text-neutral-600 {
+  color: #B6B29B !important;
+}
+
+/* Muted text: Gray-beige (#99988A) */
+html[data-theme="warm-dark"] .text-neutral-500,
+html[data-theme="warm-dark"] .text-neutral-400 {
+  color: #99988A !important;
+}
+
+/* Main Accent: Soft Lime (#ADC385) with dark charcoal text */
+html[data-theme="warm-dark"] .bg-neutral-900 {
+  background-color: #ADC385 !important;
+  color: #25292E !important;
+  font-weight: 500 !important;
+}
+
+html[data-theme="warm-dark"] .bg-neutral-900:hover {
+  background-color: #9EB576 !important;
+}
+
+html[data-theme="warm-dark"] .bg-neutral-900 svg {
+  color: #25292E !important;
+  stroke: #25292E !important;
+}
+
+/* Hover States on surfaces (#454749 -> #525557) */
+html[data-theme="warm-dark"] .hover\:bg-neutral-50:hover,
+html[data-theme="warm-dark"] .hover\:bg-neutral-100:hover,
+html[data-theme="warm-dark"] .hover\:bg-white:hover {
+  background-color: #525557 !important;
+}
+
+html[data-theme="warm-dark"] .hover\:border-neutral-300:hover,
+html[data-theme="warm-dark"] .hover\:border-neutral-400:hover {
+  border-color: #73777A !important;
+}
+
+/* Progress bar fill using soft lime accent */
+html[data-theme="warm-dark"] .bg-neutral-900.h-full {
+  background-color: #ADC385 !important;
+}
+
+/* Scrollbar styling for warm dark */
+html[data-theme="warm-dark"] ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+html[data-theme="warm-dark"] ::-webkit-scrollbar-track {
+  background: #25292E;
+}
+
+html[data-theme="warm-dark"] ::-webkit-scrollbar-thumb {
+  background: #55585A;
+  border-radius: 4px;
+}
+
+html[data-theme="warm-dark"] ::-webkit-scrollbar-thumb:hover {
+  background: #686B6D;
+}
+
+/* Navigation items light noticeable border */
+html[data-theme="warm-dark"] aside nav button {
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+html[data-theme="warm-dark"] aside nav button:hover {
+  border-color: rgba(255, 255, 255, 0.24) !important;
+}
+
+/* Overdue items: subtle dark-rose border and background, never blinding pale pink */
+html[data-theme="warm-dark"] .border-rose-200 {
+  border-color: #613035 !important;
+}
+html[data-theme="warm-dark"] .hover\:border-rose-300:hover {
+  border-color: #7D3E44 !important;
+}
+html[data-theme="warm-dark"] .bg-rose-50\/20,
+html[data-theme="warm-dark"] .bg-rose-50 {
+  background-color: #38282B !important;
+}
+html[data-theme="warm-dark"] .bg-rose-100 {
+  background-color: #4C2328 !important;
+}
+html[data-theme="warm-dark"] .text-rose-700,
+html[data-theme="warm-dark"] .text-rose-600 {
+  color: #F87171 !important;
+}
+
+/* Due Today / Amber items */
+html[data-theme="warm-dark"] .border-amber-200 {
+  border-color: #614D2A !important;
+}
+html[data-theme="warm-dark"] .hover\:border-amber-300:hover {
+  border-color: #7E6437 !important;
+}
+html[data-theme="warm-dark"] .bg-amber-50\/20,
+html[data-theme="warm-dark"] .bg-amber-50 {
+  background-color: #383023 !important;
+}
+html[data-theme="warm-dark"] .bg-amber-100 {
+  background-color: #4D3F22 !important;
+}
+html[data-theme="warm-dark"] .text-amber-800,
+html[data-theme="warm-dark"] .text-amber-700 {
+  color: #FCD34D !important;
+}
+
+/* Emerald / Paid / Active items */
+html[data-theme="warm-dark"] .bg-emerald-100,
+html[data-theme="warm-dark"] [class*="bg-emerald-50"] {
+  background-color: #243D2D !important;
+}
+html[data-theme="warm-dark"] [class*="border-emerald-200"],
+html[data-theme="warm-dark"] [class*="border-emerald-300"] {
+  border-color: #385B42 !important;
+}
+html[data-theme="warm-dark"] .text-emerald-700,
+html[data-theme="warm-dark"] .text-emerald-800 {
+  color: #6EE7B7 !important;
+}
+
+/* Pill and Switcher tabs in dark theme */
+html[data-theme="warm-dark"] .bg-neutral-200\/60 {
+  background-color: #25292E !important;
+}
+
+/* ==========================================================================
+   LIGHT ANIMATIONS (MINIMAL, SMOOTH MICRO-INTERACTIONS)
+   ========================================================================== */
+
+/* Universal subtle transitions for buttons, inputs, links, and cards */
+button, a, input, select, textarea {
+  transition-property: color, background-color, border-color, opacity, box-shadow;
+  transition-timing-function: cubic-bezier(0, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+/* Smooth page fade and subtle 3px settle */
+@keyframes lightFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-page-enter {
+  animation: lightFadeIn 180ms ease-out forwards;
+}
+
+/* Gentle modal scale and fade */
+@keyframes modalEnter {
+  from {
+    opacity: 0;
+    transform: scale(0.985) translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-modal-enter {
+  animation: modalEnter 150ms ease-out forwards;
+}
+
+/* ==========================================================================
+   WARM LIGHT THEME
+   ========================================================================== */
+
+html[data-theme="light"],
+html[data-theme="light"] body {
+  background-color: #F8F6F1 !important;
+  color: #242320 !important;
+}
+
+html[data-theme="light"] ::selection {
+  background-color: #E2E8D5 !important;
+  color: #242320 !important;
+}
+
+/* Sidebar & Warm Surfaces (#F1EEE7) */
+html[data-theme="light"] aside,
+html[data-theme="light"] .sidebar-container,
+html[data-theme="light"] [data-sidebar="true"] {
+  background-color: #F1EEE7 !important;
+  border-color: #E4DFD5 !important;
+}
+
+/* App Header & Top Navbar */
+html[data-theme="light"] header {
+  background-color: #F8F6F1 !important;
+  border-color: #E4DFD5 !important;
+}
+
+/* Main Background containers (#F8F6F1) */
+html[data-theme="light"] .bg-neutral-50 {
+  background-color: #F8F6F1 !important;
+}
+
+/* Primary Surface cards & dialogs (#FFFEFC) */
+html[data-theme="light"] .bg-white {
+  background-color: #FFFEFC !important;
+  border-color: #E5DFD4 !important;
+}
+
+/* Secondary Surface (#EDE8DF) */
+html[data-theme="light"] .bg-neutral-100 {
+  background-color: #EDE8DF !important;
+}
+
+html[data-theme="light"] .bg-neutral-200 {
+  background-color: #E2DDD2 !important;
+}
+
+/* Input background and borders */
+html[data-theme="light"] input,
+html[data-theme="light"] select,
+html[data-theme="light"] textarea {
+  background-color: #FFFEFC !important;
+  color: #242320 !important;
+  border-color: #D8D2C5 !important;
+}
+
+html[data-theme="light"] input:focus,
+html[data-theme="light"] select:focus,
+html[data-theme="light"] textarea:focus {
+  border-color: #7A9154 !important;
+  outline: none !important;
+}
+
+/* Borders & Dividers */
+html[data-theme="light"] .border-neutral-200,
+html[data-theme="light"] .border-neutral-100,
+html[data-theme="light"] .border-neutral-300 {
+  border-color: #E5DFD4 !important;
+}
+
+/* Typography Hierarchy */
+html[data-theme="light"] .text-neutral-900,
+html[data-theme="light"] .text-neutral-800 {
+  color: #242320 !important;
+}
+
+html[data-theme="light"] .text-neutral-700,
+html[data-theme="light"] .text-neutral-600 {
+  color: #5C5850 !important;
+}
+
+html[data-theme="light"] .text-neutral-500,
+html[data-theme="light"] .text-neutral-400 {
+  color: #8C867B !important;
+}
+
+/* Primary Accent buttons */
+html[data-theme="light"] .bg-neutral-900 {
+  background-color: #262421 !important;
+  color: #F8F6F1 !important;
+}
+html[data-theme="light"] .bg-neutral-900:hover {
+  background-color: #383531 !important;
+}
+
+/* Hover surfaces */
+html[data-theme="light"] .hover\:bg-neutral-50:hover {
+  background-color: #F1EEE7 !important;
+}
+html[data-theme="light"] .hover\:bg-neutral-100:hover {
+  background-color: #E5DFD4 !important;
+}
+
+/* Nav items border in warm light */
+html[data-theme="light"] .nav-item-border {
+  border-color: rgba(92, 88, 80, 0.08) !important;
+}
+html[data-theme="light"] .nav-item-border:hover {
+  border-color: rgba(92, 88, 80, 0.16) !important;
+}
+html[data-theme="light"] .nav-item-border-active {
+  border-color: #D8D1C2 !important;
+  background-color: #EAE5DB !important;
+}

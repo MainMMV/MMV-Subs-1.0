@@ -1,14 +1,14 @@
 import React, { useState } from "react";
 import { Filter, LayoutGrid, List } from "lucide-react";
 import { motion } from "motion/react";
-import { PaymentItem, CurrencyCode } from "../types";
+import { PaymentItem, CurrencyCode, CurrencyDisplayMode } from "../types";
 import { PaymentItemRow } from "../components/PaymentItemRow";
 import { PaymentItemCard } from "../components/PaymentItemCard";
 import { getItemStatus } from "../utils/calculations";
 
 interface SubscriptionsViewProps {
   items: PaymentItem[];
-  displayCurrency: CurrencyCode;
+  displayCurrency: CurrencyDisplayMode;
   exchangeRateUsdToUzs: number;
   onViewDetail?: (item: PaymentItem) => void;
   onEdit: (item: PaymentItem) => void;
@@ -34,13 +34,14 @@ export const SubscriptionsView: React.FC<SubscriptionsViewProps> = ({
 }) => {
   const [viewMode, setViewMode] = useState<"list" | "card">("list");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [filter, setFilter] = useState<"all" | "upcoming" | "due_today" | "overdue" | "paid">("all");
+  const [filter, setFilter] = useState<"all" | "active" | "overdue" | "due_today" | "upcoming" | "paid">("all");
 
   const subs = items.filter((i) => i.type === "subscription");
 
   const filteredSubs = subs.filter((s) => {
     if (filter === "all") return true;
     const status = getItemStatus(s);
+    if (filter === "active") return status !== "paid" && status !== "skipped";
     return status === filter;
   });
 
@@ -97,12 +98,13 @@ export const SubscriptionsView: React.FC<SubscriptionsViewProps> = ({
       {isFilterOpen && (
         <div className="p-3 rounded-lg border border-neutral-200 bg-white flex flex-col sm:flex-row items-center justify-between gap-2.5 animate-in fade-in duration-100">
           <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0">
-            {(["all", "upcoming", "due_today", "overdue", "paid"] as const).map((f) => {
+            {(["all", "active", "overdue", "due_today", "upcoming", "paid"] as const).map((f) => {
               const labels = {
                 all: "All",
-                upcoming: "Upcoming",
-                due_today: "Due Today",
+                active: "Active",
                 overdue: "Overdue",
+                due_today: "Due Today",
+                upcoming: "Upcoming",
                 paid: "Paid",
               };
               return (

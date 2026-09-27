@@ -10,14 +10,14 @@ import {
   Grid, 
   ListFilter,
   Sparkles,
-  Sun,
-  Sunset,
-  Moon,
-  Clock,
-  Pin
+  Pin,
+  LayoutGrid,
+  List
 } from "lucide-react";
-import { Habit, HabitLog, TimeOfDay } from "../types/habit";
+import { motion } from "motion/react";
+import { Habit, HabitLog } from "../types/habit";
 import { HabitCard } from "../components/Habits/HabitCard";
+import { HabitRow } from "../components/Habits/HabitRow";
 import { HabitMatrixView } from "../components/Habits/HabitMatrixView";
 import { HabitModal } from "../components/Modals/HabitModal";
 import { HabitStatsModal } from "../components/Habits/HabitStatsModal";
@@ -57,10 +57,13 @@ export const HabitsView: React.FC<HabitsViewProps> = ({
   const todayStr = formatDateStr(todayDate);
   const [selectedDate, setSelectedDate] = useState<string>(todayStr);
 
-  // Filters
+  // Filters & View Mode
+  const [habitViewMode, setHabitViewMode] = useState<"card" | "list">("card");
   const [categoryFilter, setCategoryFilter] = useState("all");
-  const [timeFilter, setTimeFilter] = useState<"all" | TimeOfDay>("all");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "paused">("active");
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+
+  const hasActiveFilters = statusFilter !== "active" || categoryFilter !== "all";
 
   // Modals state
   const [isHabitModalOpen, setIsHabitModalOpen] = useState(false);
@@ -117,9 +120,6 @@ export const HabitsView: React.FC<HabitsViewProps> = ({
         // Category filter
         if (categoryFilter !== "all" && habit.category !== categoryFilter) return false;
 
-        // Time of Day filter
-        if (timeFilter !== "all" && habit.timeOfDay !== timeFilter) return false;
-
         // Schedule check
         return isHabitScheduledOnDate(habit, selectedDate);
       })
@@ -128,7 +128,7 @@ export const HabitsView: React.FC<HabitsViewProps> = ({
         if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1;
         return a.order - b.order;
       });
-  }, [habits, selectedDate, statusFilter, categoryFilter, timeFilter]);
+  }, [habits, selectedDate, statusFilter, categoryFilter]);
 
   // Today's completion stats
   const completionStats = useMemo(() => {
@@ -248,20 +248,17 @@ export const HabitsView: React.FC<HabitsViewProps> = ({
     });
   };
 
-  // Group habits by Time of Day
-  const timeSections = [
-    { id: "morning", title: "Morning Routines", icon: Sun },
-    { id: "afternoon", title: "Afternoon Habits", icon: Sunset },
-    { id: "evening", title: "Evening Reflection", icon: Moon },
-    { id: "anytime", title: "Anytime During Day", icon: Clock },
-  ];
-
   return (
-    <div className="space-y-4 w-full pb-12">
+    <motion.div 
+      initial={{ opacity: 0, y: 4 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.16, ease: "easeOut" }}
+      className="space-y-4 w-full pb-12"
+    >
       {/* Top Main Navigation Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-white border border-neutral-200 rounded-lg shadow-2xs">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 p-3.5 bg-white border border-neutral-200 rounded-lg shadow-2xs">
         {/* Left: Tab Switcher */}
-        <div className="flex items-center gap-1 bg-neutral-100 p-1 rounded-lg border border-neutral-200 text-xs">
+        <div className="flex items-center gap-1 bg-neutral-100 p-1 rounded-lg border border-neutral-200 text-xs shrink-0">
           <button
             type="button"
             onClick={() => setActiveTab("today")}
@@ -302,180 +299,240 @@ export const HabitsView: React.FC<HabitsViewProps> = ({
           </button>
         </div>
 
-        {/* Right: Calendar Date Navigator (Moved here in place of New Habit button) */}
-        <div className="flex items-center gap-1.5">
+        {/* Middle: Progress Section */}
+        {activeTab === "today" && (
+          completionStats.isPerfect ? (
+            <div className="flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-lg shrink-0 shadow-2xs">
+              <Sparkles size={14} className="text-emerald-600" />
+              <span className="text-xs font-medium tracking-wide">Perfect</span>
+            </div>
+          ) : (
+            <div className="flex items-center justify-center gap-3 px-3 py-1 bg-neutral-50 border border-neutral-200 rounded-lg shrink-0">
+              <div className="text-left sm:text-right">
+                <span className="text-xs font-medium text-neutral-900 block leading-tight">
+                  {completionStats.completedCount} of {completionStats.totalScheduled} Completed
+                </span>
+                <span className="text-[10px] text-neutral-500 block leading-tight mt-0.5">
+                  {completionStats.pct}% daily progress
+                </span>
+              </div>
+
+              <div className="w-24 bg-neutral-200 rounded-full h-1.5 overflow-hidden shrink-0">
+                <div
+                  className="h-full bg-neutral-900 transition-all duration-300"
+                  style={{ width: `${completionStats.pct}%` }}
+                />
+              </div>
+            </div>
+          )
+        )}
+
+        {/* Right: Calendar Date Navigator with unified h-8 sizes and Filter Button right after right-side arrow */}
+        <div className="flex items-center gap-1.5 shrink-0 self-start md:self-auto flex-wrap">
+          {/* Previous Day Arrow */}
           <button
             type="button"
             onClick={handlePrevDay}
-            className="p-1.5 rounded-lg border border-neutral-200 text-neutral-600 hover:bg-neutral-100 transition-colors"
+            className="h-8 w-8 rounded-lg border border-neutral-200 text-neutral-600 hover:bg-neutral-100 flex items-center justify-center transition-colors"
             title="Previous Day"
           >
             <ChevronLeft size={16} />
           </button>
 
-          <div className="flex items-center gap-1.5">
-            <input
-              type="date"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="text-xs font-medium text-neutral-900 bg-neutral-50 border border-neutral-200 rounded-lg px-2.5 py-1 focus:bg-white"
-            />
+          {/* Date Picker (Same h-8 height) */}
+          <input
+            type="date"
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+            className="h-8 text-xs font-medium text-neutral-900 bg-neutral-50 border border-neutral-200 rounded-lg px-2.5 focus:bg-white flex items-center leading-none"
+          />
 
-            {selectedDate !== todayStr && (
-              <button
-                type="button"
-                onClick={handleTodayShortcut}
-                className="px-2 py-1 text-[11px] font-medium text-neutral-700 bg-neutral-100 hover:bg-neutral-200 rounded-md transition-colors"
-              >
-                Today
-              </button>
-            )}
-          </div>
+          {/* Today Button (Same h-8 height) */}
+          {selectedDate !== todayStr && (
+            <button
+              type="button"
+              onClick={handleTodayShortcut}
+              className="h-8 px-2.5 text-xs font-medium text-neutral-700 bg-neutral-50 hover:bg-neutral-100 border border-neutral-200 rounded-lg transition-colors flex items-center justify-center"
+            >
+              Today
+            </button>
+          )}
 
+          {/* Next Day Arrow */}
           <button
             type="button"
             onClick={handleNextDay}
-            className="p-1.5 rounded-lg border border-neutral-200 text-neutral-600 hover:bg-neutral-100 transition-colors"
+            className="h-8 w-8 rounded-lg border border-neutral-200 text-neutral-600 hover:bg-neutral-100 flex items-center justify-center transition-colors"
             title="Next Day"
           >
             <ChevronRight size={16} />
           </button>
+
+          {/* View Mode Toggle: Card and List (Icon Only) BEFORE Filter */}
+          {activeTab === "today" && (
+            <div className="flex items-center p-0.5 bg-neutral-100 rounded-lg border border-neutral-200">
+              <button
+                type="button"
+                onClick={() => setHabitViewMode("card")}
+                className={`h-7 w-7 rounded-md flex items-center justify-center transition-colors ${
+                  habitViewMode === "card"
+                    ? "bg-white text-neutral-900 shadow-2xs font-medium"
+                    : "text-neutral-500 hover:text-neutral-800"
+                }`}
+                title="Card View"
+                aria-label="Card View"
+              >
+                <LayoutGrid size={14} />
+              </button>
+              <button
+                type="button"
+                onClick={() => setHabitViewMode("list")}
+                className={`h-7 w-7 rounded-md flex items-center justify-center transition-colors ${
+                  habitViewMode === "list"
+                    ? "bg-white text-neutral-900 shadow-2xs font-medium"
+                    : "text-neutral-500 hover:text-neutral-800"
+                }`}
+                title="List View"
+                aria-label="List View"
+              >
+                <List size={14} />
+              </button>
+            </div>
+          )}
+
+          {/* Filter button (Icon only) right after the view toggler */}
+          <button
+            type="button"
+            onClick={() => setIsFilterOpen(!isFilterOpen)}
+            className={`h-8 w-8 rounded-lg border flex items-center justify-center relative transition-colors ${
+              isFilterOpen || hasActiveFilters
+                ? "bg-neutral-900 text-white border-neutral-900"
+                : "bg-white text-neutral-700 border-neutral-200 hover:bg-neutral-50"
+            }`}
+            title="Filter Habits"
+            aria-label="Filter Habits"
+          >
+            <Filter size={14} />
+            {hasActiveFilters && (
+              <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-emerald-400" />
+            )}
+          </button>
         </div>
       </div>
+
+      {/* Filtration Panel (Opens on click of Filter button) */}
+      {isFilterOpen && activeTab === "today" && (
+        <div className="flex items-center gap-2 p-2.5 bg-white border border-neutral-200 rounded-lg animate-in fade-in slide-in-from-top-1 duration-150 flex-wrap">
+          <div className="flex items-center gap-1.5 text-xs text-neutral-600 font-medium mr-1">
+            <Filter size={13} />
+            <span>Filtration:</span>
+          </div>
+
+          <select
+            value={statusFilter}
+            onChange={(e: any) => setStatusFilter(e.target.value)}
+            className="h-8 text-xs border border-neutral-200 rounded-lg px-2.5 bg-neutral-50 text-neutral-700 font-medium"
+          >
+            <option value="active">Active Habits</option>
+            <option value="all">All Habits</option>
+            <option value="paused">Paused Only</option>
+          </select>
+
+          <select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            className="h-8 text-xs border border-neutral-200 rounded-lg px-2.5 bg-neutral-50 text-neutral-700 font-medium"
+          >
+            <option value="all">All Categories</option>
+            {categories.map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
+
+          {hasActiveFilters && (
+            <button
+              type="button"
+              onClick={() => {
+                setStatusFilter("active");
+                setCategoryFilter("all");
+              }}
+              className="text-[11px] text-neutral-500 hover:text-neutral-900 underline px-1 font-medium ml-auto"
+            >
+              Reset Filters
+            </button>
+          )}
+        </div>
+      )}
 
       {/* VIEW TAB 1: TODAY'S HABITS */}
       {activeTab === "today" && (
         <div className="space-y-4">
-          {/* Daily Progress & Perfect Day Banner */}
-          <div className="p-3.5 bg-white border border-neutral-200 rounded-lg shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-medium text-neutral-900">
-                {new Date(selectedDate + "T12:00:00").toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric", year: "numeric" })}
-              </span>
-              {completionStats.isPerfect && (
-                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-medium">
-                  <Sparkles size={13} className="text-emerald-600" />
-                  <span>Perfect Day!</span>
-                </div>
-              )}
-            </div>
-
-            <div className="flex items-center gap-3">
-              <div className="text-right">
-                <span className="text-xs font-medium text-neutral-900 block">
-                  {completionStats.completedCount} of {completionStats.totalScheduled} Completed
-                </span>
-                <span className="text-[10px] text-neutral-500">
-                  {completionStats.pct}% daily progress
-                </span>
-              </div>
-
-              <div className="w-28 bg-neutral-100 rounded-full h-2 overflow-hidden border border-neutral-200">
-                <div
-                  className={`h-full transition-all duration-300 ${
-                    completionStats.isPerfect ? "bg-emerald-600" : "bg-neutral-900"
-                  }`}
-                  style={{ width: `${completionStats.pct}%` }}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Filter Controls (No Search) */}
-          <div className="flex items-center justify-between gap-2.5 flex-wrap">
-            <div className="flex items-center gap-2 flex-wrap">
-              <select
-                value={statusFilter}
-                onChange={(e: any) => setStatusFilter(e.target.value)}
-                className="text-xs border border-neutral-200 rounded-lg px-2.5 py-1.5 bg-white text-neutral-700"
-              >
-                <option value="active">Active</option>
-                <option value="all">All Habits</option>
-                <option value="paused">Paused Only</option>
-              </select>
-
-              <select
-                value={categoryFilter}
-                onChange={(e) => setCategoryFilter(e.target.value)}
-                className="text-xs border border-neutral-200 rounded-lg px-2.5 py-1.5 bg-white text-neutral-700"
-              >
-                <option value="all">All Categories</option>
-                {categories.map((c) => (
-                  <option key={c} value={c}>{c}</option>
-                ))}
-              </select>
-
-              <select
-                value={timeFilter}
-                onChange={(e: any) => setTimeFilter(e.target.value)}
-                className="text-xs border border-neutral-200 rounded-lg px-2.5 py-1.5 bg-white text-neutral-700"
-              >
-                <option value="all">All Times</option>
-                <option value="morning">Morning</option>
-                <option value="afternoon">Afternoon</option>
-                <option value="evening">Evening</option>
-                <option value="anytime">Anytime</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Habits Grouped by Time of Day or Flat List */}
           {scheduledHabits.length === 0 ? (
             <div className="p-12 text-center bg-white border border-neutral-200 rounded-lg">
               <CheckCircle2 size={32} className="mx-auto text-neutral-300 mb-2" />
               <h3 className="text-xs font-medium text-neutral-800">No Habits Scheduled</h3>
             </div>
-          ) : (
-            <div className="space-y-5">
-              {timeSections.map((sec) => {
-                const secHabits = scheduledHabits.filter(
-                  (h) => (h.timeOfDay || "anytime") === sec.id
-                );
-                if (secHabits.length === 0) return null;
-                const SecIcon = sec.icon;
+          ) : habitViewMode === "card" ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 w-full">
+              {scheduledHabits.map((habit) => {
+                const habitLogs = logs[habit.id] || {};
+                const log = habitLogs[selectedDate];
+                const streak = calculateHabitStreak(habit, habitLogs, todayStr).currentStreak;
 
                 return (
-                  <div key={sec.id} className="space-y-2">
-                    <div className="flex items-center gap-1.5 text-xs font-medium text-neutral-700 px-1">
-                      <SecIcon size={14} className="text-neutral-500" />
-                      <span>{sec.title}</span>
-                      <span className="text-[10px] text-neutral-400 font-normal">
-                        ({secHabits.length})
-                      </span>
-                    </div>
+                  <HabitCard
+                    key={habit.id}
+                    habit={habit}
+                    log={log}
+                    streak={streak}
+                    onToggleComplete={handleToggleComplete}
+                    onUpdateValue={handleUpdateValue}
+                    onSetValue={handleSetValue}
+                    onToggleChecklistItem={handleToggleChecklistItem}
+                    onSkipDay={handleSkipDay}
+                    onOpenNotes={(h, l) => setNotesModalHabit({ habit: h, log: l })}
+                    onOpenStats={(h) => setStatsHabit(h)}
+                    onEditHabit={(h) => {
+                      setEditingHabit(h);
+                      setIsHabitModalOpen(true);
+                    }}
+                    onTogglePause={handleTogglePause}
+                    onTogglePin={handleTogglePin}
+                    onDeleteHabit={onDeleteHabit}
+                    onOpenBackdate={(h) => setBackdateHabit(h)}
+                  />
+                );
+              })}
+            </div>
+          ) : (
+            <div className="space-y-2 w-full">
+              {scheduledHabits.map((habit) => {
+                const habitLogs = logs[habit.id] || {};
+                const log = habitLogs[selectedDate];
+                const streak = calculateHabitStreak(habit, habitLogs, todayStr).currentStreak;
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-                      {secHabits.map((habit) => {
-                        const habitLogs = logs[habit.id] || {};
-                        const log = habitLogs[selectedDate];
-                        const streak = calculateHabitStreak(habit, habitLogs, todayStr).currentStreak;
-
-                        return (
-                          <HabitCard
-                            key={habit.id}
-                            habit={habit}
-                            log={log}
-                            streak={streak}
-                            onToggleComplete={handleToggleComplete}
-                            onUpdateValue={handleUpdateValue}
-                            onSetValue={handleSetValue}
-                            onToggleChecklistItem={handleToggleChecklistItem}
-                            onSkipDay={handleSkipDay}
-                            onOpenNotes={(h, l) => setNotesModalHabit({ habit: h, log: l })}
-                            onOpenStats={(h) => setStatsHabit(h)}
-                            onEditHabit={(h) => {
-                              setEditingHabit(h);
-                              setIsHabitModalOpen(true);
-                            }}
-                            onTogglePause={handleTogglePause}
-                            onTogglePin={handleTogglePin}
-                            onDeleteHabit={onDeleteHabit}
-                            onOpenBackdate={(h) => setBackdateHabit(h)}
-                          />
-                        );
-                      })}
-                    </div>
-                  </div>
+                return (
+                  <HabitRow
+                    key={habit.id}
+                    habit={habit}
+                    log={log}
+                    streak={streak}
+                    onToggleComplete={handleToggleComplete}
+                    onUpdateValue={handleUpdateValue}
+                    onSetValue={handleSetValue}
+                    onToggleChecklistItem={handleToggleChecklistItem}
+                    onSkipDay={handleSkipDay}
+                    onOpenNotes={(h, l) => setNotesModalHabit({ habit: h, log: l })}
+                    onOpenStats={(h) => setStatsHabit(h)}
+                    onEditHabit={(h) => {
+                      setEditingHabit(h);
+                      setIsHabitModalOpen(true);
+                    }}
+                    onTogglePause={handleTogglePause}
+                    onTogglePin={handleTogglePin}
+                    onDeleteHabit={onDeleteHabit}
+                    onOpenBackdate={(h) => setBackdateHabit(h)}
+                  />
                 );
               })}
             </div>
@@ -626,6 +683,6 @@ export const HabitsView: React.FC<HabitsViewProps> = ({
           onClose={() => setBackdateHabit(null)}
         />
       )}
-    </div>
+    </motion.div>
   );
 };

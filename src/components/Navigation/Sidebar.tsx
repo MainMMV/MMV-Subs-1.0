@@ -7,13 +7,11 @@ import {
   Calendar, 
   Target,
   Settings, 
-  Plus, 
-  PanelLeftClose, 
-  PanelLeft,
   X,
   CheckCircle2 
 } from "lucide-react";
 import { AppPage, PaymentItem } from "../../types";
+import { MMVLogo } from "../MMVLogo";
 
 interface SidebarProps {
   currentPage: AppPage;
@@ -22,7 +20,7 @@ interface SidebarProps {
   habitsCount?: number;
   isCollapsed?: boolean;
   onToggleCollapse?: () => void;
-  onOpenAddModal: () => void;
+  onOpenAddModal?: () => void;
   onCloseMobile?: () => void;
 }
 
@@ -98,23 +96,26 @@ export const Sidebar: React.FC<SidebarProps> = ({
       } h-screen bg-white border-r border-neutral-200 flex flex-col justify-between select-none flex-shrink-0 transition-all duration-200`}
     >
       <div>
-        {/* Brand Header */}
+        {/* Brand Header: Logo button collapses/expands navigation */}
         <div className={`px-4 pt-4 pb-3 flex items-center ${isCollapsed ? "justify-center" : "justify-between"}`}>
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-neutral-900 flex items-center justify-center text-white shrink-0">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="2" y="5" width="20" height="14" rx="2" />
-                <line x1="2" y1="10" x2="22" y2="10" />
-              </svg>
-            </div>
+          <button
+            type="button"
+            onClick={onToggleCollapse}
+            className="flex items-center gap-2.5 p-1 -m-1 rounded-lg hover:bg-neutral-100/70 transition-colors cursor-pointer text-left focus:outline-none"
+            title={isCollapsed ? "Expand navigation" : "Collapse navigation"}
+          >
+            <MMVLogo size={30} showText={false} />
             {!isCollapsed && (
-              <div>
-                <span className="font-medium text-neutral-900 text-sm tracking-tight">
-                  MMV subs
+              <div className="flex items-center gap-1 font-medium tracking-tight">
+                <span className="font-medium text-neutral-900 text-sm tracking-wide">
+                  MMV
+                </span>
+                <span className="font-medium text-neutral-500 text-sm">
+                  Host
                 </span>
               </div>
             )}
-          </div>
+          </button>
 
           {/* Mobile close button */}
           {onCloseMobile && (
@@ -127,24 +128,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
           )}
         </div>
 
-        {/* New Item Action Button */}
-        <div className="px-3 pt-2 pb-3">
-          <button
-            onClick={onOpenAddModal}
-            className={`w-full flex items-center ${
-              isCollapsed ? "justify-center px-0" : "justify-center gap-2 px-3"
-            } py-2 rounded-lg bg-neutral-900 text-white hover:bg-neutral-800 transition-colors text-xs font-medium`}
-            title="New Item"
-          >
-            <Plus size={16} />
-            {!isCollapsed && (
-              <span>New Item</span>
-            )}
-          </button>
-        </div>
-
         {/* Fixed Navigation List */}
-        <nav className="px-2 space-y-1">
+        <nav className="px-2 pt-2 space-y-1">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = currentPage === item.id;
@@ -153,12 +138,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <button
                 key={item.id}
                 onClick={() => onSelectPage(item.id)}
-                className={`w-full flex items-center ${
-                  isCollapsed ? "justify-center px-0 py-2.5" : "justify-between px-3 py-2"
-                } rounded-lg text-xs font-medium transition-colors ${
+                className={`w-full h-9 flex items-center ${
+                  isCollapsed ? "justify-center px-0" : "justify-between px-3"
+                } rounded-lg text-xs font-medium transition-colors border ${
                   isActive
-                    ? "bg-neutral-100 text-neutral-900"
-                    : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900"
+                    ? "bg-neutral-100 text-neutral-900 nav-item-border-active"
+                    : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900 nav-item-border"
                 }`}
                 title={item.label}
               >
@@ -178,17 +163,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
             );
           })}
         </nav>
-      </div>
-
-      {/* Collapse Toggle Footer */}
-      <div className="p-3 border-t border-neutral-200 hidden md:block">
-        <button
-          onClick={onToggleCollapse}
-          className="w-full flex items-center justify-center gap-2 py-1.5 text-xs text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 rounded-lg transition-colors"
-        >
-          {isCollapsed ? <PanelLeft size={16} /> : <PanelLeftClose size={16} />}
-          {!isCollapsed && <span className="text-[11px]">Collapse</span>}
-        </button>
       </div>
     </aside>
   );

@@ -272,10 +272,6 @@ export const HabitStatsModal: React.FC<HabitStatsModalProps> = ({
                 <strong className="text-neutral-800 font-medium">{habit.targetValue || 1} {habit.unit || ""}</strong>
               </div>
               <div>
-                <span className="text-neutral-500">Time of Day:</span>{" "}
-                <strong className="text-neutral-800 font-medium capitalize">{habit.timeOfDay || "Anytime"}</strong>
-              </div>
-              <div>
                 <span className="text-neutral-500">Started Tracking:</span>{" "}
                 <strong className="text-neutral-800 font-medium">{habit.startDate}</strong>
               </div>

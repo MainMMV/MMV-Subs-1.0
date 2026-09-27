@@ -15,7 +15,7 @@ import {
   CalendarSync
 } from "lucide-react";
 import { motion } from "motion/react";
-import { PaymentItem, PaymentHistoryRecord, CurrencyCode, SpendingGoal } from "../types";
+import { PaymentItem, PaymentHistoryRecord, CurrencyCode, CurrencyDisplayMode, SpendingGoal } from "../types";
 import { 
   calculateHomeSpending, 
   formatCurrency, 
@@ -30,7 +30,7 @@ interface HomeViewProps {
   items: PaymentItem[];
   records: PaymentHistoryRecord[];
   goals?: SpendingGoal[];
-  displayCurrency: CurrencyCode;
+  displayCurrency: CurrencyDisplayMode;
   exchangeRateUsdToUzs: number;
   onViewDetail?: (item: PaymentItem) => void;
   onEdit: (item: PaymentItem) => void;
@@ -76,12 +76,17 @@ export const HomeView: React.FC<HomeViewProps> = ({
   // 1.1 Cash Flow Forecaster (30 Days rolling projection)
   const forecast30 = calculateCashFlowForecast(items, 30, exchangeRateUsdToUzs);
 
-  // 2. Upcoming Payments (Sorted by nearest date)
+  // 2. Overdue Payments (Needs immediate attention)
   const now = new Date();
+  const overduePayments = items
+    .filter((item) => getItemStatus(item, now) === "overdue")
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+  // 2.1 Active / Upcoming Payments (Sorted by nearest date)
   const upcomingPayments = items
     .filter((item) => {
       const status = getItemStatus(item, now);
-      return status !== "paid" && status !== "skipped";
+      return status === "due_today" || status === "upcoming";
     })
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
     .slice(0, 6);
@@ -299,40 +304,73 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
       {/* Main Grid: Upcoming Payments (Left) & Home Calendar + Recent (Right) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-5 min-w-0 items-start">
-        {/* Left Column: 4.1 UPCOMING PAYMENTS */}
-        <div className="lg:col-span-7 space-y-3.5 min-w-0">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-medium text-neutral-900">
-              Upcoming Payments
-            </h3>
-            <span className="text-xs text-neutral-500">
-              {upcomingPayments.length} upcoming
-            </span>
-          </div>
+        {/* Left Column: Overdue and Upcoming Payments */}
+        <div className="lg:col-span-7 space-y-4 min-w-0">
+          {/* Overdue Payments Block (when overdue items exist) */}
+          {overduePayments.length > 0 && (
+            <div className="p-3.5 rounded-lg border border-rose-200 bg-rose-50/30 space-y-2.5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5 text-rose-800 font-medium text-xs">
+                  <AlertCircle size={14} className="text-rose-600" />
+                  <span>Overdue Payments ({overduePayments.length})</span>
+                </div>
+              </div>
 
-          {upcomingPayments.length === 0 ? (
-            <div className="p-8 rounded-lg border border-neutral-200 bg-white text-center text-xs text-neutral-400">
-              <p>No upcoming payments scheduled.</p>
-            </div>
-          ) : (
-            <div className="space-y-2.5">
-              {upcomingPayments.map((item) => (
-                <PaymentItemRow
-                  key={item.id}
-                  item={item}
-                  displayCurrency={displayCurrency}
-                  exchangeRateUsdToUzs={exchangeRateUsdToUzs}
-                  onClick={onViewDetail}
-                  onEdit={onEdit}
-                  onManageReminders={onManageReminders}
-                  onViewStatistics={onViewStatistics}
-                  onViewHistory={onViewHistory}
-                  onDelete={onDelete}
-                  onTogglePaid={onTogglePaid}
-                />
-              ))}
+              <div className="space-y-2">
+                {overduePayments.map((item) => (
+                  <PaymentItemRow
+                    key={item.id}
+                    item={item}
+                    displayCurrency={displayCurrency}
+                    exchangeRateUsdToUzs={exchangeRateUsdToUzs}
+                    onClick={onViewDetail}
+                    onEdit={onEdit}
+                    onManageReminders={onManageReminders}
+                    onViewStatistics={onViewStatistics}
+                    onViewHistory={onViewHistory}
+                    onDelete={onDelete}
+                    onTogglePaid={onTogglePaid}
+                  />
+                ))}
+              </div>
             </div>
           )}
+
+          {/* Upcoming Payments */}
+          <div className="space-y-2.5">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-medium text-neutral-900">
+                Upcoming Payments
+              </h3>
+              <span className="text-xs text-neutral-500">
+                {upcomingPayments.length} upcoming
+              </span>
+            </div>
+
+            {upcomingPayments.length === 0 ? (
+              <div className="p-8 rounded-lg border border-neutral-200 bg-white text-center text-xs text-neutral-400">
+                <p>No upcoming payments scheduled.</p>
+              </div>
+            ) : (
+              <div className="space-y-2.5">
+                {upcomingPayments.map((item) => (
+                  <PaymentItemRow
+                    key={item.id}
+                    item={item}
+                    displayCurrency={displayCurrency}
+                    exchangeRateUsdToUzs={exchangeRateUsdToUzs}
+                    onClick={onViewDetail}
+                    onEdit={onEdit}
+                    onManageReminders={onManageReminders}
+                    onViewStatistics={onViewStatistics}
+                    onViewHistory={onViewHistory}
+                    onDelete={onDelete}
+                    onTogglePaid={onTogglePaid}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
 
           {/* 4.2 RECENT PAYMENTS */}
           <div className="pt-4 space-y-3">

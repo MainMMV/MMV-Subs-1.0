@@ -1,13 +1,13 @@
 import React from "react";
 import { Calendar, Check } from "lucide-react";
-import { PaymentItem, CurrencyCode } from "../types";
-import { getItemStatus, formatCurrency, formatFrequency } from "../utils/calculations";
+import { PaymentItem, CurrencyDisplayMode } from "../types";
+import { getItemStatus, formatFrequency, getItemDualPrice } from "../utils/calculations";
 import { ServiceIcon } from "./ServiceIcon";
 import { ItemActionMenu } from "./ItemActionMenu";
 
 interface PaymentItemCardProps {
   item: PaymentItem;
-  displayCurrency: CurrencyCode;
+  displayCurrency: CurrencyDisplayMode;
   exchangeRateUsdToUzs: number;
   onClick?: (item: PaymentItem) => void;
   onEdit: (item: PaymentItem) => void;
@@ -126,26 +126,32 @@ export const PaymentItemCard: React.FC<PaymentItemCardProps> = ({
         </div>
       </div>
 
-      {/* Bottom Row: Price (dual currency) & 3-Dot Action Menu */}
+      {/* Bottom Row: Price (priority dual currency) & 3-Dot Action Menu */}
       <div className="flex items-end justify-between border-t border-neutral-100 pt-2 mt-auto">
         <div>
-          <div
-            className={`font-medium text-sm ${
-              isPaid ? "text-neutral-400" : "text-neutral-900"
-            }`}
-          >
-            {formatCurrency(item.price, item.currency)}
-          </div>
-          {/* Equivalent currency approximation */}
-          <div className="text-[11px] text-neutral-400 mt-0.5">
-            ≈{" "}
-            {item.currency === "UZS"
-              ? formatCurrency(
-                  exchangeRateUsdToUzs > 0 ? item.price / exchangeRateUsdToUzs : 0,
-                  "USD"
-                )
-              : formatCurrency(item.price * (exchangeRateUsdToUzs || 12800), "UZS")}
-          </div>
+          {(() => {
+            const { topText, bottomText } = getItemDualPrice(
+              item.price,
+              item.currency,
+              displayCurrency,
+              exchangeRateUsdToUzs
+            );
+            return (
+              <>
+                <div
+                  className={`font-medium text-sm ${
+                    isPaid ? "text-neutral-400" : "text-neutral-900"
+                  }`}
+                >
+                  {topText}
+                </div>
+                {/* Secondary priority currency approximation */}
+                <div className="text-[11px] text-neutral-400 mt-0.5">
+                  {bottomText}
+                </div>
+              </>
+            );
+          })()}
         </div>
 
         <ItemActionMenu
