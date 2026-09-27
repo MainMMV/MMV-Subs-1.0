@@ -1,14 +1,14 @@
 services:
-  - type: worker
+  - type: web
     name: mmv-subs-telegram-bot
     runtime: node
     region: frankfurt
-    plan: starter
+    plan: free
     rootDir: telegram-bot
     buildCommand: npm ci
     startCommand: npm start
     autoDeployTrigger: commit
-    numInstances: 1
+    healthCheckPath: /health
     maxShutdownDelaySeconds: 30
     envVars:
       - key: NODE_VERSION

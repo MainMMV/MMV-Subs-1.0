@@ -1,6 +1,6 @@
 # MMV Subs Telegram Bot
 
-The bot is a separate long-running service for the MMV Subs app. Deploy the `telegram-bot` folder as a Render Background Worker.
+The bot is a separate service for the MMV Subs app. The current Blueprint deploys the `telegram-bot` folder as a free Render Web Service with a lightweight `/health` endpoint.
 
 ## What it does
 
@@ -26,5 +26,6 @@ The bot token belongs only in the background worker's `TELEGRAM_BOT_TOKEN` varia
 - Build command: `npm ci`
 - Start command: `npm start`
 - Environment variables: `TELEGRAM_BOT_TOKEN`, `FIREBASE_SERVICE_ACCOUNT`, and optional `TIME_ZONE=Asia/Tashkent`
+- Health check path: `/health`
 
-Run one worker instance only. Long polling and reminder delivery should have one active owner.
+Run one instance only. Telegram long polling and reminder delivery must have one active owner. Render's free web service can sleep after inactivity; the first request after sleep may have a cold start. Use the Starter worker plan when guaranteed continuous operation is required.

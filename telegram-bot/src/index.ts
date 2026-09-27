@@ -1,4 +1,5 @@
 import "dotenv/config";
+import { createServer } from "node:http";
 import { allItems, activeGoals, addCalendarDays, daysBetween, findUserByChatId, formatMoney, getLocalClock, isHabitComplete, isHabitScheduled, listUserStates, markHabitDone, rememberDelivery, wasDelivered, type UserState } from "./data.js";
 import { answerCallbackQuery, escapeHtml, mainKeyboard, sendMessage, telegram, type Keyboard } from "./telegram.js";
 import type { Goal, Habit, ItemReminder, PaymentItem } from "./types.js";
@@ -12,6 +13,7 @@ type Update = {
 };
 
 const TZ = process.env.TIME_ZONE || "Asia/Tashkent";
+const PORT = Number(process.env.PORT || 10_000);
 let updateOffset = 0;
 let lastScheduledMinute = "";
 let stopping = false;
@@ -260,6 +262,16 @@ async function poll() {
 }
 
 console.log(`MMV Subs Telegram bot started. Time zone: ${TZ}`);
+const healthServer = createServer((request, response) => {
+  if (request.url === "/health") {
+    response.writeHead(200, { "content-type": "application/json" });
+    response.end(JSON.stringify({ status: "ok", service: "mmv-subs-telegram-bot", time: new Date().toISOString() }));
+    return;
+  }
+  response.writeHead(200, { "content-type": "text/plain; charset=utf-8" });
+  response.end("MMV Subs Telegram Bot is running.");
+});
+healthServer.listen(PORT, "0.0.0.0", () => console.log(`Health server listening on 0.0.0.0:${PORT}`));
 void runScheduler();
 const schedulerTimer = setInterval(() => void runScheduler().catch((error) => console.error("Scheduler error:", error)), 30_000);
 void poll();
@@ -268,6 +280,7 @@ function shutdown(signal: string) {
   if (stopping) return;
   stopping = true;
   clearInterval(schedulerTimer);
+  healthServer.close();
   console.log(`${signal} received. Finishing the active Telegram long poll before shutdown.`);
   setTimeout(() => process.exit(0), 27_000).unref();
 }
