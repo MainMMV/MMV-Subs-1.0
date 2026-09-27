@@ -14,6 +14,7 @@ type Update = {
 const TZ = process.env.TIME_ZONE || "Asia/Tashkent";
 let updateOffset = 0;
 let lastScheduledMinute = "";
+let stopping = false;
 
 function paymentKeyboard(item: PaymentItem): Keyboard {
   return [[{ text: "Open payment list", callback_data: "payments" }, { text: "Refresh", callback_data: "home" }]];
@@ -244,6 +245,7 @@ async function handleMessage(message: NonNullable<Update["message"]>) {
 }
 
 async function poll() {
+  if (stopping) return;
   try {
     const updates = await telegram<Update[]>("getUpdates", { offset: updateOffset, timeout: 25, allowed_updates: ["message", "callback_query"] });
     for (const update of updates) {
@@ -254,10 +256,21 @@ async function poll() {
   } catch (error) {
     console.error("Telegram polling error:", error);
   }
-  setTimeout(poll, 1000);
+  if (!stopping) setTimeout(poll, 250);
 }
 
 console.log(`MMV Subs Telegram bot started. Time zone: ${TZ}`);
 void runScheduler();
-setInterval(() => void runScheduler().catch((error) => console.error("Scheduler error:", error)), 30_000);
+const schedulerTimer = setInterval(() => void runScheduler().catch((error) => console.error("Scheduler error:", error)), 30_000);
 void poll();
+
+function shutdown(signal: string) {
+  if (stopping) return;
+  stopping = true;
+  clearInterval(schedulerTimer);
+  console.log(`${signal} received. Finishing the active Telegram long poll before shutdown.`);
+  setTimeout(() => process.exit(0), 27_000).unref();
+}
+
+process.on("SIGTERM", () => shutdown("SIGTERM"));
+process.on("SIGINT", () => shutdown("SIGINT"));

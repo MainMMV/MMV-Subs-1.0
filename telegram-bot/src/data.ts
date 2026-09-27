@@ -37,10 +37,15 @@ export async function listUserStates(): Promise<UserState[]> {
 
 export async function findUserByChatId(chatId: string | number): Promise<UserState | undefined> {
   const target = String(chatId);
-  return (await listUserStates()).find((state) => {
-    const config = state.data.telegramConfig;
-    return config?.isEnabled && String(config.chatId || "") === target;
-  });
+  const snapshot = await db.collectionGroup("sync")
+    .where("telegramConfig.chatId", "==", target)
+    .limit(1)
+    .get();
+  const doc = snapshot.docs[0];
+  if (!doc) return undefined;
+  const data = doc.data() as UserData;
+  if (!data.telegramConfig?.isEnabled) return undefined;
+  return { uid: doc.ref.parent.parent?.id || "unknown", ref: doc.ref, data };
 }
 
 export function allItems(data: UserData): PaymentItem[] {

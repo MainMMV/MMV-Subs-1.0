@@ -1,0 +1,21 @@
+services:
+  - type: worker
+    name: mmv-subs-telegram-bot
+    runtime: node
+    region: frankfurt
+    plan: starter
+    rootDir: telegram-bot
+    buildCommand: npm ci
+    startCommand: npm start
+    autoDeployTrigger: commit
+    numInstances: 1
+    maxShutdownDelaySeconds: 30
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: TIME_ZONE
+        value: Asia/Samarkand
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: FIREBASE_SERVICE_ACCOUNT
+        sync: false
