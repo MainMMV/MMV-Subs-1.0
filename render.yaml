@@ -20,3 +20,5 @@ services:
         sync: false
       - key: FIRESTORE_DATABASE_ID
         value: ai-studio-mmvsubs-7f61226f-682f-4402-823f-82cb55675031
+      - key: AUTO_ENABLE_FIRESTORE_API
+        value: "true"
