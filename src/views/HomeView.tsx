@@ -325,11 +325,14 @@ export const HomeView: React.FC<HomeViewProps> = ({
         <div className="lg:col-span-7 space-y-4 min-w-0">
           {/* Overdue Payments Block (when overdue items exist) */}
           {overduePayments.length > 0 && (
-            <div className="p-3.5 rounded-lg border border-rose-200 bg-rose-50/30 space-y-2.5">
+            <div className="p-3.5 rounded-lg border border-rose-200/80 bg-rose-50/40 space-y-2.5 overdue-section-container">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5 text-rose-800 font-medium text-xs">
-                  <AlertCircle size={14} className="text-rose-600" />
-                  <span>Overdue Payments ({overduePayments.length})</span>
+                  <AlertCircle size={14} className="text-rose-600 shrink-0" />
+                  <span>Overdue Payments</span>
+                  <span className="ml-1 px-1.5 py-0.2 rounded text-[10px] font-medium bg-rose-100 text-rose-700">
+                    {overduePayments.length}
+                  </span>
                 </div>
               </div>
 

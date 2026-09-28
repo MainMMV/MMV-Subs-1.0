@@ -240,10 +240,42 @@ async function handleCallback(callback: NonNullable<Update["callback_query"]>) {
 
 async function handleMessage(message: NonNullable<Update["message"]>) {
   const chatId = message.chat.id;
-  const command = message.text?.trim().split(/\s+/)[0]?.split("@")[0];
-  if (command === "/start") return showHome(chatId);
-  if (command === "/help") return showInfo(chatId);
-  return showHome(chatId);
+  const rawText = message.text?.trim() || "";
+  const command = rawText.split(/\s+/)[0]?.split("@")[0]?.toLowerCase();
+
+  switch (command) {
+    case "/start":
+    case "/home":
+      return showHome(chatId);
+    case "/today":
+      return showHome(chatId);
+    case "/payments":
+      return showPayments(chatId);
+    case "/subscriptions":
+    case "/subs":
+      return showPayments(chatId, "subscription");
+    case "/bills":
+      return showPayments(chatId, "bill");
+    case "/purchases":
+    case "/onetime":
+      return showPayments(chatId, "purchase");
+    case "/habits":
+      return showHabits(chatId);
+    case "/goals":
+      return showGoals(chatId);
+    case "/calendar":
+      return showCalendar(chatId);
+    case "/refresh":
+    case "/status":
+      return showHome(chatId);
+    case "/help":
+      return showInfo(chatId);
+    default:
+      if (rawText.startsWith("/")) {
+        return sendMessage(chatId, "Command not recognized. Use /help to see all available commands.", mainKeyboard);
+      }
+      return showHome(chatId);
+  }
 }
 
 async function poll() {

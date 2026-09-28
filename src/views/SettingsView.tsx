@@ -12,7 +12,14 @@ import {
   Bell,
   ExternalLink,
   ShieldCheck,
-  Palette
+  Palette,
+  Key,
+  Copy,
+  Bot,
+  Sparkles,
+  Terminal,
+  FileText,
+  Trash2
 } from "lucide-react";
 import { motion } from "motion/react";
 import { CurrencyCode, CurrencyDisplayMode, TelegramConfig, PaymentItem, GoogleCalendarSyncState, AppTheme } from "../types";
@@ -57,6 +64,72 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const [tgEnabled, setTgEnabled] = useState(telegramConfig.isEnabled || false);
   const [testStatus, setTestStatus] = useState<string | null>(null);
   const [isTesting, setIsTesting] = useState(false);
+
+  // AI Connectors & API Keys state
+  const [apiKeys, setApiKeys] = useState<{ id: string; name: string; key: string; createdAt: string }[]>([]);
+  const [isGeneratingKey, setIsGeneratingKey] = useState(false);
+  const [copiedKeyId, setCopiedKeyId] = useState<string | null>(null);
+  const [copiedOpenApiUrl, setCopiedOpenApiUrl] = useState(false);
+  const [newKeyName, setNewKeyName] = useState("");
+
+  const fetchApiKeys = async () => {
+    try {
+      const res = await fetch("/api/v1/auth/keys");
+      const data = await res.json();
+      if (data.success && Array.isArray(data.keys)) {
+        setApiKeys(data.keys);
+      }
+    } catch (err) {
+      console.error("Failed to load API keys:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchApiKeys();
+  }, []);
+
+  const handleGenerateApiKey = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    setIsGeneratingKey(true);
+    try {
+      const res = await fetch("/api/v1/auth/keys", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: newKeyName.trim() || "AI Connector Key" }),
+      });
+      const data = await res.json();
+      if (data.success && data.key) {
+        setNewKeyName("");
+        fetchApiKeys();
+      }
+    } catch (err) {
+      console.error("Error creating API key:", err);
+    } finally {
+      setIsGeneratingKey(false);
+    }
+  };
+
+  const handleDeleteApiKey = async (id: string) => {
+    try {
+      await fetch(`/api/v1/auth/keys/${id}`, { method: "DELETE" });
+      fetchApiKeys();
+    } catch (err) {
+      console.error("Error deleting API key:", err);
+    }
+  };
+
+  const handleCopyKey = (key: string, id: string) => {
+    navigator.clipboard.writeText(key);
+    setCopiedKeyId(id);
+    setTimeout(() => setCopiedKeyId(null), 2500);
+  };
+
+  const handleCopyOpenApiUrl = () => {
+    const url = `${window.location.origin}/api/v1/openapi.json`;
+    navigator.clipboard.writeText(url);
+    setCopiedOpenApiUrl(true);
+    setTimeout(() => setCopiedOpenApiUrl(false), 2500);
+  };
 
   const handleSaveRate = (e: React.FormEvent) => {
     e.preventDefault();
@@ -334,7 +407,186 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               {testStatus}
             </div>
           )}
+
+          {/* Telegram Commands Cheat Sheet */}
+          <div className="pt-3 border-t border-neutral-200/60">
+            <h4 className="text-xs font-medium text-neutral-700 mb-2 flex items-center gap-1.5">
+              <Terminal size={13} className="text-neutral-500" />
+              <span>Available Telegram Bot Commands</span>
+            </h4>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
+              <div className="p-2 rounded border border-neutral-200 bg-neutral-50">
+                <span className="font-mono font-medium text-neutral-900">/today</span>
+                <p className="text-neutral-500 mt-0.5">Today's charges</p>
+              </div>
+              <div className="p-2 rounded border border-neutral-200 bg-neutral-50">
+                <span className="font-mono font-medium text-neutral-900">/payments</span>
+                <p className="text-neutral-500 mt-0.5">Upcoming payments</p>
+              </div>
+              <div className="p-2 rounded border border-neutral-200 bg-neutral-50">
+                <span className="font-mono font-medium text-neutral-900">/habits</span>
+                <p className="text-neutral-500 mt-0.5">Today's habits & done</p>
+              </div>
+              <div className="p-2 rounded border border-neutral-200 bg-neutral-50">
+                <span className="font-mono font-medium text-neutral-900">/refresh</span>
+                <p className="text-neutral-500 mt-0.5">Refresh live data</p>
+              </div>
+            </div>
+            <p className="text-[11px] text-neutral-400 mt-2">
+              See complete command reference in <code className="font-mono">docs/TELEGRAM_INTEGRATION.md</code>.
+            </p>
+          </div>
         </form>
+      </div>
+
+      {/* 3. AI Connectors & REST API (Google Gemini & ChatGPT) */}
+      <div className="p-5 rounded-lg border border-neutral-200 bg-white space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <div className="flex items-center gap-2">
+              <Sparkles size={16} className="text-neutral-900" />
+              <h3 className="text-sm font-medium text-neutral-900">AI Connectors (ChatGPT & Google Gemini)</h3>
+            </div>
+            <p className="text-xs text-neutral-500 mt-0.5">
+              Give AI assistants full control to view expenses, create subscriptions, mark items paid, and track habits.
+            </p>
+          </div>
+        </div>
+
+        {/* API Key Management */}
+        <div className="p-4 rounded-lg border border-neutral-200 bg-neutral-50 space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div className="flex items-center gap-1.5 text-xs font-medium text-neutral-800">
+              <Key size={14} className="text-neutral-700" />
+              <span>API Keys for AI Authentication</span>
+            </div>
+            <form onSubmit={handleGenerateApiKey} className="flex items-center gap-2">
+              <input
+                type="text"
+                placeholder="Key label (e.g. ChatGPT)"
+                value={newKeyName}
+                onChange={(e) => setNewKeyName(e.target.value)}
+                className="px-2.5 py-1 text-xs rounded-lg border border-neutral-300 focus:outline-none focus:border-neutral-900 bg-white"
+              />
+              <button
+                type="submit"
+                disabled={isGeneratingKey}
+                className="px-3 py-1 text-xs font-medium text-white bg-neutral-900 hover:bg-neutral-800 rounded-lg transition-colors cursor-pointer shrink-0"
+              >
+                {isGeneratingKey ? "Generating..." : "Generate Key"}
+              </button>
+            </form>
+          </div>
+
+          {apiKeys.length === 0 ? (
+            <div className="p-3 rounded border border-neutral-200/60 bg-white text-xs text-neutral-500 text-center">
+              No API keys generated yet. Click "Generate Key" to create a token for ChatGPT or Gemini.
+            </div>
+          ) : (
+            <div className="space-y-1.5">
+              {apiKeys.map((item) => (
+                <div
+                  key={item.id}
+                  className="p-2.5 rounded-lg border border-neutral-200 bg-white flex items-center justify-between gap-2 text-xs"
+                >
+                  <div className="min-w-0">
+                    <span className="font-medium text-neutral-900 block truncate">{item.name}</span>
+                    <span className="font-mono text-neutral-500 text-[11px]">
+                      {item.key.slice(0, 10)}••••••••••••••••{item.key.slice(-4)}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => handleCopyKey(item.key, item.id)}
+                      className="px-2 py-1 rounded border border-neutral-200 hover:bg-neutral-50 text-neutral-700 text-[11px] font-medium flex items-center gap-1 transition-colors cursor-pointer"
+                    >
+                      {copiedKeyId === item.id ? (
+                        <>
+                          <Check size={11} className="text-emerald-600" />
+                          <span>Copied</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy size={11} />
+                          <span>Copy</span>
+                        </>
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteApiKey(item.id)}
+                      className="p-1 rounded text-neutral-400 hover:text-rose-600 hover:bg-neutral-50 transition-colors cursor-pointer"
+                      title="Delete key"
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* ChatGPT Actions & Gemini Function Calling Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+          {/* ChatGPT Card */}
+          <div className="p-3.5 rounded-lg border border-neutral-200 bg-neutral-50/70 space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5 font-medium text-xs text-neutral-900">
+                <Bot size={14} className="text-neutral-700" />
+                <span>ChatGPT Custom GPT Action</span>
+              </div>
+              <span className="px-1.5 py-0.2 rounded text-[10px] bg-neutral-200 text-neutral-700 font-medium">
+                OpenAPI 3.0
+              </span>
+            </div>
+            <p className="text-[11px] text-neutral-500 leading-relaxed">
+              Import the live OpenAPI schema into your Custom GPT Actions with custom header <code className="font-mono">x-api-key</code>.
+            </p>
+            <div className="pt-1">
+              <button
+                type="button"
+                onClick={handleCopyOpenApiUrl}
+                className="w-full px-3 py-1.5 rounded-lg border border-neutral-200 bg-white hover:bg-neutral-50 text-xs font-medium text-neutral-800 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+              >
+                {copiedOpenApiUrl ? (
+                  <>
+                    <Check size={12} className="text-emerald-600" />
+                    <span>Schema URL Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy size={12} />
+                    <span>Copy OpenAPI URL (/api/v1/openapi.json)</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* Gemini Card */}
+          <div className="p-3.5 rounded-lg border border-neutral-200 bg-neutral-50/70 space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5 font-medium text-xs text-neutral-900">
+                <Sparkles size={14} className="text-neutral-700" />
+                <span>Google Gemini Function Calling</span>
+              </div>
+              <span className="px-1.5 py-0.2 rounded text-[10px] bg-neutral-200 text-neutral-700 font-medium">
+                SDK Ready
+              </span>
+            </div>
+            <p className="text-[11px] text-neutral-500 leading-relaxed">
+              Provides declared tool definitions for <code className="font-mono">createItem</code>, <code className="font-mono">markItemPaid</code>, <code className="font-mono">listItems</code>, and habit tracking.
+            </p>
+            <div className="pt-1">
+              <div className="p-2 rounded bg-white border border-neutral-200 text-[11px] text-neutral-600 flex items-center gap-1.5">
+                <FileText size={12} className="text-neutral-500 shrink-0" />
+                <span className="truncate">View schemas in <strong className="text-neutral-900 font-medium">docs/AI_CONNECTORS_GEMINI_CHATGPT.md</strong></span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* 3. Google Calendar Synchronization */}

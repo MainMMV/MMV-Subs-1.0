@@ -201,38 +201,52 @@ html[data-theme="warm-dark"] aside nav button:hover {
   border-color: rgba(255, 255, 255, 0.24) !important;
 }
 
-/* Overdue items: subtle dark-rose border and background, never blinding pale pink */
-html[data-theme="warm-dark"] .border-rose-200 {
-  border-color: #613035 !important;
-}
-html[data-theme="warm-dark"] .hover\:border-rose-300:hover {
-  border-color: #7D3E44 !important;
-}
-html[data-theme="warm-dark"] .bg-rose-50\/20,
-html[data-theme="warm-dark"] .bg-rose-50 {
-  background-color: #38282B !important;
-}
-html[data-theme="warm-dark"] .bg-rose-100 {
-  background-color: #4C2328 !important;
-}
-html[data-theme="warm-dark"] .text-rose-700,
-html[data-theme="warm-dark"] .text-rose-600 {
-  color: #F87171 !important;
+/* Overdue section container */
+html[data-theme="warm-dark"] .overdue-section-container {
+  background-color: #363940 !important;
+  border-color: rgba(248, 113, 113, 0.28) !important;
 }
 
-/* Due Today / Amber items */
+/* Overdue items: clean dark surface with subtle red indicator border, not a muddy red box */
+html[data-theme="warm-dark"] .border-rose-200 {
+  border-color: rgba(248, 113, 113, 0.35) !important;
+}
+html[data-theme="warm-dark"] .hover\:border-rose-300:hover {
+  border-color: rgba(248, 113, 113, 0.55) !important;
+}
+html[data-theme="warm-dark"] .bg-rose-50\/20,
+html[data-theme="warm-dark"] .bg-rose-50\/30,
+html[data-theme="warm-dark"] .bg-rose-50\/40,
+html[data-theme="warm-dark"] .bg-rose-50\/60,
+html[data-theme="warm-dark"] .bg-rose-50 {
+  background-color: #454749 !important;
+}
+html[data-theme="warm-dark"] .bg-rose-100 {
+  background-color: rgba(248, 113, 113, 0.18) !important;
+  border: 1px solid rgba(248, 113, 113, 0.35) !important;
+}
+html[data-theme="warm-dark"] .text-rose-800,
+html[data-theme="warm-dark"] .text-rose-700,
+html[data-theme="warm-dark"] .text-rose-600 {
+  color: #FCA5A5 !important;
+}
+
+/* Due Today / Amber items: clean surface with refined amber accent */
 html[data-theme="warm-dark"] .border-amber-200 {
-  border-color: #614D2A !important;
+  border-color: rgba(251, 191, 36, 0.35) !important;
 }
 html[data-theme="warm-dark"] .hover\:border-amber-300:hover {
-  border-color: #7E6437 !important;
+  border-color: rgba(251, 191, 36, 0.55) !important;
 }
 html[data-theme="warm-dark"] .bg-amber-50\/20,
+html[data-theme="warm-dark"] .bg-amber-50\/30,
+html[data-theme="warm-dark"] .bg-amber-50\/40,
 html[data-theme="warm-dark"] .bg-amber-50 {
-  background-color: #383023 !important;
+  background-color: #454749 !important;
 }
 html[data-theme="warm-dark"] .bg-amber-100 {
-  background-color: #4D3F22 !important;
+  background-color: rgba(251, 191, 36, 0.18) !important;
+  border: 1px solid rgba(251, 191, 36, 0.35) !important;
 }
 html[data-theme="warm-dark"] .text-amber-800,
 html[data-theme="warm-dark"] .text-amber-700 {

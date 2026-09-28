@@ -390,13 +390,27 @@ export default function App() {
     });
   };
 
-  // Sync all bot-visible sections in the background for Telegram reminders.
+  // Sync all bot-visible sections in the background for Telegram reminders and AI REST API.
   useEffect(() => {
     const timer = setTimeout(() => {
       syncToFirebase(items, telegramConfig, habits, habitLogs, goals);
+      // Synchronize with local server store so AI agents see live state immediately
+      fetch("/api/v1/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          items,
+          habits,
+          habitLogs,
+          goals,
+          records,
+          exchangeRateUsdToUzs,
+          telegramConfig,
+        }),
+      }).catch(() => {});
     }, 1500);
     return () => clearTimeout(timer);
-  }, [items, telegramConfig, habits, habitLogs, goals]);
+  }, [items, telegramConfig, habits, habitLogs, goals, records, exchangeRateUsdToUzs]);
 
   // Handler: Open Add Modal or New Item Chooser Modal
   const handleOpenAddModal = (presetType?: ItemType) => {

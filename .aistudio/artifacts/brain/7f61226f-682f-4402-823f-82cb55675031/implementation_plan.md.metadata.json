@@ -1,6 +1,6 @@
 {
-  "summary":  "Comprehensive implementation plan for MMV Subs upcoming feature additions: automated due date alerts, in-app notification center, browser push notifications, Google Calendar two-way event sync, and cash flow forecasting without spending caps.",
-  "updatedAt":  "2026-09-25T14:09:31.913881570Z",
+  "summary":  "Comprehensive implementation plan for the MMV Subs REST API, connector registration, Telegram bot integration, ChatGPT & Gemini AI control connectors, and dedicated documentation guides.",
+  "updatedAt":  "2026-09-28T14:52:16.521093843Z",
   "requestFeedback":  true,
   "userFacing":  true
 }
