@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { createServer } from "node:http";
-import { allItems, activeGoals, addCalendarDays, daysBetween, ensureFirestoreApiEnabled, findUserByChatId, formatMoney, getLocalClock, isHabitComplete, isHabitScheduled, listUserStates, markHabitDone, rememberDelivery, wasDelivered, type UserState } from "./data.js";
+import { allItems, activeGoals, addCalendarDays, daysBetween, findUserByChatId, formatMoney, getLocalClock, isHabitComplete, isHabitScheduled, listUserStates, markHabitDone, rememberDelivery, wasDelivered, type UserState } from "./data.js";
 import { answerCallbackQuery, escapeHtml, mainKeyboard, sendMessage, telegram, type Keyboard } from "./telegram.js";
 import type { Goal, Habit, ItemReminder, PaymentItem } from "./types.js";
 
@@ -287,9 +287,7 @@ const healthServer = createServer((request, response) => {
   response.end("MMV Subs Telegram Bot is running.");
 });
 healthServer.listen(PORT, "0.0.0.0", () => console.log(`Health server listening on 0.0.0.0:${PORT}`));
-void ensureFirestoreApiEnabled()
-  .then(() => runScheduler())
-  .catch((error) => console.error("Firestore initialization error:", error));
+void runScheduler().catch((error) => console.error("Initial scheduler error:", error));
 const schedulerTimer = setInterval(() => void runScheduler().catch((error) => console.error("Scheduler error:", error)), 30_000);
 void startPolling();
 
