@@ -83,7 +83,24 @@ export default function App() {
 
   // Navigation State
   const [currentPage, setCurrentPage] = useState<AppPage>("home");
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem("mmv_subs_sidebar_collapsed") === "true";
+    } catch {
+      return false;
+    }
+  });
+
+  const handleToggleSidebar = () => {
+    setIsSidebarCollapsed((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem("mmv_subs_sidebar_collapsed", String(next));
+      } catch {}
+      return next;
+    });
+  };
+
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isNewItemSelectOpen, setIsNewItemSelectOpen] = useState(false);
   const [isCreateHabitOpen, setIsCreateHabitOpen] = useState(false);
@@ -638,6 +655,7 @@ export default function App() {
         currentAmount: goalData.currentAmount || 0,
         currency: goalData.currency || "USD",
         imageUrl: goalData.imageUrl,
+        imagePositionY: goalData.imagePositionY ?? 50,
         period: goalData.period || "monthly",
         deadline: goalData.deadline,
         notes: goalData.notes,
@@ -729,7 +747,7 @@ export default function App() {
           items={items}
           habitsCount={habits.filter((h) => !h.isPaused).length}
           isCollapsed={isSidebarCollapsed}
-          onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+          onToggleCollapse={handleToggleSidebar}
           onOpenAddModal={() => handleOpenAddModal()}
         />
       </div>
@@ -794,6 +812,7 @@ export default function App() {
               onOpenAddModal={() => handleOpenAddModal()}
               onNavigateToCalendar={() => setCurrentPage("calendar")}
               onNavigateToGoals={() => setCurrentPage("goals")}
+              onOpenAddGoal={handleOpenAddGoal}
               onOpenCalendarSync={() => setIsCalendarSyncModalOpen(true)}
             />
           )}

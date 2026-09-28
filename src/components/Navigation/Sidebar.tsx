@@ -100,9 +100,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div className={`px-4 pt-4 pb-3 flex items-center ${isCollapsed ? "justify-center" : "justify-between"}`}>
           <button
             type="button"
-            onClick={onToggleCollapse}
-            className="flex items-center gap-2.5 p-1 -m-1 rounded-lg hover:bg-neutral-100/70 transition-colors cursor-pointer text-left focus:outline-none"
-            title={isCollapsed ? "Expand navigation" : "Collapse navigation"}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onToggleCollapse?.();
+            }}
+            className={`flex items-center gap-2.5 p-1.5 -m-1 rounded-lg hover:bg-neutral-100/80 active:bg-neutral-200/60 transition-colors cursor-pointer text-left focus:outline-none group ${
+              isCollapsed ? "justify-center" : ""
+            }`}
+            title={isCollapsed ? "Expand navigation (Click logo)" : "Collapse navigation (Click logo)"}
+            aria-label={isCollapsed ? "Expand navigation" : "Collapse navigation"}
           >
             <MMVLogo size={30} showText={false} />
             {!isCollapsed && (

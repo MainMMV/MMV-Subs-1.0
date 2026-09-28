@@ -12,7 +12,8 @@ import {
   ArrowRight,
   Target,
   TrendingUp,
-  CalendarSync
+  CalendarSync,
+  Plus
 } from "lucide-react";
 import { motion } from "motion/react";
 import { PaymentItem, PaymentHistoryRecord, CurrencyCode, CurrencyDisplayMode, SpendingGoal } from "../types";
@@ -42,6 +43,7 @@ interface HomeViewProps {
   onOpenAddModal: () => void;
   onNavigateToCalendar: () => void;
   onNavigateToGoals?: () => void;
+  onOpenAddGoal?: () => void;
   onOpenCalendarSync?: () => void;
 }
 
@@ -61,6 +63,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
   onOpenAddModal,
   onNavigateToCalendar,
   onNavigateToGoals,
+  onOpenAddGoal,
   onOpenCalendarSync,
 }) => {
   const [selectedDate, setSelectedDate] = useState<string>(
@@ -255,23 +258,37 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 {goals.filter((g) => !g.isCompleted).length} Active
               </span>
             </div>
-            {onNavigateToGoals && (
-              <button
-                type="button"
-                onClick={onNavigateToGoals}
-                className="text-[11px] font-medium text-neutral-600 hover:text-neutral-900 flex items-center gap-1 transition-colors"
-              >
-                <span>View all</span>
-                <ArrowRight size={12} />
-              </button>
-            )}
+            <div className="flex items-center gap-2">
+              {onOpenAddGoal && (
+                <button
+                  type="button"
+                  onClick={onOpenAddGoal}
+                  className="text-[11px] font-medium text-neutral-700 hover:text-neutral-900 bg-neutral-100/80 hover:bg-neutral-200/80 px-2 py-0.5 rounded flex items-center gap-1 transition-colors cursor-pointer"
+                >
+                  <Plus size={11} />
+                  <span>Add Goal</span>
+                </button>
+              )}
+              {onNavigateToGoals && (
+                <button
+                  type="button"
+                  onClick={onNavigateToGoals}
+                  className="text-[11px] font-medium text-neutral-600 hover:text-neutral-900 flex items-center gap-1 transition-colors"
+                >
+                  <span>View all</span>
+                  <ArrowRight size={12} />
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
             {goals.slice(0, 3).map((goal) => {
-              const pct = goal.targetAmount > 0 
-                ? Math.min(100, Math.round((goal.currentAmount / goal.targetAmount) * 100))
-                : 0;
+              const pct = goal.isCompleted
+                ? 100
+                : (goal.targetAmount > 0 
+                    ? Math.min(100, Math.round((goal.currentAmount / goal.targetAmount) * 100))
+                    : 0);
               const isOver = goal.type === "budget_limit" && goal.currentAmount > goal.targetAmount;
               return (
                 <div 
