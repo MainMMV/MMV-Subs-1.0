@@ -8,7 +8,8 @@ import {
   Trash2, 
   Filter, 
   LayoutGrid, 
-  List
+  List,
+  Plus
 } from "lucide-react";
 import { motion } from "motion/react";
 import { SpendingGoal, CurrencyCode, CurrencyDisplayMode, PaymentItem, PaymentHistoryRecord } from "../types";
@@ -31,6 +32,7 @@ export const GoalsView: React.FC<GoalsViewProps> = ({
   goals,
   displayCurrency,
   exchangeRateUsdToUzs,
+  onOpenAddGoal,
   onEditGoal,
   onDeleteGoal,
   onUpdateProgress,
@@ -78,8 +80,18 @@ export const GoalsView: React.FC<GoalsViewProps> = ({
           </span>
         </div>
 
-        {/* View Toggle Icon (before Hopper) & Hopper Filter Icon */}
+        {/* Header Controls: Add Goal button, View Toggle, and Hopper Filter */}
         <div className="flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={onOpenAddGoal}
+            className="h-8 px-2.5 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-medium flex items-center gap-1.5 transition-colors shadow-2xs"
+            title="Create new goal"
+          >
+            <Plus size={14} />
+            <span>Add Goal</span>
+          </button>
+
           {/* View Toggle: toggles icon between LayoutGrid and List */}
           <button
             type="button"
@@ -146,7 +158,9 @@ export const GoalsView: React.FC<GoalsViewProps> = ({
       ) : viewMode === "card" ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {filteredGoals.map((goal) => {
-            const pct = goal.targetAmount > 0 
+            const pct = goal.isCompleted
+              ? 100
+              : goal.targetAmount > 0 
               ? Math.min(100, Math.round((goal.currentAmount / goal.targetAmount) * 100))
               : 0;
             const isOver = goal.type === "budget_limit" && goal.currentAmount > goal.targetAmount;
@@ -167,6 +181,7 @@ export const GoalsView: React.FC<GoalsViewProps> = ({
                         alt={goal.title}
                         loading="lazy"
                         className="w-full h-full object-cover"
+                        style={{ objectPosition: `center ${goal.imagePositionY ?? 50}%` }}
                         onError={(e) => {
                           (e.currentTarget as HTMLImageElement).style.display = "none";
                         }}
@@ -299,7 +314,9 @@ export const GoalsView: React.FC<GoalsViewProps> = ({
         /* List Mode */
         <div className="space-y-2">
           {filteredGoals.map((goal) => {
-            const pct = goal.targetAmount > 0 
+            const pct = goal.isCompleted
+              ? 100
+              : goal.targetAmount > 0 
               ? Math.min(100, Math.round((goal.currentAmount / goal.targetAmount) * 100))
               : 0;
             const isOver = goal.type === "budget_limit" && goal.currentAmount > goal.targetAmount;
@@ -318,6 +335,7 @@ export const GoalsView: React.FC<GoalsViewProps> = ({
                       alt={goal.title}
                       loading="lazy"
                       className="w-10 h-10 rounded-md object-cover shrink-0 bg-neutral-100"
+                      style={{ objectPosition: `center ${goal.imagePositionY ?? 50}%` }}
                       onError={(e) => {
                         (e.currentTarget as HTMLImageElement).style.display = "none";
                       }}
