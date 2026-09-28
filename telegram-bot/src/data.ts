@@ -30,9 +30,13 @@ export async function ensureFirestoreApiEnabled(): Promise<void> {
     return response.data.state;
   };
 
-  if (await readState() === "ENABLED") {
-    console.log("Cloud Firestore API is enabled.");
-    return;
+  try {
+    if (await readState() === "ENABLED") {
+      console.log("Cloud Firestore API is enabled.");
+      return;
+    }
+  } catch (error) {
+    console.warn("Could not read Cloud Firestore API state; attempting enable directly.");
   }
 
   await client.request({ url: `${serviceUrl}:enable`, method: "POST" });
