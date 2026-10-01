@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import { X, Plus, Trash2, Bell, Check } from "lucide-react";
+import { X, Plus, Trash2, Bell, Check, Smartphone, CheckCircle2 } from "lucide-react";
 import { PaymentItem, ItemReminder } from "../../types";
 import { ServiceIcon } from "../ServiceIcon";
+import { downloadPhoneCalendarEvent } from "../../utils/phoneCalendar";
 
 interface ManageRemindersModalProps {
   isOpen: boolean;
@@ -18,6 +19,7 @@ export const ManageRemindersModal: React.FC<ManageRemindersModalProps> = ({
 }) => {
   if (!isOpen || !item) return null;
 
+  const [phoneExported, setPhoneExported] = useState(false);
   const [reminders, setReminders] = useState<ItemReminder[]>(
     item.reminders ? [...item.reminders] : []
   );
@@ -213,21 +215,46 @@ export const ManageRemindersModal: React.FC<ManageRemindersModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="px-5 py-3 border-t border-neutral-100 flex justify-end gap-2">
+        <div className="px-5 py-3 border-t border-neutral-100 flex items-center justify-between gap-2">
           <button
             type="button"
-            onClick={onClose}
-            className="px-3.5 py-1.5 text-xs font-medium text-neutral-700 hover:bg-neutral-100 rounded-lg transition-colors border border-neutral-200"
+            onClick={() => {
+              downloadPhoneCalendarEvent(item);
+              setPhoneExported(true);
+              setTimeout(() => setPhoneExported(false), 3000);
+            }}
+            className="px-3 py-1.5 text-xs font-medium text-neutral-700 hover:bg-neutral-100 rounded-lg transition-colors border border-neutral-200 flex items-center gap-1.5 cursor-pointer"
+            title="Export this payment reminder directly to iPhone Apple Calendar or Android Calendar (.ics)"
           >
-            Cancel
+            {phoneExported ? (
+              <>
+                <CheckCircle2 size={13} className="text-emerald-600" />
+                <span className="text-emerald-700">Added to Phone Cal!</span>
+              </>
+            ) : (
+              <>
+                <Smartphone size={13} className="text-neutral-500" />
+                <span>Add to Phone Calendar</span>
+              </>
+            )}
           </button>
-          <button
-            type="button"
-            onClick={handleSave}
-            className="px-4 py-1.5 text-xs font-medium text-white bg-neutral-900 hover:bg-neutral-800 rounded-lg transition-colors"
-          >
-            Save Reminders
-          </button>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-3.5 py-1.5 text-xs font-medium text-neutral-700 hover:bg-neutral-100 rounded-lg transition-colors border border-neutral-200"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleSave}
+              className="px-4 py-1.5 text-xs font-medium text-white bg-neutral-900 hover:bg-neutral-800 rounded-lg transition-colors"
+            >
+              Save Reminders
+            </button>
+          </div>
         </div>
       </div>
     </div>

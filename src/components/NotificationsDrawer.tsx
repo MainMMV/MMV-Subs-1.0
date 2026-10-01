@@ -10,11 +10,13 @@ import {
   ExternalLink, 
   CalendarSync, 
   Volume2, 
-  Trash2 
+  Trash2,
+  Smartphone
 } from "lucide-react";
 import { PaymentItem, CurrencyCode, InAppNotification, GoogleCalendarSyncState } from "../types";
 import { formatCurrency } from "../utils/calculations";
 import { ServiceIcon } from "./ServiceIcon";
+import { downloadPhoneCalendarEvent } from "../utils/phoneCalendar";
 import { 
   generateInAppNotifications, 
   markNotificationAsRead, 
@@ -51,6 +53,7 @@ export const NotificationsDrawer: React.FC<NotificationsDrawerProps> = ({
   const [activeTab, setActiveTab] = useState<"urgent" | "overdue" | "all">("urgent");
   const [browserPushActive, setBrowserPushActive] = useState<boolean>(false);
   const [pushStatusMsg, setPushStatusMsg] = useState<string | null>(null);
+  const [phoneExportNotice, setPhoneExportNotice] = useState<string | null>(null);
 
   // Compute notifications
   const [notifications, setNotifications] = useState<InAppNotification[]>([]);
@@ -168,6 +171,13 @@ export const NotificationsDrawer: React.FC<NotificationsDrawerProps> = ({
             </button>
           </div>
         </div>
+
+        {phoneExportNotice && (
+          <div className="px-4 py-2 bg-emerald-50 border-b border-emerald-200 text-xs text-emerald-800 flex items-center gap-2 animate-in fade-in duration-150">
+            <Smartphone size={13} className="text-emerald-600 shrink-0" />
+            <span className="truncate">{phoneExportNotice}</span>
+          </div>
+        )}
 
         {/* Browser Push Banner */}
         <div className="px-4 py-2.5 bg-neutral-50 border-b border-neutral-200 flex items-center justify-between gap-2">
@@ -328,8 +338,8 @@ export const NotificationsDrawer: React.FC<NotificationsDrawerProps> = ({
                     </div>
                   </div>
 
-                  {/* Actions: Quick Mark Paid / Dismiss */}
-                  <div className="mt-2.5 pt-2 border-t border-neutral-100 flex items-center justify-between text-[11px]">
+                  {/* Actions: Quick Mark Paid / Add to Phone Calendar / Dismiss */}
+                  <div className="mt-2.5 pt-2 border-t border-neutral-100 flex items-center justify-between text-[11px] gap-2">
                     <button
                       type="button"
                       onClick={(e) => {
@@ -339,23 +349,42 @@ export const NotificationsDrawer: React.FC<NotificationsDrawerProps> = ({
                           handleDismiss(notif.id);
                         }
                       }}
-                      className="text-emerald-700 hover:text-emerald-800 font-medium flex items-center gap-1 hover:underline"
+                      className="text-emerald-700 hover:text-emerald-800 font-medium flex items-center gap-1 hover:underline cursor-pointer"
                     >
                       <CheckCircle2 size={13} />
-                      <span>Mark Paid (Cycle Complete)</span>
+                      <span>Mark Paid</span>
                     </button>
 
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDismiss(notif.id);
-                      }}
-                      className="text-neutral-400 hover:text-neutral-700 p-1 rounded hover:bg-neutral-100 transition-colors"
-                      title="Dismiss notification"
-                    >
-                      <X size={13} />
-                    </button>
+                    <div className="flex items-center gap-1.5">
+                      {matchedItem && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            downloadPhoneCalendarEvent(matchedItem);
+                            setPhoneExportNotice(`Exported reminder for ${matchedItem.name} to phone calendar!`);
+                            setTimeout(() => setPhoneExportNotice(null), 3500);
+                          }}
+                          className="text-neutral-600 hover:text-neutral-900 px-2 py-0.5 rounded border border-neutral-200 bg-white hover:bg-neutral-50 flex items-center gap-1 cursor-pointer transition-colors"
+                          title="Add this reminder to iPhone Apple Calendar or Android Calendar"
+                        >
+                          <Smartphone size={12} className="text-neutral-500" />
+                          <span>Phone Cal</span>
+                        </button>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDismiss(notif.id);
+                        }}
+                        className="text-neutral-400 hover:text-neutral-700 p-1 rounded hover:bg-neutral-100 transition-colors"
+                        title="Dismiss notification"
+                      >
+                        <X size={13} />
+                      </button>
+                    </div>
                   </div>
                 </div>
               );

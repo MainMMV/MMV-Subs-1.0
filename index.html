@@ -2,15 +2,29 @@
 <html lang="en" data-theme="warm-dark">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="apple-touch-icon" href="/favicon.svg" />
-    <title>MMV Host</title>
-    <meta name="description" content="MMV Host - Modern Finance, Subscriptions, Recurring Payments, and Habits" />
-    <meta property="og:title" content="MMV Host" />
-    <meta property="og:description" content="MMV Host - Modern Finance, Subscriptions, Recurring Payments, and Habits" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>MMV Host v2</title>
+    <meta name="description" content="MMV Host v2 - Personal Finance, Subscriptions, Recurring Payments, Habits and Reminders" />
+    <meta property="og:title" content="MMV Host v2" />
+    <meta property="og:description" content="MMV Host v2 - Personal Finance, Subscriptions, Recurring Payments, Habits and Reminders" />
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
+
+    <!-- Mobile APK & PWA Capabilities -->
+    <meta name="theme-color" content="#25292E" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="MMV Host v2" />
+    <meta name="application-name" content="MMV Host v2" />
+    <meta name="format-detection" content="telephone=no" />
+
+    <!-- PWA Web App Manifest & App Icons -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/pwa-192x192.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+
     <style>
       @font-face {
         font-family: 'Google Sans';
@@ -26,14 +40,129 @@
         font-style: normal;
         font-display: swap;
       }
-      body {
+
+      * {
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      html, body {
         font-family: 'Google Sans', -apple-system, BlinkMacSystemFont, sans-serif;
         font-weight: 400;
+        overscroll-behavior-y: none;
+        background-color: #25292E;
+        color: #EEEEEE;
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        width: 100%;
+        overflow: hidden;
+      }
+
+      /* Native APK-style Loading Splash Screen */
+      #pwa-splash {
+        position: fixed;
+        inset: 0;
+        z-index: 99999;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background-color: #25292E;
+        color: #EEEEEE;
+        user-select: none;
+        transition: opacity 0.35s ease-out;
+      }
+
+      .splash-logo-container {
+        width: 76px;
+        height: 76px;
+        border-radius: 18px;
+        overflow: hidden;
+        margin-bottom: 18px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+        animation: pulseLogo 1.6s ease-in-out infinite alternate;
+      }
+
+      @keyframes pulseLogo {
+        0% { transform: scale(0.97); opacity: 0.92; }
+        100% { transform: scale(1.02); opacity: 1; }
+      }
+
+      .splash-title {
+        font-size: 19px;
+        font-weight: 500;
+        letter-spacing: -0.01em;
+        color: #EEEEEE;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .splash-badge {
+        font-size: 11px;
+        background: rgba(173, 195, 133, 0.18);
+        color: #ADC385;
+        border: 1px solid rgba(173, 195, 133, 0.3);
+        padding: 2px 7px;
+        border-radius: 6px;
+        font-weight: 500;
+      }
+
+      .splash-loader-bar {
+        width: 140px;
+        height: 3px;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 999px;
+        margin-top: 24px;
+        overflow: hidden;
+        position: relative;
+      }
+
+      .splash-loader-progress {
+        position: absolute;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: 45%;
+        background: #ADC385;
+        border-radius: 999px;
+        animation: progressSlide 1.3s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+      }
+
+      @keyframes progressSlide {
+        0% { left: -45%; width: 30%; }
+        50% { left: 35%; width: 55%; }
+        100% { left: 105%; width: 25%; }
       }
     </style>
   </head>
-  <body class="antialiased selection:bg-neutral-900 selection:text-white bg-neutral-50 text-neutral-900">
+  <body class="antialiased selection:bg-neutral-800 selection:text-white">
+    <!-- Instant Native Splash Screen for PWA Launch -->
+    <div id="pwa-splash">
+      <div class="splash-logo-container">
+        <img src="/favicon.svg" alt="MMV Host v2" width="76" height="76" style="display:block;" />
+      </div>
+      <div class="splash-title">
+        <span>MMV Host</span>
+        <span class="splash-badge">v2</span>
+      </div>
+      <div class="splash-loader-bar">
+        <div class="splash-loader-progress"></div>
+      </div>
+    </div>
+
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      // Automatically register service worker
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js').catch(err => {
+            console.log('SW registration fallback:', err);
+          });
+        });
+      }
+    </script>
   </body>
 </html>

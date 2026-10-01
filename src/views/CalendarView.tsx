@@ -5,11 +5,13 @@ import {
   Calendar as CalendarIcon, 
   CalendarDays,
   CalendarSync,
-  TrendingUp
+  TrendingUp,
+  Smartphone
 } from "lucide-react";
 import { motion } from "motion/react";
 import { PaymentItem, CurrencyCode, CurrencyDisplayMode, GoogleCalendarSyncState } from "../types";
 import { formatCurrency, convertCurrency } from "../utils/calculations";
+import { downloadAllItemsPhoneCalendar } from "../utils/phoneCalendar";
 import { PaymentItemRow } from "../components/PaymentItemRow";
 import { CashFlowForecastPanel } from "../components/CashFlowForecastPanel";
 
@@ -56,6 +58,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
     new Date().toISOString().slice(0, 10)
   );
   const [showForecast, setShowForecast] = useState<boolean>(false);
+  const [phoneExportNotice, setPhoneExportNotice] = useState<string | null>(null);
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -298,12 +301,33 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
             </button>
           )}
 
+          <button
+            type="button"
+            onClick={() => {
+              const count = downloadAllItemsPhoneCalendar(items);
+              setPhoneExportNotice(`Exported ${count} active payment reminders (.ics). Open the file to add to your phone calendar!`);
+              setTimeout(() => setPhoneExportNotice(null), 4500);
+            }}
+            className="px-3 py-1.5 rounded-lg border border-neutral-200 bg-white hover:bg-neutral-50 text-neutral-800 font-medium transition-colors flex items-center gap-1.5 shadow-2xs cursor-pointer"
+            title="Export all reminders to Apple Calendar or Android Calendar (.ics)"
+          >
+            <Smartphone size={14} className="text-neutral-600" />
+            <span>Add to Phone Calendar</span>
+          </button>
+
           {calendarSyncState?.isConnected && calendarSyncState.lastSyncedAt && (
             <span className="text-[11px] text-neutral-500 hidden sm:inline">
               Synced {calendarSyncState.syncedEventCount} events ({new Date(calendarSyncState.lastSyncedAt).toLocaleDateString()})
             </span>
           )}
         </div>
+
+        {phoneExportNotice && (
+          <div className="w-full mt-2 p-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 flex items-center gap-2 animate-in fade-in duration-150">
+            <Smartphone size={14} className="text-emerald-600 shrink-0" />
+            <span>{phoneExportNotice}</span>
+          </div>
+        )}
 
         <button
           type="button"

@@ -431,3 +431,39 @@ html[data-theme="light"] .nav-item-border-active {
   border-color: #D8D1C2 !important;
   background-color: #EAE5DB !important;
 }
+
+/* ==========================================================
+   MOBILE APK & PWA STANDALONE NATIVE EXPERIENCES
+   Makes the web app feel like an installed mobile Android/iOS APK
+   ========================================================== */
+@media (display-mode: standalone), (display-mode: fullscreen), (max-width: 768px) {
+  /* Prevent browser pull-to-refresh & bouncy elastic scroll */
+  html, body {
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x pan-y;
+  }
+
+  /* Support device notch, Dynamic Island, and home indicator bars */
+  header, [data-top-nav="true"] {
+    padding-top: max(env(safe-area-inset-top), 0px);
+  }
+
+  /* Safe area for bottom navigation bar */
+  nav.mobile-nav, [data-mobile-bottom-nav="true"], .pb-safe {
+    padding-bottom: max(env(safe-area-inset-bottom), 10px);
+  }
+
+  /* Prevent text highlighting while dragging or tapping quickly */
+  button, nav, .select-none {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+}
+
+/* Smooth native momentum scrolling for list containers */
+.native-scroll {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}

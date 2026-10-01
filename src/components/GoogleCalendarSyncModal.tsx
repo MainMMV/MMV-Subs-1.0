@@ -12,7 +12,9 @@ import {
   Clock,
   Tag,
   CheckSquare,
-  Square
+  Square,
+  Smartphone,
+  Download
 } from "lucide-react";
 import { PaymentItem, GoogleCalendarSyncState } from "../types";
 import { 
@@ -21,6 +23,11 @@ import {
   syncItemsToGoogleCalendar, 
   SyncResult 
 } from "../services/googleCalendar";
+import { 
+  downloadPhoneCalendarEvent, 
+  downloadAllItemsPhoneCalendar, 
+  getGoogleCalendarWebLink 
+} from "../utils/phoneCalendar";
 import { formatCurrency } from "../utils/calculations";
 
 interface GoogleCalendarSyncModalProps {
@@ -45,6 +52,7 @@ export const GoogleCalendarSyncModal: React.FC<GoogleCalendarSyncModalProps> = (
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [syncResult, setSyncResult] = useState<SyncResult | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [phoneExportCount, setPhoneExportCount] = useState<number | null>(null);
 
   // Selected item IDs for synchronization
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -86,6 +94,12 @@ export const GoogleCalendarSyncModal: React.FC<GoogleCalendarSyncModalProps> = (
   };
 
   const selectedItemsList = eligibleItems.filter((i) => selectedIds.has(i.id));
+
+  const handleExportToPhoneCalendar = () => {
+    const count = downloadAllItemsPhoneCalendar(selectedItemsList);
+    setPhoneExportCount(count);
+    setTimeout(() => setPhoneExportCount(null), 6000);
+  };
 
   const handleSignIn = async () => {
     setIsSigningIn(true);
@@ -185,6 +199,45 @@ export const GoogleCalendarSyncModal: React.FC<GoogleCalendarSyncModalProps> = (
             <div className="p-3 rounded-lg border border-rose-200 bg-rose-50/60 text-xs text-rose-700 flex items-start gap-2">
               <AlertCircle size={15} className="shrink-0 mt-0.5" />
               <span>{errorMessage}</span>
+            </div>
+          )}
+
+          {/* Direct Phone Calendar Option (No Google Sign-In Required) */}
+          <div className="p-3.5 rounded-lg border border-neutral-200 bg-neutral-100/70 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-neutral-200 flex items-center justify-center text-neutral-800 shrink-0">
+                <Smartphone size={20} />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-medium text-neutral-900">Add to Phone Calendar</span>
+                  <span className="px-1.5 py-0.2 rounded text-[10px] bg-emerald-100 text-emerald-800 font-medium border border-emerald-200">
+                    No Sign-In Needed
+                  </span>
+                </div>
+                <p className="text-[11px] text-neutral-500 mt-0.5">
+                  Directly adds reminders with 24h & 2h alarm alerts to Apple Calendar (iPhone) or Android Calendar (.ics).
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleExportToPhoneCalendar}
+              disabled={selectedItemsList.length === 0}
+              className="px-3.5 py-1.5 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-medium flex items-center gap-1.5 shrink-0 shadow-2xs transition-colors cursor-pointer disabled:opacity-50"
+            >
+              <Download size={13} />
+              <span>Export {selectedItemsList.length} to Phone</span>
+            </button>
+          </div>
+
+          {phoneExportCount !== null && (
+            <div className="p-3 rounded-lg border border-emerald-200 bg-emerald-50/60 text-xs text-emerald-800 flex items-center gap-2 animate-in fade-in duration-150">
+              <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
+              <span>
+                Exported {phoneExportCount} payment reminders (.ics). Open the downloaded file to add directly to your phone calendar!
+              </span>
             </div>
           )}
 
@@ -374,13 +427,27 @@ export const GoogleCalendarSyncModal: React.FC<GoogleCalendarSyncModalProps> = (
                         </div>
                       </div>
 
-                      <div className="text-right shrink-0">
-                        <span className="font-medium text-neutral-900 block">
-                          {formatCurrency(item.price, item.currency)}
-                        </span>
-                        <span className="text-[10px] text-neutral-500 capitalize">
-                          {item.frequency ? `Every ${item.frequency.interval} ${item.frequency.unit}` : "Monthly"}
-                        </span>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <div className="text-right">
+                          <span className="font-medium text-neutral-900 block">
+                            {formatCurrency(item.price, item.currency)}
+                          </span>
+                          <span className="text-[10px] text-neutral-500 capitalize">
+                            {item.frequency ? `Every ${item.frequency.interval} ${item.frequency.unit}` : "Monthly"}
+                          </span>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            downloadPhoneCalendarEvent(item);
+                          }}
+                          className="p-1.5 rounded-lg border border-neutral-200 bg-white hover:bg-neutral-100 text-neutral-600 hover:text-neutral-900 transition-colors cursor-pointer"
+                          title="Add this reminder to Phone Calendar"
+                        >
+                          <Smartphone size={13} />
+                        </button>
                       </div>
                     </div>
                   );

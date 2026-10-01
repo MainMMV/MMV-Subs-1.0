@@ -35,6 +35,7 @@ import { UndoToast } from "./components/UndoToast";
 import { NotificationsDrawer } from "./components/NotificationsDrawer";
 import { GoogleCalendarSyncModal } from "./components/GoogleCalendarSyncModal";
 import { NewItemSelectModal, NewItemType } from "./components/Modals/NewItemSelectModal";
+import { PWAInstallSuggestion } from "./components/PWAInstallSuggestion";
 import { HomeView } from "./views/HomeView";
 import { SubscriptionsView } from "./views/SubscriptionsView";
 import { RecurringBillsView } from "./views/RecurringBillsView";
@@ -1076,6 +1077,9 @@ export default function App() {
         onClose={() => setIsNewItemSelectOpen(false)}
         onSelectType={handleSelectNewItemType}
       />
+
+      {/* PWA INSTALL SUGGESTION FOR NEW VISITORS */}
+      <PWAInstallSuggestion />
     </div>
   );
 }

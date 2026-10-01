@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { MoreVertical, Edit3, Bell, BarChart2, History, Trash2 } from "lucide-react";
+import { MoreVertical, Edit3, Bell, BarChart2, History, Trash2, Smartphone } from "lucide-react";
 import { PaymentItem } from "../types";
+import { downloadPhoneCalendarEvent } from "../utils/phoneCalendar";
 
 interface ItemActionMenuProps {
   item: PaymentItem;
@@ -131,6 +132,18 @@ export const ItemActionMenu: React.FC<ItemActionMenuProps> = ({
       >
         <Bell size={14} className="text-neutral-500" />
         <span>Manage Reminders</span>
+      </button>
+
+      <button
+        type="button"
+        onClick={() => {
+          setIsOpen(false);
+          downloadPhoneCalendarEvent(item);
+        }}
+        className="w-full px-3 py-2 text-left flex items-center gap-2.5 text-neutral-700 hover:bg-neutral-50 transition-colors font-medium"
+      >
+        <Smartphone size={14} className="text-neutral-500" />
+        <span>Add to Phone Calendar</span>
       </button>
 
       <button

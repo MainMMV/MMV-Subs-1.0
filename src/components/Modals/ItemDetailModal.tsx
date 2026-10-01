@@ -11,7 +11,8 @@ import {
   BarChart2, 
   History, 
   Trash2,
-  AlertCircle
+  AlertCircle,
+  Smartphone
 } from "lucide-react";
 import { PaymentItem, CurrencyDisplayMode } from "../../types";
 import { ServiceIcon } from "../ServiceIcon";
@@ -22,6 +23,7 @@ import {
   formatFrequency,
   getItemDualPrice
 } from "../../utils/calculations";
+import { downloadPhoneCalendarEvent } from "../../utils/phoneCalendar";
 
 interface ItemDetailModalProps {
   isOpen: boolean;
@@ -52,6 +54,7 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
 }) => {
   if (!isOpen || !item) return null;
 
+  const [phoneExported, setPhoneExported] = React.useState(false);
   const status = getItemStatus(item);
   const isPaid = status === "paid";
   const isSkipped = status === "skipped";
@@ -307,6 +310,29 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
             >
               <History size={13} />
               <span>History</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                downloadPhoneCalendarEvent(item);
+                setPhoneExported(true);
+                setTimeout(() => setPhoneExported(false), 3000);
+              }}
+              className="px-2.5 py-1.5 rounded-md border border-neutral-200 bg-white hover:bg-neutral-100 text-neutral-700 flex items-center gap-1.5 font-medium transition-colors text-xs cursor-pointer"
+              title="Add reminder to iPhone / Android Phone Calendar (.ics)"
+            >
+              {phoneExported ? (
+                <>
+                  <CheckCircle2 size={13} className="text-emerald-600" />
+                  <span className="text-emerald-700 font-medium">Added!</span>
+                </>
+              ) : (
+                <>
+                  <Smartphone size={13} />
+                  <span>Phone Cal</span>
+                </>
+              )}
             </button>
           </div>
 
