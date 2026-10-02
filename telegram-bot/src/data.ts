@@ -30,20 +30,30 @@ export async function listUserStates(): Promise<UserState[]> {
   // the shared leaf ID "data". Read the small sync group and filter the leaf
   // ID in memory so every users/{uid}/sync/data document is discovered.
   const snapshot = await db.collectionGroup("sync").get();
-  return snapshot.docs.filter((doc) => doc.id === "data").map((doc) => ({
+  const states = snapshot.docs.filter((doc) => doc.id === "data").map((doc) => ({
     uid: doc.ref.parent.parent?.id || "unknown",
     ref: doc.ref,
     data: doc.data() as UserData,
   }));
+  const byChat = new Map<string, UserState>();
+  for (const state of states) {
+    const chatId = state.data.telegramConfig?.chatId;
+    if (!chatId) continue;
+    const previous = byChat.get(chatId);
+    if (!previous || (state.data.updatedAt || "") > (previous.data.updatedAt || "")) byChat.set(chatId, state);
+  }
+  return [...byChat.values()];
 }
 
 export async function findUserByChatId(chatId: string | number): Promise<UserState | undefined> {
   const target = String(chatId);
   const snapshot = await db.collectionGroup("sync")
     .where("telegramConfig.chatId", "==", target)
-    .limit(1)
+    .limit(20)
     .get();
-  const doc = snapshot.docs[0];
+  const doc = snapshot.docs
+    .filter((entry) => (entry.data() as UserData).telegramConfig?.isEnabled)
+    .sort((a, b) => ((b.data() as UserData).updatedAt || "").localeCompare((a.data() as UserData).updatedAt || ""))[0];
   if (!doc) return undefined;
   const data = doc.data() as UserData;
   if (!data.telegramConfig?.isEnabled) return undefined;

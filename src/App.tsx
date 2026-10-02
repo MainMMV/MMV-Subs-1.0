@@ -12,15 +12,10 @@ import {
   GoogleCalendarSyncState,
   AppTheme
 } from "./types";
-import { 
-  INITIAL_ITEMS, 
-  INITIAL_PAYMENT_HISTORY, 
-  DEFAULT_EXCHANGE_RATE_USD_TO_UZS,
-  INITIAL_GOALS 
-} from "./data/initialData";
 import { getItemStatus, getNextRecurrenceDate } from "./utils/calculations";
 import { syncToFirebase } from "./firebase";
 import { initGoogleCalendarAuth } from "./services/googleCalendar";
+import { syncDeviceReminders } from "./services/deviceReminders";
 import { generateInAppNotifications, triggerBrowserDueAlerts } from "./services/notificationService";
 import { Sidebar } from "./components/Navigation/Sidebar";
 import { TopNavbar } from "./components/Navigation/TopNavbar";
@@ -35,7 +30,6 @@ import { UndoToast } from "./components/UndoToast";
 import { NotificationsDrawer } from "./components/NotificationsDrawer";
 import { GoogleCalendarSyncModal } from "./components/GoogleCalendarSyncModal";
 import { NewItemSelectModal, NewItemType } from "./components/Modals/NewItemSelectModal";
-import { PWAInstallSuggestion } from "./components/PWAInstallSuggestion";
 import { HomeView } from "./views/HomeView";
 import { SubscriptionsView } from "./views/SubscriptionsView";
 import { RecurringBillsView } from "./views/RecurringBillsView";
@@ -45,7 +39,6 @@ import { GoalsView } from "./views/GoalsView";
 import { SettingsView } from "./views/SettingsView";
 import { HabitsView } from "./views/HabitsView";
 import { Habit, HabitLog } from "./types";
-import { getDefaultHabits, getDefaultHabitLogs } from "./data/defaultHabits";
 
 const STORAGE_KEYS = {
   ITEMS: "mmv_subs_items_v3",
@@ -58,6 +51,8 @@ const STORAGE_KEYS = {
   HABIT_LOGS: "mmv_subs_habit_logs_v2",
   THEME: "mmv_subs_theme_v2",
 };
+
+const DEFAULT_EXCHANGE_RATE_USD_TO_UZS = 12800;
 
 export default function App() {
   // Theme State: "warm-dark" is default
@@ -111,9 +106,9 @@ export default function App() {
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.ITEMS);
       const parsed = saved ? JSON.parse(saved) : null;
-      return Array.isArray(parsed) && parsed.length > 0 ? parsed : INITIAL_ITEMS;
+      return Array.isArray(parsed) ? parsed : [];
     } catch {
-      return INITIAL_ITEMS;
+      return [];
     }
   });
 
@@ -122,9 +117,9 @@ export default function App() {
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.HISTORY);
       const parsed = saved ? JSON.parse(saved) : null;
-      return Array.isArray(parsed) ? parsed : INITIAL_PAYMENT_HISTORY;
+      return Array.isArray(parsed) ? parsed : [];
     } catch {
-      return INITIAL_PAYMENT_HISTORY;
+      return [];
     }
   });
 
@@ -177,9 +172,9 @@ export default function App() {
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.GOALS);
       const parsed = saved ? JSON.parse(saved) : null;
-      return Array.isArray(parsed) && parsed.length > 0 ? parsed : INITIAL_GOALS;
+      return Array.isArray(parsed) ? parsed : [];
     } catch {
-      return INITIAL_GOALS;
+      return [];
     }
   });
 
@@ -188,9 +183,9 @@ export default function App() {
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.HABITS);
       const parsed = saved ? JSON.parse(saved) : null;
-      return Array.isArray(parsed) && parsed.length > 0 ? parsed : getDefaultHabits();
+      return Array.isArray(parsed) ? parsed : [];
     } catch {
-      return getDefaultHabits();
+      return [];
     }
   });
 
@@ -199,9 +194,9 @@ export default function App() {
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.HABIT_LOGS);
       const parsed = saved ? JSON.parse(saved) : null;
-      return parsed && typeof parsed === "object" ? parsed : getDefaultHabitLogs(getDefaultHabits());
+      return parsed && typeof parsed === "object" ? parsed : {};
     } catch {
-      return getDefaultHabitLogs(getDefaultHabits());
+      return {};
     }
   });
 
@@ -254,6 +249,7 @@ export default function App() {
   useEffect(() => {
     const notifs = generateInAppNotifications(items);
     triggerBrowserDueAlerts(notifs);
+    syncDeviceReminders(items).catch((error) => console.warn("Device reminders could not be scheduled:", error));
   }, [items]);
 
   // Persistence to localStorage
@@ -391,27 +387,13 @@ export default function App() {
     });
   };
 
-  // Sync all bot-visible sections in the background for Telegram reminders and AI REST API.
+  // Sync bot-visible data for Telegram reminders.
   useEffect(() => {
     const timer = setTimeout(() => {
       syncToFirebase(items, telegramConfig, habits, habitLogs, goals);
-      // Synchronize with local server store so AI agents see live state immediately
-      fetch("/api/v1/sync", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          items,
-          habits,
-          habitLogs,
-          goals,
-          records,
-          exchangeRateUsdToUzs,
-          telegramConfig,
-        }),
-      }).catch(() => {});
     }, 1500);
     return () => clearTimeout(timer);
-  }, [items, telegramConfig, habits, habitLogs, goals, records, exchangeRateUsdToUzs]);
+  }, [items, telegramConfig, habits, habitLogs, goals]);
 
   // Handler: Open Add Modal or New Item Chooser Modal
   const handleOpenAddModal = (presetType?: ItemType) => {
@@ -745,15 +727,17 @@ export default function App() {
 
   // Reset data handler
   const handleResetData = () => {
-    setItems(INITIAL_ITEMS);
-    setRecords(INITIAL_PAYMENT_HISTORY);
-    setGoals(INITIAL_GOALS);
+    setItems([]);
+    setRecords([]);
+    setGoals([]);
+    setHabits([]);
+    setHabitLogs({});
     setExchangeRateUsdToUzs(DEFAULT_EXCHANGE_RATE_USD_TO_UZS);
-    setDisplayCurrency("USD");
+    setDisplayCurrency("default");
   };
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-neutral-50 text-neutral-900 select-none">
+    <div className="flex h-dvh min-h-0 w-full overflow-hidden bg-neutral-50 text-neutral-900 select-none">
       {/* 1. FIXED MAIN NAVIGATION SIDEBAR */}
       <div className="hidden md:block h-full">
         <Sidebar
@@ -809,7 +793,7 @@ export default function App() {
         />
 
         {/* View Router */}
-        <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
+        <main className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] md:p-6 lg:p-8">
           {currentPage === "home" && (
             <HomeView
               items={displayItems}
@@ -1026,6 +1010,7 @@ export default function App() {
         onClose={() => setRemindersItem(null)}
         item={remindersItem}
         onSaveReminders={handleSaveReminders}
+        onOpenCalendarSync={() => setIsCalendarSyncModalOpen(true)}
       />
 
       {/* DELETE CONFIRMATION MODAL */}
@@ -1079,7 +1064,6 @@ export default function App() {
       />
 
       {/* PWA INSTALL SUGGESTION FOR NEW VISITORS */}
-      <PWAInstallSuggestion />
     </div>
   );
 }

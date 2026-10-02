@@ -2,14 +2,14 @@ export function getOpenApiSpec(baseUrl = "https://ais-dev-2s5vsn4lwwb3k4firra7je
   return {
     openapi: "3.0.3",
     info: {
-      title: "MMV Subs Finance & Habits API",
+      title: "MMV Hub Finance & Habits API",
       description: "Complete REST API for managing subscriptions, recurring bills, one-time purchases, habits, and financial goals. Fully compatible with ChatGPT Custom GPT Actions and Google Gemini Function Calling.",
       version: "1.0.0"
     },
     servers: [
       {
         url: baseUrl,
-        description: "Primary MMV Subs Application Server"
+        description: "Primary MMV Hub Application Server"
       }
     ],
     components: {
@@ -18,7 +18,7 @@ export function getOpenApiSpec(baseUrl = "https://ais-dev-2s5vsn4lwwb3k4firra7je
           type: "apiKey",
           in: "header",
           name: "x-api-key",
-          description: "API Key obtained from Settings -> Integrations Hub in MMV Subs"
+          description: "API Key obtained from Settings -> Integrations Hub in MMV Hub"
         },
         BearerAuth: {
           type: "http",

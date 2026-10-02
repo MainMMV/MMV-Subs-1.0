@@ -2,16 +2,16 @@
 
 @layer base {
   :root {
-    --bg-main: #30343B;
-    --bg-sidebar: #25292E;
-    --bg-surface: #454749;
-    --bg-surface-2: #4C4F4F;
-    --bg-surface-input: #5A5C59;
-    --text-primary: #EEEEEE;
-    --text-warm: #B6B29B;
-    --text-muted: #99988A;
-    --accent: #ADC385;
-    --border-theme: #55585A;
+    --bg-main: #29312e;
+    --bg-sidebar: #202825;
+    --bg-surface: #35403a;
+    --bg-surface-2: #3c4841;
+    --bg-surface-input: #455049;
+    --text-primary: #f1f4f2;
+    --text-warm: #c6d0ca;
+    --text-muted: #a7b2ac;
+    --accent: #a8c999;
+    --border-theme: #4b5750;
   }
 
   *, ::before, ::after {
@@ -27,8 +27,8 @@
 /* WARM DARK THEME (DEFAULT) - SPECS MATCHED EXACTLY */
 html[data-theme="warm-dark"],
 html[data-theme="warm-dark"] body {
-  background-color: #30343B !important;
-  color: #EEEEEE !important;
+  background-color: #29312e !important;
+  color: #f1f4f2 !important;
 }
 
 html[data-theme="warm-dark"] ::selection {
@@ -40,52 +40,52 @@ html[data-theme="warm-dark"] ::selection {
 html[data-theme="warm-dark"] aside,
 html[data-theme="warm-dark"] .sidebar-container,
 html[data-theme="warm-dark"] [data-sidebar="true"] {
-  background-color: #25292E !important;
-  border-color: #55585A !important;
+  background-color: #202825 !important;
+  border-color: #4b5750 !important;
 }
 
 /* App Header & Top Navbar */
 html[data-theme="warm-dark"] header {
-  background-color: #25292E !important;
-  border-color: #55585A !important;
+  background-color: #202825 !important;
+  border-color: #4b5750 !important;
 }
 
 /* Main Background containers (#30343B) and opacity variants */
 html[data-theme="warm-dark"] .bg-neutral-50,
 html[data-theme="warm-dark"] [class*="bg-neutral-50/"] {
-  background-color: #35383F !important;
+  background-color: #29312e !important;
 }
 
 /* Primary Surface cards & dialogs (#454749) */
 html[data-theme="warm-dark"] .bg-white,
 html[data-theme="warm-dark"] [class*="bg-white/"] {
-  background-color: #454749 !important;
+  background-color: #35403a !important;
 }
 
 /* Secondary Surface (#3C3F45) and sub-containers */
 html[data-theme="warm-dark"] .bg-neutral-100,
 html[data-theme="warm-dark"] [class*="bg-neutral-100/"] {
-  background-color: #3A3D43 !important;
+  background-color: #3c4841 !important;
 }
 
 /* Tertiary tracks / pill switcher containers */
 html[data-theme="warm-dark"] .bg-neutral-200,
 html[data-theme="warm-dark"] [class*="bg-neutral-200/"] {
-  background-color: #26292F !important;
+  background-color: #202825 !important;
 }
 
 /* Input background (#5A5C59) and borders (#55585A) */
 html[data-theme="warm-dark"] input,
 html[data-theme="warm-dark"] select,
 html[data-theme="warm-dark"] textarea {
-  background-color: #5A5C59 !important;
-  color: #EEEEEE !important;
-  border-color: #55585A !important;
+  background-color: #455049 !important;
+  color: #f1f4f2 !important;
+  border-color: #4b5750 !important;
 }
 
 html[data-theme="warm-dark"] input::placeholder,
 html[data-theme="warm-dark"] textarea::placeholder {
-  color: #99988A !important;
+  color: #a7b2ac !important;
 }
 
 html[data-theme="warm-dark"] input:focus,
@@ -99,7 +99,7 @@ html[data-theme="warm-dark"] textarea:focus {
 html[data-theme="warm-dark"] .border-neutral-200,
 html[data-theme="warm-dark"] .border-neutral-100,
 html[data-theme="warm-dark"] .border-neutral-300 {
-  border-color: #55585A !important;
+  border-color: #4b5750 !important;
 }
 
 /* Subtle low-opacity borders for navigation buttons */
@@ -126,19 +126,19 @@ html[data-theme="warm-dark"] .nav-item-border-active {
 /* Primary text: Soft off-white (#EEEEEE) */
 html[data-theme="warm-dark"] .text-neutral-900,
 html[data-theme="warm-dark"] .text-neutral-800 {
-  color: #EEEEEE !important;
+  color: #f1f4f2 !important;
 }
 
 /* Warm primary/UI text: Beige-gray (#B6B29B) */
 html[data-theme="warm-dark"] .text-neutral-700,
 html[data-theme="warm-dark"] .text-neutral-600 {
-  color: #B6B29B !important;
+  color: #c6d0ca !important;
 }
 
 /* Muted text: Gray-beige (#99988A) */
 html[data-theme="warm-dark"] .text-neutral-500,
 html[data-theme="warm-dark"] .text-neutral-400 {
-  color: #99988A !important;
+  color: #a7b2ac !important;
 }
 
 /* Main Accent: Soft Lime (#ADC385) with dark charcoal text */
@@ -316,67 +316,67 @@ button, a, input, select, textarea {
 }
 
 /* ==========================================================================
-   WARM LIGHT THEME
+   LIGHT THEME
    ========================================================================== */
 
 html[data-theme="light"],
 html[data-theme="light"] body {
-  background-color: #F8F6F1 !important;
-  color: #242320 !important;
+  background-color: #f5f7f6 !important;
+  color: #1e2825 !important;
 }
 
 html[data-theme="light"] ::selection {
-  background-color: #E2E8D5 !important;
-  color: #242320 !important;
+  background-color: #bbdcc5 !important;
+  color: #1e2825 !important;
 }
 
 /* Sidebar & Warm Surfaces (#F1EEE7) */
 html[data-theme="light"] aside,
 html[data-theme="light"] .sidebar-container,
 html[data-theme="light"] [data-sidebar="true"] {
-  background-color: #F1EEE7 !important;
-  border-color: #E4DFD5 !important;
+  background-color: #ecf0ee !important;
+  border-color: #dce4df !important;
 }
 
 /* App Header & Top Navbar */
 html[data-theme="light"] header {
-  background-color: #F8F6F1 !important;
-  border-color: #E4DFD5 !important;
+  background-color: #f5f7f6 !important;
+  border-color: #dce4df !important;
 }
 
 /* Main Background containers (#F8F6F1) */
 html[data-theme="light"] .bg-neutral-50 {
-  background-color: #F8F6F1 !important;
+  background-color: #f5f7f6 !important;
 }
 
 /* Primary Surface cards & dialogs (#FFFEFC) */
 html[data-theme="light"] .bg-white {
-  background-color: #FFFEFC !important;
-  border-color: #E5DFD4 !important;
+  background-color: #ffffff !important;
+  border-color: #dce4df !important;
 }
 
 /* Secondary Surface (#EDE8DF) */
 html[data-theme="light"] .bg-neutral-100 {
-  background-color: #EDE8DF !important;
+  background-color: #edf2ef !important;
 }
 
 html[data-theme="light"] .bg-neutral-200 {
-  background-color: #E2DDD2 !important;
+  background-color: #dce4df !important;
 }
 
 /* Input background and borders */
 html[data-theme="light"] input,
 html[data-theme="light"] select,
 html[data-theme="light"] textarea {
-  background-color: #FFFEFC !important;
-  color: #242320 !important;
-  border-color: #D8D2C5 !important;
+  background-color: #ffffff !important;
+  color: #1e2825 !important;
+  border-color: #ccd8d0 !important;
 }
 
 html[data-theme="light"] input:focus,
 html[data-theme="light"] select:focus,
 html[data-theme="light"] textarea:focus {
-  border-color: #7A9154 !important;
+  border-color: #317459 !important;
   outline: none !important;
 }
 
@@ -384,52 +384,52 @@ html[data-theme="light"] textarea:focus {
 html[data-theme="light"] .border-neutral-200,
 html[data-theme="light"] .border-neutral-100,
 html[data-theme="light"] .border-neutral-300 {
-  border-color: #E5DFD4 !important;
+  border-color: #dce4df !important;
 }
 
 /* Typography Hierarchy */
 html[data-theme="light"] .text-neutral-900,
 html[data-theme="light"] .text-neutral-800 {
-  color: #242320 !important;
+  color: #1e2825 !important;
 }
 
 html[data-theme="light"] .text-neutral-700,
 html[data-theme="light"] .text-neutral-600 {
-  color: #5C5850 !important;
+  color: #52635a !important;
 }
 
 html[data-theme="light"] .text-neutral-500,
 html[data-theme="light"] .text-neutral-400 {
-  color: #8C867B !important;
+  color: #687970 !important;
 }
 
 /* Primary Accent buttons */
 html[data-theme="light"] .bg-neutral-900 {
-  background-color: #262421 !important;
-  color: #F8F6F1 !important;
+  background-color: #317459 !important;
+  color: #ffffff !important;
 }
 html[data-theme="light"] .bg-neutral-900:hover {
-  background-color: #383531 !important;
+  background-color: #265d47 !important;
 }
 
 /* Hover surfaces */
 html[data-theme="light"] .hover\:bg-neutral-50:hover {
-  background-color: #F1EEE7 !important;
+  background-color: #e7efea !important;
 }
 html[data-theme="light"] .hover\:bg-neutral-100:hover {
-  background-color: #E5DFD4 !important;
+  background-color: #dce4df !important;
 }
 
 /* Nav items border in warm light */
 html[data-theme="light"] .nav-item-border {
-  border-color: rgba(92, 88, 80, 0.08) !important;
+  border-color: rgba(44, 74, 55, 0.08) !important;
 }
 html[data-theme="light"] .nav-item-border:hover {
-  border-color: rgba(92, 88, 80, 0.16) !important;
+  border-color: rgba(44, 74, 55, 0.16) !important;
 }
 html[data-theme="light"] .nav-item-border-active {
-  border-color: #D8D1C2 !important;
-  background-color: #EAE5DB !important;
+  border-color: #b8d4c1 !important;
+  background-color: #e2eee6 !important;
 }
 
 /* ==========================================================

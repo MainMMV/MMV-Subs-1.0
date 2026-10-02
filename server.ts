@@ -291,7 +291,7 @@ async function startServer() {
       amount: item.price,
       originalCurrency: item.currency,
       status: "paid",
-      notes: "Payment recorded via MMV Subs API"
+      notes: "Payment recorded via MMV Hub API"
     });
 
     saveServerData(data);
@@ -539,8 +539,8 @@ async function startServer() {
       }
 
       const botUsername = meData.result?.username;
-      const greeting = `👋 <b>MMV Subs Bot Connected!</b>\n\n` +
-        `✅ Your Telegram bot <b>@${botUsername}</b> is linked to <b>MMV Subs</b>.\n` +
+      const greeting = `👋 <b>MMV Hub Bot Connected!</b>\n\n` +
+        `✅ Your Telegram bot <b>@${botUsername}</b> is linked to <b>MMV Hub</b>.\n` +
         `🔔 Reminders, payment tracking, and bot commands are active.\n\n` +
         `<i>Sent on ${new Date().toLocaleString()}</i>`;
 
@@ -595,7 +595,7 @@ async function startServer() {
   }
 
   app.listen(PORT, "0.0.0.0", () => {
-    console.log(`MMV Subs server running on http://0.0.0.0:${PORT}`);
+    console.log(`MMV Hub server running on http://0.0.0.0:${PORT}`);
     console.log(`OpenAPI specification available at http://0.0.0.0:${PORT}/api/v1/openapi.json`);
   });
 }

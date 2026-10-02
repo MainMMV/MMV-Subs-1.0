@@ -17,6 +17,8 @@ import { PaymentItem, CurrencyCode, InAppNotification, GoogleCalendarSyncState }
 import { formatCurrency } from "../utils/calculations";
 import { ServiceIcon } from "./ServiceIcon";
 import { downloadPhoneCalendarEvent } from "../utils/phoneCalendar";
+import { isNativeApp } from "../services/deviceCalendar";
+import { areDeviceRemindersEnabled, enableDeviceReminders, syncDeviceReminders } from "../services/deviceReminders";
 import { 
   generateInAppNotifications, 
   markNotificationAsRead, 
@@ -61,7 +63,8 @@ export const NotificationsDrawer: React.FC<NotificationsDrawerProps> = ({
   useEffect(() => {
     const list = generateInAppNotifications(items);
     setNotifications(list);
-    setBrowserPushActive(isBrowserPushEnabled());
+    if (isNativeApp()) areDeviceRemindersEnabled().then(setBrowserPushActive).catch(() => setBrowserPushActive(false));
+    else setBrowserPushActive(isBrowserPushEnabled());
 
     // Dispatches browser alert if permitted
     triggerBrowserDueAlerts(list);
@@ -85,6 +88,17 @@ export const NotificationsDrawer: React.FC<NotificationsDrawerProps> = ({
       : notifications;
 
   const handleToggleBrowserPush = async () => {
+    if (isNativeApp()) {
+      try {
+        const granted = await enableDeviceReminders();
+        setBrowserPushActive(granted);
+        const count = granted ? await syncDeviceReminders(items) : 0;
+        setPushStatusMsg(granted ? `${count} device reminders scheduled.` : "Notification permission was not granted.");
+      } catch (error) {
+        setPushStatusMsg(error instanceof Error ? error.message : "Could not schedule reminders.");
+      }
+      return;
+    }
     if (!("Notification" in window)) {
       setPushStatusMsg("Web notifications are not supported by this browser.");
       return;
@@ -185,12 +199,12 @@ export const NotificationsDrawer: React.FC<NotificationsDrawerProps> = ({
             <Volume2 size={14} className="text-neutral-500 shrink-0" />
             <div className="min-w-0">
               <span className="text-xs font-medium text-neutral-900 block truncate">
-                {browserPushActive ? "Browser Push Active" : "Enable Browser Alerts"}
+                {isNativeApp() ? (browserPushActive ? "Device reminders active" : "Enable device reminders") : (browserPushActive ? "Browser alerts active" : "Enable browser alerts")}
               </span>
               <span className="text-[10px] text-neutral-500 block truncate">
                 {browserPushActive
-                  ? "Receive native alerts for payments due today & tomorrow"
-                  : "Never miss renewal dates when the tab is backgrounded"}
+                  ? (isNativeApp() ? "Scheduled even while the app is closed" : "Alerts when this app is open")
+                  : (isNativeApp() ? "Schedule reminders on this device" : "Allow alerts while this app is open")}
               </span>
             </div>
           </div>
@@ -361,15 +375,20 @@ export const NotificationsDrawer: React.FC<NotificationsDrawerProps> = ({
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
+                            if (isNativeApp()) {
+                              onClose();
+                              onOpenCalendarSync?.();
+                              return;
+                            }
                             downloadPhoneCalendarEvent(matchedItem);
-                            setPhoneExportNotice(`Exported reminder for ${matchedItem.name} to phone calendar!`);
+                            setPhoneExportNotice(`Exported .ics reminder for ${matchedItem.name}.`);
                             setTimeout(() => setPhoneExportNotice(null), 3500);
                           }}
                           className="text-neutral-600 hover:text-neutral-900 px-2 py-0.5 rounded border border-neutral-200 bg-white hover:bg-neutral-50 flex items-center gap-1 cursor-pointer transition-colors"
                           title="Add this reminder to iPhone Apple Calendar or Android Calendar"
                         >
                           <Smartphone size={12} className="text-neutral-500" />
-                          <span>Phone Cal</span>
+                          <span>{isNativeApp() ? "Calendar" : "Export .ics"}</span>
                         </button>
                       )}
 
@@ -398,7 +417,7 @@ export const NotificationsDrawer: React.FC<NotificationsDrawerProps> = ({
             <div className="flex items-center gap-2 text-neutral-700">
               <CalendarSync size={15} className="text-neutral-500" />
               <div>
-                <span className="font-medium block">Google Calendar Sync</span>
+                <span className="font-medium block">Calendar reminders</span>
                 <span className="text-[10px] text-neutral-500 block">
                   {calendarSyncState?.isConnected
                     ? `Connected (${calendarSyncState.userEmail})`

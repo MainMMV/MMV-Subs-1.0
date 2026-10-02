@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">MMV Hub</string>
+    <string name="title_activity_main">MMV Hub</string>
+    <string name="package_name">com.mainmmv.subs</string>
+    <string name="custom_url_scheme">com.mainmmv.subs</string>
+</resources>

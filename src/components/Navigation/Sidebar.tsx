@@ -93,7 +93,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     <aside
       className={`${
         isCollapsed ? "w-16" : "w-64"
-      } h-screen bg-white border-r border-neutral-200 flex flex-col justify-between select-none flex-shrink-0 transition-all duration-200`}
+      } h-full bg-white border-r border-neutral-200 flex flex-col justify-between select-none flex-shrink-0 transition-all duration-200`}
     >
       <div>
         {/* Brand Header: Logo button collapses/expands navigation */}
@@ -118,7 +118,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   MMV
                 </span>
                 <span className="font-medium text-neutral-500 text-sm">
-                  Host
+                  Hub
                 </span>
               </div>
             )}

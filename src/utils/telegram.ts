@@ -13,20 +13,20 @@ export interface SendTelegramResult {
 export function formatUpcomingBillsMessage(items: PaymentItem[]): string {
   if (items.length === 0) {
     return (
-      `✨ <b>MMV Subs Notification</b>\n\n` +
+      `✨ <b>MMV Hub Notification</b>\n\n` +
       `You have no upcoming payments due in the next 7 days! All set. 🎉\n\n` +
       `<i>Updated on ${new Date().toLocaleDateString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</i>`
     );
   }
 
-  let msg = `📅 <b>MMV Subs: Upcoming Payments Alert</b>\n\n`;
+  let msg = `📅 <b>MMV Hub: Upcoming Payments Alert</b>\n\n`;
   msg += `You have <b>${items.length} ${items.length === 1 ? "payment" : "payments"}</b> due soon:\n\n`;
 
   items.forEach((item) => {
     msg += `• <b>${item.name}</b> (${item.type}): <b>${formatCurrency(item.price, item.currency)}</b>\n  🗓 Due: ${item.date} ${item.time || ""}\n\n`;
   });
 
-  msg += `💡 <i>Tap into MMV Subs to manage or mark as paid.</i>`;
+  msg += `💡 <i>Tap into MMV Hub to manage or mark as paid.</i>`;
   return msg;
 }
 
@@ -36,19 +36,19 @@ export function formatUpcomingBillsMessage(items: PaymentItem[]): string {
 export function formatPastDueBillsMessage(items: PaymentItem[]): string {
   if (items.length === 0) {
     return (
-      `✅ <b>MMV Subs Notice</b>\n\n` +
+      `✅ <b>MMV Hub Notice</b>\n\n` +
       `Great news! You have zero past-due payments. Everything is up to date!`
     );
   }
 
-  let msg = `🚨 <b>MMV Subs: Overdue Payments Alert!</b>\n\n`;
+  let msg = `🚨 <b>MMV Hub: Overdue Payments Alert!</b>\n\n`;
   msg += `⚠️ The following <b>${items.length} ${items.length === 1 ? "payment" : "payments"}</b> require your attention:\n\n`;
 
   items.forEach((item) => {
     msg += `❌ <b>${item.name}</b>: <b>${formatCurrency(item.price, item.currency)}</b>\n  🗓 Was due: ${item.date}\n\n`;
   });
 
-  msg += `🔔 <i>Please check your account or update payment status in MMV Subs.</i>`;
+  msg += `🔔 <i>Please check your account or update payment status in MMV Hub.</i>`;
   return msg;
 }
 
@@ -66,12 +66,12 @@ export function formatSingleBillMessage(item: PaymentItem): string {
       : "🗓 <b>Upcoming Payment Reminder</b>";
 
   return (
-    `🔔 <b>MMV Subs Reminder</b>\n${header}\n\n` +
+    `🔔 <b>MMV Hub Reminder</b>\n${header}\n\n` +
     `• <b>Item</b>: ${item.name} (${item.type})\n` +
     `• <b>Amount</b>: <b>${formatCurrency(item.price, item.currency)}</b>\n` +
     `• <b>Date</b>: ${item.date} ${item.time || ""}\n` +
     (item.notes ? `• <b>Notes</b>: ${item.notes}\n` : "") +
-    `\n<i>Powered by MMV Subs</i>`
+    `\n<i>Powered by MMV Hub</i>`
   );
 }
 

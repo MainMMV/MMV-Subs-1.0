@@ -36,7 +36,7 @@ export const syncToFirebase = async (
       habitLogs,
       goals,
       updatedAt: new Date().toISOString()
-    });
+    }, { merge: true });
     console.log("Synced to Firebase backend for Telegram Cron jobs");
   } catch (error: any) {
     if (error?.code === 'auth/admin-restricted-operation' || error?.code === 'auth/operation-not-allowed') {
@@ -46,4 +46,12 @@ export const syncToFirebase = async (
       console.warn("⚠️ Firebase sync skipped:", error?.message || error);
     }
   }
+};
+
+export const requestTelegramTest = async (chatId: string): Promise<void> => {
+  let user = auth.currentUser;
+  if (!user) user = (await signInAnonymously(auth)).user;
+  await setDoc(doc(db, `users/${user.uid}/sync/data`), {
+    telegramTestRequest: { id: crypto.randomUUID(), chatId, requestedAt: new Date().toISOString() },
+  }, { merge: true });
 };

@@ -29,6 +29,7 @@ import {
   getGoogleCalendarWebLink 
 } from "../utils/phoneCalendar";
 import { formatCurrency } from "../utils/calculations";
+import { addToDeviceCalendar, isNativeApp, requestDeviceCalendars, type DeviceCalendar } from "../services/deviceCalendar";
 
 interface GoogleCalendarSyncModalProps {
   isOpen: boolean;
@@ -49,10 +50,14 @@ export const GoogleCalendarSyncModal: React.FC<GoogleCalendarSyncModalProps> = (
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncSubscriptions, setSyncSubscriptions] = useState(true);
   const [syncBills, setSyncBills] = useState(true);
+  const [syncPurchases, setSyncPurchases] = useState(true);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [syncResult, setSyncResult] = useState<SyncResult | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [phoneExportCount, setPhoneExportCount] = useState<number | null>(null);
+  const [deviceCalendars, setDeviceCalendars] = useState<DeviceCalendar[]>([]);
+  const [deviceCalendarId, setDeviceCalendarId] = useState("");
+  const nativeApp = isNativeApp();
 
   // Selected item IDs for synchronization
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -61,7 +66,7 @@ export const GoogleCalendarSyncModal: React.FC<GoogleCalendarSyncModalProps> = (
   const eligibleItems = items.filter((item) => {
     if (item.type === "subscription" && !syncSubscriptions) return false;
     if (item.type === "bill" && !syncBills) return false;
-    if (item.type === "purchase") return false;
+    if (item.type === "purchase" && !syncPurchases) return false;
     if (item.manualStatus === "paid" || item.manualStatus === "skipped") return false;
     return Boolean(item.date);
   });
@@ -71,7 +76,7 @@ export const GoogleCalendarSyncModal: React.FC<GoogleCalendarSyncModalProps> = (
     if (isOpen) {
       setSelectedIds(new Set(eligibleItems.map((i) => i.id)));
     }
-  }, [isOpen, syncSubscriptions, syncBills, items.length]);
+  }, [isOpen, syncSubscriptions, syncBills, syncPurchases, items]);
 
   if (!isOpen) return null;
 
@@ -99,6 +104,32 @@ export const GoogleCalendarSyncModal: React.FC<GoogleCalendarSyncModalProps> = (
     const count = downloadAllItemsPhoneCalendar(selectedItemsList);
     setPhoneExportCount(count);
     setTimeout(() => setPhoneExportCount(null), 6000);
+  };
+
+  const handleRequestDeviceCalendar = async () => {
+    setErrorMessage(null);
+    try {
+      const calendars = await requestDeviceCalendars();
+      setDeviceCalendars(calendars);
+      setDeviceCalendarId(calendars.find((calendar) => calendar.account.includes("@"))?.id || calendars[0]?.id || "");
+      if (!calendars.length) setErrorMessage("No writable calendar is available on this device. Add an account in Android Calendar settings first.");
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "Could not access device calendar.");
+    }
+  };
+
+  const handleAddToDeviceCalendar = async () => {
+    setIsSyncing(true);
+    setErrorMessage(null);
+    try {
+      const result = await addToDeviceCalendar(selectedItemsList, deviceCalendarId);
+      setPhoneExportCount(result.added + result.updated);
+      if (result.errors.length) setErrorMessage(result.errors.join("; "));
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "Could not add calendar events.");
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   const handleSignIn = async () => {
@@ -150,6 +181,7 @@ export const GoogleCalendarSyncModal: React.FC<GoogleCalendarSyncModalProps> = (
       const res = await syncItemsToGoogleCalendar(items, {
         syncSubscriptions,
         syncBills,
+        syncPurchases,
         selectedItemIds: Array.from(selectedIds),
       });
       setSyncResult(res);
@@ -181,7 +213,7 @@ export const GoogleCalendarSyncModal: React.FC<GoogleCalendarSyncModalProps> = (
               <CalendarIcon size={16} />
             </div>
             <div>
-              <h2 className="text-sm font-medium text-neutral-900">Google Calendar Synchronization</h2>
+              <h2 className="text-sm font-medium text-neutral-900">Calendar reminders</h2>
             </div>
           </div>
 
@@ -202,7 +234,7 @@ export const GoogleCalendarSyncModal: React.FC<GoogleCalendarSyncModalProps> = (
             </div>
           )}
 
-          {/* Direct Phone Calendar Option (No Google Sign-In Required) */}
+          {/* Device calendar can write directly only in the native app. */}
           <div className="p-3.5 rounded-lg border border-neutral-200 bg-neutral-100/70 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-neutral-200 flex items-center justify-center text-neutral-800 shrink-0">
@@ -210,37 +242,54 @@ export const GoogleCalendarSyncModal: React.FC<GoogleCalendarSyncModalProps> = (
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-medium text-neutral-900">Add to Phone Calendar</span>
+                  <span className="text-xs font-medium text-neutral-900">{nativeApp ? "Device calendar" : "Export calendar file"}</span>
                   <span className="px-1.5 py-0.2 rounded text-[10px] bg-emerald-100 text-emerald-800 font-medium border border-emerald-200">
-                    No Sign-In Needed
+                    {nativeApp ? "Direct access" : ".ics file"}
                   </span>
                 </div>
                 <p className="text-[11px] text-neutral-500 mt-0.5">
-                  Directly adds reminders with 24h & 2h alarm alerts to Apple Calendar (iPhone) or Android Calendar (.ics).
+                  {nativeApp ? "Allow access, choose a calendar, then add events with 24h and 2h alerts." : "Download an .ics file to import into your phone calendar."}
                 </p>
               </div>
             </div>
 
             <button
               type="button"
-              onClick={handleExportToPhoneCalendar}
+              onClick={nativeApp ? handleRequestDeviceCalendar : handleExportToPhoneCalendar}
               disabled={selectedItemsList.length === 0}
               className="px-3.5 py-1.5 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-medium flex items-center gap-1.5 shrink-0 shadow-2xs transition-colors cursor-pointer disabled:opacity-50"
             >
-              <Download size={13} />
-              <span>Export {selectedItemsList.length} to Phone</span>
+              {nativeApp ? <Smartphone size={13} /> : <Download size={13} />}
+              <span>{nativeApp ? "Allow calendar access" : `Export ${selectedItemsList.length}`}</span>
             </button>
           </div>
+
+          {nativeApp && deviceCalendars.length > 0 && (
+            <div className="flex flex-col sm:flex-row gap-2">
+              <select
+                aria-label="Device calendar"
+                value={deviceCalendarId}
+                onChange={(event) => setDeviceCalendarId(event.target.value)}
+                className="min-w-0 flex-1 rounded-lg border border-neutral-200 bg-white px-3 py-2 text-xs"
+              >
+                {deviceCalendars.map((calendar) => <option key={calendar.id} value={calendar.id}>{calendar.title} ({calendar.account})</option>)}
+              </select>
+              <button type="button" onClick={handleAddToDeviceCalendar} disabled={isSyncing || !selectedItemsList.length} className="rounded-lg bg-neutral-900 px-3 py-2 text-xs font-medium text-white disabled:opacity-50">
+                {isSyncing ? "Adding..." : `Add ${selectedItemsList.length} to calendar`}
+              </button>
+            </div>
+          )}
 
           {phoneExportCount !== null && (
             <div className="p-3 rounded-lg border border-emerald-200 bg-emerald-50/60 text-xs text-emerald-800 flex items-center gap-2 animate-in fade-in duration-150">
               <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
               <span>
-                Exported {phoneExportCount} payment reminders (.ics). Open the downloaded file to add directly to your phone calendar!
+                {nativeApp ? `Added or updated ${phoneExportCount} calendar events.` : `Exported ${phoneExportCount} reminders. Open the downloaded .ics file to import them.`}
               </span>
             </div>
           )}
 
+          {!nativeApp && <>
           {/* Account Status Card */}
           <div className="p-3.5 rounded-lg border border-neutral-200 bg-neutral-50/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center gap-3">
@@ -317,10 +366,11 @@ export const GoogleCalendarSyncModal: React.FC<GoogleCalendarSyncModalProps> = (
             </div>
           </div>
 
+          </>}
           {/* Type Category Filters */}
           <div className="space-y-2">
             <h3 className="text-xs font-medium text-neutral-700">Filter Event Types</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
               <label className="flex items-center gap-2 p-2.5 rounded-lg border border-neutral-200 bg-white cursor-pointer hover:bg-neutral-50 transition-colors">
                 <input
                   type="checkbox"
@@ -346,6 +396,10 @@ export const GoogleCalendarSyncModal: React.FC<GoogleCalendarSyncModalProps> = (
                   <p className="text-[10px] text-neutral-500">Rent, electricity, internet utilities</p>
                 </div>
               </label>
+              <label className="flex items-center gap-2 p-2.5 rounded-lg border border-neutral-200 bg-white cursor-pointer hover:bg-neutral-50 transition-colors">
+                <input type="checkbox" checked={syncPurchases} onChange={(event) => setSyncPurchases(event.target.checked)} className="rounded border-neutral-300 text-neutral-900 focus:ring-0" />
+                <span className="font-medium text-neutral-900">One-time purchases</span>
+              </label>
             </div>
           </div>
 
@@ -354,7 +408,7 @@ export const GoogleCalendarSyncModal: React.FC<GoogleCalendarSyncModalProps> = (
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-xs font-medium text-neutral-900">
-                  Events to Add to Google Calendar
+                  Events to add
                 </h3>
                 <p className="text-[11px] text-neutral-500">
                   {selectedIds.size} of {eligibleItems.length} items selected
@@ -409,7 +463,7 @@ export const GoogleCalendarSyncModal: React.FC<GoogleCalendarSyncModalProps> = (
                                 ? "bg-blue-50 text-blue-700 border-blue-200"
                                 : "bg-emerald-50 text-emerald-700 border-emerald-200"
                             }`}>
-                              {item.type === "subscription" ? "Subscription" : "Recurring Bill"}
+                              {item.type === "subscription" ? "Subscription" : item.type === "bill" ? "Recurring Bill" : "Purchase"}
                             </span>
                           </div>
 
@@ -433,11 +487,11 @@ export const GoogleCalendarSyncModal: React.FC<GoogleCalendarSyncModalProps> = (
                             {formatCurrency(item.price, item.currency)}
                           </span>
                           <span className="text-[10px] text-neutral-500 capitalize">
-                            {item.frequency ? `Every ${item.frequency.interval} ${item.frequency.unit}` : "Monthly"}
+                            {item.frequency ? `Every ${item.frequency.interval} ${item.frequency.unit}` : "One time"}
                           </span>
                         </div>
 
-                        <button
+                        {!nativeApp && <button
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
@@ -447,7 +501,7 @@ export const GoogleCalendarSyncModal: React.FC<GoogleCalendarSyncModalProps> = (
                           title="Add this reminder to Phone Calendar"
                         >
                           <Smartphone size={13} />
-                        </button>
+                        </button>}
                       </div>
                     </div>
                   );
@@ -458,11 +512,11 @@ export const GoogleCalendarSyncModal: React.FC<GoogleCalendarSyncModalProps> = (
 
           {/* Sync Results Toast */}
           {syncResult && (
-            <div className="p-3 rounded-lg border border-emerald-200 bg-emerald-50/60 text-xs text-emerald-800 flex items-center justify-between">
+            <div className={`p-3 rounded-lg border text-xs flex items-center justify-between ${syncResult.failedCount ? "border-amber-300 bg-amber-50 text-amber-900" : "border-emerald-200 bg-emerald-50/60 text-emerald-800"}`}>
               <div className="flex items-center gap-2">
                 <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
                 <span>
-                  Synchronized {syncResult.createdCount} payment reminders into Google Calendar!
+                  Synchronized {syncResult.totalSynced} reminders.{syncResult.failedCount ? ` ${syncResult.failedCount} failed: ${syncResult.errors.join("; ")}` : ""}
                 </span>
               </div>
               <a
@@ -488,7 +542,7 @@ export const GoogleCalendarSyncModal: React.FC<GoogleCalendarSyncModalProps> = (
             Close
           </button>
 
-          <button
+          {!nativeApp && <button
             type="button"
             onClick={() => setShowConfirmDialog(true)}
             disabled={!syncState.isConnected || isSyncing || selectedItemsList.length === 0}
@@ -496,7 +550,7 @@ export const GoogleCalendarSyncModal: React.FC<GoogleCalendarSyncModalProps> = (
           >
             <RefreshCw size={13} className={isSyncing ? "animate-spin" : ""} />
             <span>{isSyncing ? "Syncing..." : `Sync ${selectedItemsList.length} Events to Calendar`}</span>
-          </button>
+          </button>}
         </div>
 
         {/* MANDATORY USER CONFIRMATION MODAL - Explicit list of what is adding to calendar */}

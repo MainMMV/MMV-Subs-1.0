@@ -43,7 +43,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
   return (
     <header className="h-14 bg-white border-b border-neutral-200 px-4 md:px-6 flex items-center justify-between select-none shrink-0 sticky top-0 z-30 w-full">
       {/* Left: Mobile Toggle & Page Title */}
-      <div className="flex items-center gap-3">
+      <div className="flex min-w-0 items-center gap-2 sm:gap-3">
         <button
           onClick={onOpenMobileMenu}
           className="p-1.5 rounded-lg text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 md:hidden"
@@ -52,15 +52,15 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
           <Menu size={18} />
         </button>
 
-        <div>
-          <h1 className="text-sm font-medium text-neutral-900">
+        <div className="min-w-0">
+          <h1 className="truncate text-sm font-medium text-neutral-900">
             {pageTitles[currentPage] || "Overview"}
           </h1>
         </div>
       </div>
 
       {/* Right: Controls & New Item */}
-      <div className="flex items-center gap-2">
+      <div className="flex shrink-0 items-center gap-1 sm:gap-2">
         {/* Exchange Rate Badge */}
         <div 
           className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 text-[11px] text-neutral-600 bg-neutral-100 rounded-lg border border-neutral-200 font-medium"
@@ -89,7 +89,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
           title="New Item"
         >
           <Plus size={14} />
-          <span>New Item</span>
+          <span className="hidden sm:inline">New Item</span>
         </button>
       </div>
     </header>

@@ -368,8 +368,13 @@ export const HomeView: React.FC<HomeViewProps> = ({
             </div>
 
             {upcomingPayments.length === 0 ? (
-              <div className="p-8 rounded-lg border border-neutral-200 bg-white text-center text-xs text-neutral-400">
-                <p>No upcoming payments scheduled.</p>
+              <div className="py-5 text-xs text-neutral-500">
+                <p>No upcoming payments.</p>
+                {items.length === 0 && (
+                  <button type="button" onClick={onOpenAddModal} className="mt-2 inline-flex items-center gap-1.5 text-neutral-900 underline underline-offset-2 hover:opacity-75">
+                    <Plus size={13} /> Add your first payment
+                  </button>
+                )}
               </div>
             ) : (
               <div className="space-y-2.5">
@@ -399,7 +404,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
             </h3>
 
             {recentPayments.length === 0 ? (
-              <div className="p-4 rounded-lg border border-neutral-200 bg-white text-xs text-neutral-400 text-center">
+              <div className="py-3 text-xs text-neutral-500">
                 No recent payment records logged yet.
               </div>
             ) : (

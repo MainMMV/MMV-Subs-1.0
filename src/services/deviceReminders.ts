@@ -1,0 +1,73 @@
+import { LocalNotifications, type LocalNotificationSchema } from "@capacitor/local-notifications";
+import { isNativeApp } from "./deviceCalendar";
+import type { ItemReminder, PaymentItem } from "../types";
+import { formatCurrency } from "../utils/calculations";
+
+const STORAGE_KEY = "mmv_subs_scheduled_device_ids_v1";
+
+function notificationId(value: string): number {
+  let hash = 2166136261;
+  for (let index = 0; index < value.length; index++) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 1;
+}
+
+function reminderDate(item: PaymentItem, reminder: ItemReminder): Date {
+  const date = new Date(`${item.date}T${reminder.exactTime || item.time || "09:00"}:00`);
+  if (reminder.timing === "on_date") return date;
+  const direction = reminder.timing === "before" ? -1 : 1;
+  const amount = Math.max(0, reminder.duration) * direction;
+  if (reminder.unit === "weeks") date.setDate(date.getDate() + amount * 7);
+  else if (reminder.unit === "days") date.setDate(date.getDate() + amount);
+  else if (reminder.unit === "hours") date.setHours(date.getHours() + amount);
+  else date.setMinutes(date.getMinutes() + amount);
+  return date;
+}
+
+export async function enableDeviceReminders(): Promise<boolean> {
+  if (!isNativeApp()) return false;
+  const { display } = await LocalNotifications.requestPermissions();
+  return display === "granted";
+}
+
+export async function areDeviceRemindersEnabled(): Promise<boolean> {
+  if (!isNativeApp()) return false;
+  const { display } = await LocalNotifications.checkPermissions();
+  return display === "granted";
+}
+
+export async function syncDeviceReminders(items: PaymentItem[]): Promise<number> {
+  if (!isNativeApp()) return 0;
+  const { display } = await LocalNotifications.checkPermissions();
+  if (display !== "granted") return 0;
+  const previous: number[] = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+  const notifications: LocalNotificationSchema[] = [];
+  const now = Date.now();
+  for (const item of items) {
+    if (!item.date || item.manualStatus === "paid" || item.manualStatus === "skipped") continue;
+    const configured = item.reminders?.filter((reminder) => reminder.enabled && reminder.channel !== "telegram") || [];
+    const reminders: ItemReminder[] = item.reminders?.length ? configured : [{
+      id: "due", timing: "on_date", duration: 0, unit: "days",
+      exactTime: item.time || "09:00", channel: "in_app", enabled: true,
+    }];
+    for (const reminder of reminders) {
+      const at = reminderDate(item, reminder);
+      if (Number.isNaN(at.getTime()) || at.getTime() <= now) continue;
+      notifications.push({
+        id: notificationId(`${item.id}:${item.date}:${reminder.id}`),
+        title: `${item.name} payment reminder`,
+        body: `${formatCurrency(item.price, item.currency)} due ${item.date}`,
+        schedule: { at, allowWhileIdle: true },
+        extra: { itemId: item.id },
+      });
+    }
+  }
+  if (previous.length) await LocalNotifications.cancel({ notifications: previous.map((id) => ({ id })) });
+  // Android limits pending alarms. The nearest reminders are the most useful.
+  const nearest = notifications.sort((a, b) => a.schedule!.at!.getTime() - b.schedule!.at!.getTime()).slice(0, 64);
+  if (nearest.length) await LocalNotifications.schedule({ notifications: nearest });
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(nearest.map((notification) => notification.id)));
+  return nearest.length;
+}

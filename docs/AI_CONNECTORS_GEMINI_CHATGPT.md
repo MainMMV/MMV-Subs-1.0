@@ -1,6 +1,6 @@
-# MMV Subs — AI Connectors Guide (Google Gemini & ChatGPT)
+# MMV Hub — AI Connectors Guide (Google Gemini & ChatGPT)
 
-This guide provides the complete architectural schema, REST API documentation, OpenAPI 3.0 specification, and tool calling definitions to connect **Google Gemini** models and **ChatGPT Custom GPTs** to your MMV Subs application.
+This guide provides the complete architectural schema, REST API documentation, OpenAPI 3.0 specification, and tool calling definitions to connect **Google Gemini** models and **ChatGPT Custom GPTs** to your MMV Hub application.
 
 With this integration, AI assistants can view your expenses, create subscriptions, modify bills, delete entries, mark payments as paid, track habits, and update financial goals automatically via natural language.
 
@@ -63,7 +63,7 @@ All requests from external AI agents to the REST API must include an API key:
 
 ## 3. ChatGPT Integration (Custom GPT Actions)
 
-You can create a Custom GPT in ChatGPT that has direct tool access to your MMV Subs app:
+You can create a Custom GPT in ChatGPT that has direct tool access to your MMV Hub app:
 
 ### Step 1: Create a Custom GPT
 1. In ChatGPT, navigate to **Explore GPTs → Create**.
@@ -81,13 +81,13 @@ You can create a Custom GPT in ChatGPT that has direct tool access to your MMV S
 1. Under **Authentication**, select **API Key**.
 2. **Auth Type**: Custom.
 3. **Custom Header Name**: `x-api-key`.
-4. **API Key**: Paste your generated key from MMV Subs Settings.
+4. **API Key**: Paste your generated key from MMV Hub Settings.
 
 ### Step 4: Custom GPT System Prompt Instructions
 Add the following system instructions to your GPT:
 ```markdown
-You are MMV Host, an intelligent personal finance manager and habit tracking assistant.
-You have direct API access to the user's MMV Subs account.
+You are MMV Hub, an intelligent personal finance manager and habit tracking assistant.
+You have direct API access to the user's MMV Hub account.
 
 Capabilities:
 1. View payments: Call `listItems` or `getFinancialSummary` when the user asks about upcoming bills, total monthly spending, or financial forecasts.

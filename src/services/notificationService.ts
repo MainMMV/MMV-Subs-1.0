@@ -1,4 +1,4 @@
-import { PaymentItem, InAppNotification, CurrencyCode } from "../types";
+import { PaymentItem, InAppNotification, CurrencyCode, ItemReminder } from "../types";
 import { getItemStatus, formatCurrency } from "../utils/calculations";
 
 const STORAGE_KEYS = {
@@ -18,7 +18,6 @@ export function generateInAppNotifications(
   const readIds = getStoredIds(STORAGE_KEYS.READ_IDS);
   const dismissedIds = getStoredIds(STORAGE_KEYS.DISMISSED_IDS);
 
-  const todayStr = now.toISOString().slice(0, 10);
   const notifications: InAppNotification[] = [];
 
   items.forEach((item) => {
@@ -27,11 +26,15 @@ export function generateInAppNotifications(
     if (!item.date) return;
 
     const [year, month, day] = item.date.split("-").map(Number);
-    const itemDate = new Date(year, month - 1, day);
-    const todayZero = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const daysUntilDue = Math.round((Date.UTC(year, month - 1, day) - Date.UTC(now.getFullYear(), now.getMonth(), now.getDate())) / 86_400_000);
 
-    const diffMs = itemDate.getTime() - todayZero.getTime();
-    const daysUntilDue = Math.round(diffMs / (1000 * 60 * 60 * 24));
+    const configured = item.reminders || [];
+    if (configured.length) {
+      const inAppReminders = configured.filter((reminder) => reminder.enabled && reminder.channel !== "telegram");
+      if (!inAppReminders.some((reminder) => reminderMoment(item.date, reminder) <= now)) return;
+    } else if (daysUntilDue > 1) {
+      return;
+    }
 
     let urgency: "overdue" | "due_today" | "upcoming" | null = null;
 
@@ -39,7 +42,7 @@ export function generateInAppNotifications(
       urgency = "overdue";
     } else if (daysUntilDue === 0) {
       urgency = "due_today";
-    } else if (daysUntilDue <= 7) {
+    } else {
       urgency = "upcoming";
     }
 
@@ -72,6 +75,16 @@ export function generateInAppNotifications(
     }
     return a.daysUntilDue - b.daysUntilDue;
   });
+}
+
+function reminderMoment(date: string, reminder: ItemReminder): Date {
+  const moment = new Date(`${date}T${reminder.exactTime || "09:00"}:00`);
+  const amount = reminder.timing === "before" ? -reminder.duration : reminder.timing === "after" ? reminder.duration : 0;
+  if (reminder.unit === "weeks") moment.setDate(moment.getDate() + amount * 7);
+  else if (reminder.unit === "days") moment.setDate(moment.getDate() + amount);
+  else if (reminder.unit === "hours") moment.setHours(moment.getHours() + amount);
+  else moment.setMinutes(moment.getMinutes() + amount);
+  return moment;
 }
 
 /**
@@ -160,11 +173,11 @@ export function triggerBrowserDueAlerts(notifications: InAppNotification[]) {
         ? `Payment Due Today: ${item.itemName}`
         : `Payment Due Tomorrow: ${item.itemName}`;
 
-      const body = `${formatCurrency(item.price, item.currency)} is due on ${item.dueDate}. Click to review in MMV Subs.`;
+      const body = `${formatCurrency(item.price, item.currency)} is due on ${item.dueDate}. Open MMV Hub to review.`;
 
       const notification = new Notification(title, {
         body,
-        icon: "/favicon.ico",
+        icon: "/pwa-192x192.png",
         tag: item.id,
       });
 
