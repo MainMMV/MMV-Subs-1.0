@@ -1,14 +1,16 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { X, Plus, Trash2, Bell, Check, Smartphone, CheckCircle2 } from "lucide-react";
 import { PaymentItem, ItemReminder } from "../../types";
 import { ServiceIcon } from "../ServiceIcon";
 import { downloadPhoneCalendarEvent } from "../../utils/phoneCalendar";
+import { isNativeApp } from "../../services/deviceCalendar";
 
 interface ManageRemindersModalProps {
   isOpen: boolean;
   onClose: () => void;
   item: PaymentItem | null;
   onSaveReminders: (itemId: string, reminders: ItemReminder[]) => void;
+  onOpenCalendarSync: () => void;
 }
 
 export const ManageRemindersModal: React.FC<ManageRemindersModalProps> = ({
@@ -16,13 +18,18 @@ export const ManageRemindersModal: React.FC<ManageRemindersModalProps> = ({
   onClose,
   item,
   onSaveReminders,
+  onOpenCalendarSync,
 }) => {
-  if (!isOpen || !item) return null;
-
   const [phoneExported, setPhoneExported] = useState(false);
   const [reminders, setReminders] = useState<ItemReminder[]>(
-    item.reminders ? [...item.reminders] : []
+    item?.reminders ? [...item.reminders] : []
   );
+
+  useEffect(() => {
+    if (isOpen) setReminders(item?.reminders ? [...item.reminders] : []);
+  }, [isOpen, item?.id]);
+
+  if (!isOpen || !item) return null;
 
   const handleAdd = () => {
     const newRem: ItemReminder = {
@@ -219,22 +226,27 @@ export const ManageRemindersModal: React.FC<ManageRemindersModalProps> = ({
           <button
             type="button"
             onClick={() => {
-              downloadPhoneCalendarEvent(item);
-              setPhoneExported(true);
-              setTimeout(() => setPhoneExported(false), 3000);
+              if (isNativeApp()) {
+                onClose();
+                onOpenCalendarSync();
+              } else {
+                downloadPhoneCalendarEvent(item);
+                setPhoneExported(true);
+                setTimeout(() => setPhoneExported(false), 3000);
+              }
             }}
             className="px-3 py-1.5 text-xs font-medium text-neutral-700 hover:bg-neutral-100 rounded-lg transition-colors border border-neutral-200 flex items-center gap-1.5 cursor-pointer"
-            title="Export this payment reminder directly to iPhone Apple Calendar or Android Calendar (.ics)"
+            title={isNativeApp() ? "Choose a device calendar" : "Export this reminder as an .ics file"}
           >
             {phoneExported ? (
               <>
                 <CheckCircle2 size={13} className="text-emerald-600" />
-                <span className="text-emerald-700">Added to Phone Cal!</span>
+                <span className="text-emerald-700">File exported</span>
               </>
             ) : (
               <>
                 <Smartphone size={13} className="text-neutral-500" />
-                <span>Add to Phone Calendar</span>
+                <span>{isNativeApp() ? "Device calendar" : "Export .ics"}</span>
               </>
             )}
           </button>

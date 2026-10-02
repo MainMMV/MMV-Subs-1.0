@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { MoreVertical, Edit3, Bell, BarChart2, History, Trash2, Smartphone } from "lucide-react";
 import { PaymentItem } from "../types";
 import { downloadPhoneCalendarEvent } from "../utils/phoneCalendar";
+import { isNativeApp } from "../services/deviceCalendar";
 
 interface ItemActionMenuProps {
   item: PaymentItem;
@@ -134,7 +135,7 @@ export const ItemActionMenu: React.FC<ItemActionMenuProps> = ({
         <span>Manage Reminders</span>
       </button>
 
-      <button
+      {!isNativeApp() && <button
         type="button"
         onClick={() => {
           setIsOpen(false);
@@ -143,8 +144,8 @@ export const ItemActionMenu: React.FC<ItemActionMenuProps> = ({
         className="w-full px-3 py-2 text-left flex items-center gap-2.5 text-neutral-700 hover:bg-neutral-50 transition-colors font-medium"
       >
         <Smartphone size={14} className="text-neutral-500" />
-        <span>Add to Phone Calendar</span>
-      </button>
+        <span>Export .ics</span>
+      </button>}
 
       <button
         type="button"

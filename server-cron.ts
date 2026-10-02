@@ -89,7 +89,7 @@ export function startCronJobs() {
 
             // If diffDays is in remindDaysBefore, send reminder
             if (remindDaysBefore && remindDaysBefore.includes(diffDays)) {
-              const itemText = `🔔 <b>Upcoming Payment Reminder</b>\n\n💰 <b>Amount:</b> ${sub.amount} ${sub.currency || "USD"}\n📅 <b>Due in:</b> ${diffDays} days (${sub.nextDueDate})\n\n<i>Via MMV Subs</i>`;
+              const itemText = `🔔 <b>Upcoming Payment Reminder</b>\n\n💰 <b>Amount:</b> ${sub.amount} ${sub.currency || "USD"}\n📅 <b>Due in:</b> ${diffDays} days (${sub.nextDueDate})\n\n<i>Via MMV Hub</i>`;
 
               const telegramUrl = `https://api.telegram.org/bot${telegramBotToken}/sendMessage`;
               await fetch(telegramUrl, {

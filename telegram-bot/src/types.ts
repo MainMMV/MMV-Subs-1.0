@@ -80,6 +80,9 @@ export interface TelegramConfig {
 }
 
 export interface UserData {
+  updatedAt?: string;
+  telegramTestRequest?: { id: string; chatId: string; requestedAt: string };
+  telegramTestResultId?: string;
   items?: PaymentItem[];
   subscriptions?: PaymentItem[];
   habits?: Habit[];

@@ -27,7 +27,7 @@ function habitKeyboard(habit: Habit, date: string): Keyboard {
 }
 
 function linkedHelp(chatId: number) {
-  return `Welcome to <b>MMV Subs Bot</b>\n\nYour Chat ID: <code>${chatId}</code>\n\nTo link your data, open <b>MMV Subs → Settings → Telegram Notifications</b>, paste this Chat ID, enable alerts, and save. The bot then reads your synced subscriptions, bills, one-time purchases, habits, goals, and calendar dates.\n\nUse the buttons below after saving.`;
+  return `Welcome to <b>MMV Hub Bot</b>\n\nYour Chat ID: <code>${chatId}</code>\n\nTo link your data, open <b>MMV Hub → Settings → Telegram Notifications</b>, paste this Chat ID, enable alerts, and save. The bot then reads your synced subscriptions, bills, one-time purchases, habits, goals, and calendar dates.\n\nUse the buttons below after saving.`;
 }
 
 function daysLabel(days: number) {
@@ -51,7 +51,7 @@ async function showHome(chatId: number) {
   const habitCount = (state.data.habits || []).filter((habit) => isHabitScheduled(habit, clock) && !isHabitComplete(state.data, habit, clock.date)).length;
   const activeGoalCount = activeGoals(state.data.goals || []).length;
   const text = [
-    `<b>MMV Subs · ${clock.date}</b>`,
+    `<b>MMV Hub · ${clock.date}</b>`,
     `Payments due today: <b>${dueToday.length}</b>`,
     `Upcoming in 7 days: <b>${upcoming.length}</b>`,
     `Habits still open: <b>${habitCount}</b>`,
@@ -121,7 +121,7 @@ async function showCalendar(chatId: number) {
 }
 
 async function showInfo(chatId: number) {
-  return sendMessage(chatId, `<b>How MMV Subs Bot works</b>\n\n• <b>Subscriptions & bills:</b> sends each Telegram or global reminder once per payment cycle. When you mark a recurring item paid in the app, its next date becomes the next cycle.\n• <b>One-time purchases:</b> sends reminders once until you mark the item paid or skipped.\n• <b>Habits:</b> sends enabled habit reminders only on scheduled days; the Done button updates the habit log.\n• <b>Goals:</b> sends deadline alerts 7 days, 1 day, and on the deadline.\n• <b>Calendar:</b> displays upcoming payment dates from the same data.\n\nTimes use <b>${TZ}</b>.`, mainKeyboard);
+  return sendMessage(chatId, `<b>How MMV Hub Bot works</b>\n\n• <b>Subscriptions & bills:</b> sends each Telegram or global reminder once per payment cycle. When you mark a recurring item paid in the app, its next date becomes the next cycle.\n• <b>One-time purchases:</b> sends reminders once until you mark the item paid or skipped.\n• <b>Habits:</b> sends enabled habit reminders only on scheduled days; the Done button updates the habit log.\n• <b>Goals:</b> sends deadline alerts 7 days, 1 day, and on the deadline.\n• <b>Calendar:</b> displays upcoming payment dates from the same data.\n\nTimes use <b>${TZ}</b>.`, mainKeyboard);
 }
 
 function reminderMoment(item: PaymentItem, reminder: ItemReminder): { date: string; time: string } {
@@ -206,6 +206,11 @@ async function runScheduler() {
   const states = await listUserStates();
   for (const state of states) {
     try {
+      const request = state.data.telegramTestRequest;
+      if (request && request.id !== state.data.telegramTestResultId && state.data.telegramConfig?.isEnabled && request.chatId === state.data.telegramConfig.chatId) {
+        await sendOnce(state, `test:${request.id}`, "<b>MMV Hub test</b>\n\nYour Telegram reminders are connected.", mainKeyboard);
+        await state.ref.update({ telegramTestResultId: request.id });
+      }
       await checkPayments(state, clock);
       await checkHabits(state, clock);
       await checkGoals(state, clock);
@@ -308,7 +313,7 @@ async function startPolling() {
   }
 }
 
-console.log(`MMV Subs Telegram bot started. Time zone: ${TZ}`);
+console.log(`MMV Hub Telegram bot started. Time zone: ${TZ}`);
 const healthServer = createServer((request, response) => {
   if (request.url === "/health") {
     response.writeHead(200, { "content-type": "application/json" });
@@ -316,7 +321,7 @@ const healthServer = createServer((request, response) => {
     return;
   }
   response.writeHead(200, { "content-type": "text/plain; charset=utf-8" });
-  response.end("MMV Subs Telegram Bot is running.");
+  response.end("MMV Hub Telegram Bot is running.");
 });
 healthServer.listen(PORT, "0.0.0.0", () => console.log(`Health server listening on 0.0.0.0:${PORT}`));
 void runScheduler().catch((error) => console.error("Initial scheduler error:", error));

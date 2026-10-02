@@ -12,6 +12,7 @@ import { motion } from "motion/react";
 import { PaymentItem, CurrencyCode, CurrencyDisplayMode, GoogleCalendarSyncState } from "../types";
 import { formatCurrency, convertCurrency } from "../utils/calculations";
 import { downloadAllItemsPhoneCalendar } from "../utils/phoneCalendar";
+import { isNativeApp } from "../services/deviceCalendar";
 import { PaymentItemRow } from "../components/PaymentItemRow";
 import { CashFlowForecastPanel } from "../components/CashFlowForecastPanel";
 
@@ -59,6 +60,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   );
   const [showForecast, setShowForecast] = useState<boolean>(false);
   const [phoneExportNotice, setPhoneExportNotice] = useState<string | null>(null);
+  const nativeApp = isNativeApp();
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -284,36 +286,36 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
 
       {/* Secondary Feature Action Bar: Google Calendar Sync & Cash Flow Forecaster */}
       <div className="flex flex-wrap items-center justify-between gap-2.5 p-2 rounded-lg border border-neutral-200 bg-neutral-100/60 text-xs">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {onOpenCalendarSync && (
             <button
               type="button"
               onClick={onOpenCalendarSync}
-              className="px-3 py-1.5 rounded-lg border border-neutral-200 bg-white hover:bg-neutral-50 text-neutral-800 font-medium transition-colors flex items-center gap-1.5 shadow-2xs"
+              className="px-2.5 py-1.5 rounded-lg border border-neutral-200 bg-white hover:bg-neutral-50 text-neutral-800 font-medium transition-colors flex items-center gap-1.5 shadow-2xs"
             >
-              <CalendarSync size={14} className="text-neutral-600" />
-              <span>Google Calendar Sync</span>
-              {calendarSyncState?.isConnected ? (
+              <CalendarSync size={14} className="shrink-0 text-neutral-600" />
+              <span className="whitespace-nowrap">{nativeApp ? "Device calendar" : "Google Calendar"}</span>
+              {!nativeApp && calendarSyncState?.isConnected && (
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" title="Connected" />
-              ) : (
-                <span className="text-[10px] text-neutral-400 font-normal">Connect</span>
               )}
             </button>
           )}
 
-          <button
-            type="button"
-            onClick={() => {
-              const count = downloadAllItemsPhoneCalendar(items);
-              setPhoneExportNotice(`Exported ${count} active payment reminders (.ics). Open the file to add to your phone calendar!`);
-              setTimeout(() => setPhoneExportNotice(null), 4500);
-            }}
-            className="px-3 py-1.5 rounded-lg border border-neutral-200 bg-white hover:bg-neutral-50 text-neutral-800 font-medium transition-colors flex items-center gap-1.5 shadow-2xs cursor-pointer"
-            title="Export all reminders to Apple Calendar or Android Calendar (.ics)"
-          >
-            <Smartphone size={14} className="text-neutral-600" />
-            <span>Add to Phone Calendar</span>
-          </button>
+          {!nativeApp && (
+            <button
+              type="button"
+              onClick={() => {
+                const count = downloadAllItemsPhoneCalendar(items);
+                setPhoneExportNotice(count ? `Exported ${count} payment reminders (.ics).` : "No active payments to export.");
+                setTimeout(() => setPhoneExportNotice(null), 4500);
+              }}
+              className="px-2.5 py-1.5 rounded-lg border border-neutral-200 bg-white hover:bg-neutral-50 text-neutral-800 font-medium transition-colors flex items-center gap-1.5 shadow-2xs cursor-pointer"
+              title="Export all reminders to Apple Calendar or Android Calendar (.ics)"
+            >
+              <Smartphone size={14} className="shrink-0 text-neutral-600" />
+              <span className="whitespace-nowrap">Export .ics</span>
+            </button>
+          )}
 
           {calendarSyncState?.isConnected && calendarSyncState.lastSyncedAt && (
             <span className="text-[11px] text-neutral-500 hidden sm:inline">
@@ -339,7 +341,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
           }`}
         >
           <TrendingUp size={14} />
-          <span>{showForecast ? "Hide Forecast" : "Cash Flow Forecast (30/60/90d)"}</span>
+          <span>{showForecast ? "Hide forecast" : "Forecast"}</span>
         </button>
       </div>
 

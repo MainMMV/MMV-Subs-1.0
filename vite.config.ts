@@ -14,11 +14,11 @@ export default defineConfig(() => {
         includeAssets: ['favicon.svg', 'apple-touch-icon.png', 'pwa-192x192.png', 'pwa-512x512.png', 'pwa-maskable-512x512.png'],
         manifest: {
           id: '/',
-          name: 'MMV Host v2',
-          short_name: 'MMV Host v2',
+          name: 'MMV Hub',
+          short_name: 'MMV Hub',
           description: 'Personal payment tracking, recurring bills, subscriptions, habits, and reminders.',
-          theme_color: '#25292E',
-          background_color: '#25292E',
+          theme_color: '#262B2A',
+          background_color: '#262B2A',
           display: 'standalone',
           display_override: ['window-controls-overlay', 'standalone', 'minimal-ui'],
           orientation: 'portrait-primary',
@@ -48,10 +48,6 @@ export default defineConfig(() => {
         workbox: {
           maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
           globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2,webmanifest}'],
-        },
-        devOptions: {
-          enabled: true,
-          type: 'module',
         },
       }),
     ],

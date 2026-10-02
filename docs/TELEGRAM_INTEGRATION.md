@@ -1,6 +1,6 @@
-# MMV Subs — Telegram Integration & Bot Guide
+# MMV Hub — Telegram Integration & Bot Guide
 
-This guide explains how to connect, configure, and operate the **MMV Subs Telegram Bot** with your application database, notifications, and scheduled reminders.
+This guide explains how to connect, configure, and operate the **MMV Hub Telegram Bot** with your application database, notifications, and scheduled reminders.
 
 ---
 
@@ -8,7 +8,7 @@ This guide explains how to connect, configure, and operate the **MMV Subs Telegr
 
 ```
  ┌──────────────────────┐          ┌─────────────────────────┐          ┌───────────────────────┐
- │   MMV Subs Web App   │          │   Firestore Database    │          │  Telegram Bot Worker  │
+ │   MMV Hub Web App   │          │   Firestore Database    │          │  Telegram Bot Worker  │
  │   (React + Vite)     │ ───────> │  users/{uid}/sync/data  │ <─────── │ (Render / Node.js 22) │
  └──────────────────────┘          └─────────────────────────┘          └───────────┬───────────┘
                                                                                     │
@@ -27,7 +27,7 @@ This guide explains how to connect, configure, and operate the **MMV Subs Telegr
 
 ## 2. Linking Your Account (Registration)
 
-Follow these simple steps to link your Telegram account to your MMV Subs dashboard:
+Follow these simple steps to link your Telegram account to your MMV Hub dashboard:
 
 1. **Start the Bot in Telegram**:
    - Open Telegram and search for your bot (or open `https://t.me/YourBotName`).
@@ -35,7 +35,7 @@ Follow these simple steps to link your Telegram account to your MMV Subs dashboa
    - The bot replies with a welcome message containing your **Chat ID** (e.g., `123456789`).
 
 2. **Connect in Web App Settings**:
-   - In MMV Subs, open **Settings → Integrations Hub** (or **Telegram Notifications**).
+   - In MMV Hub, open **Settings → Integrations Hub** (or **Telegram Notifications**).
    - Enter your **Telegram Chat ID**.
    - Ensure the **Enable Telegram Notifications** toggle is checked.
    - Click **Save Telegram Settings**.

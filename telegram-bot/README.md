@@ -1,6 +1,6 @@
-# MMV Subs Telegram Bot
+# MMV Hub Telegram Bot
 
-The bot is a separate service for the MMV Subs app. The current Blueprint deploys the `telegram-bot` folder as a free Render Web Service with a lightweight `/health` endpoint.
+The bot is a separate service for the MMV Hub app. The current Blueprint deploys the `telegram-bot` folder as a free Render Web Service with a lightweight `/health` endpoint.
 
 ## What it does
 
@@ -15,7 +15,7 @@ The bot is a separate service for the MMV Subs app. The current Blueprint deploy
 ## Link the bot
 
 1. Start the bot and copy the Chat ID shown by `/start`.
-2. In MMV Subs, open Settings → Telegram Notifications.
+2. In MMV Hub, open Settings → Telegram Notifications.
 3. Paste the Chat ID, enable alerts, and save. The app syncs items, habits, habit logs, and goals to Firestore.
 
 The bot token belongs only in the background worker's `TELEGRAM_BOT_TOKEN` variable. Do not place it in browser code, Firebase client data, or Git.
