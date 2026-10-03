@@ -1,5 +1,6 @@
 import { PaymentItem, InAppNotification, CurrencyCode, ItemReminder } from "../types";
 import { getItemStatus, formatCurrency } from "../utils/calculations";
+import { tashkentDateKey, tashkentDateTime } from "../utils/timezone";
 
 const STORAGE_KEYS = {
   READ_IDS: "mmv_subs_read_notifications_v1",
@@ -26,7 +27,8 @@ export function generateInAppNotifications(
     if (!item.date) return;
 
     const [year, month, day] = item.date.split("-").map(Number);
-    const daysUntilDue = Math.round((Date.UTC(year, month - 1, day) - Date.UTC(now.getFullYear(), now.getMonth(), now.getDate())) / 86_400_000);
+    const [todayYear, todayMonth, todayDay] = tashkentDateKey(now).split("-").map(Number);
+    const daysUntilDue = Math.round((Date.UTC(year, month - 1, day) - Date.UTC(todayYear, todayMonth - 1, todayDay)) / 86_400_000);
 
     const configured = item.reminders || [];
     if (configured.length) {
@@ -78,7 +80,7 @@ export function generateInAppNotifications(
 }
 
 function reminderMoment(date: string, reminder: ItemReminder): Date {
-  const moment = new Date(`${date}T${reminder.exactTime || "09:00"}:00`);
+  const moment = tashkentDateTime(date, reminder.exactTime || "09:00");
   const amount = reminder.timing === "before" ? -reminder.duration : reminder.timing === "after" ? reminder.duration : 0;
   if (reminder.unit === "weeks") moment.setDate(moment.getDate() + amount * 7);
   else if (reminder.unit === "days") moment.setDate(moment.getDate() + amount);

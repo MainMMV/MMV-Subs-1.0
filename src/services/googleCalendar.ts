@@ -8,6 +8,7 @@ import {
 import { auth } from "../firebase";
 import { PaymentItem, GoogleCalendarSyncState } from "../types";
 import { formatCurrency } from "../utils/calculations";
+import { APP_TIME_ZONE } from "../utils/timezone";
 
 export const CALENDAR_SCOPE = "https://www.googleapis.com/auth/calendar.events";
 
@@ -215,7 +216,7 @@ export async function syncItemsToGoogleCalendar(
         .join("\n");
 
       // Prepare RFC compliant date/time range
-      const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+      const timeZone = APP_TIME_ZONE;
       let startObj: Record<string, string>;
       let endObj: Record<string, string>;
 

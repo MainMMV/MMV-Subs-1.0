@@ -15,6 +15,7 @@ MMV Hub is a responsive personal dashboard for subscriptions, recurring bills, o
 - Track habits, completion history, goals, budgets, payment history, and cash-flow forecasts.
 - Use light and dark themes with responsive layouts for phones, tablets, and desktops.
 - Switch the interface between Uzbek, Russian, and English; the choice persists on web and Android.
+- Use Asia/Tashkent time (GMT+5) consistently for payment dates, reminders, calendar events, and published change times.
 - Sync app data to Firebase for Telegram reminder delivery.
 - Use Telegram commands for payments, habits, goals, and upcoming calendar items.
 - Install the web app as a PWA or install the Android APK from GitHub Releases.
@@ -89,11 +90,22 @@ For Telegram Login on the web, open `@BotFather`, run `/setdomain`, select the M
 
 ## Change history
 
-<!-- Add every new published update above older entries. Use: HH:mm DD.MM.YYYY UTC. Keep each release inside a details block. -->
-Each published update is recorded newest first using `HH:mm DD.MM.YYYY UTC`.
+<!-- Add every new published update above older entries. Use: HH:mm DD.MM.YYYY GMT+5 (Tashkent). Keep each release inside a details block. -->
+Each published update is recorded newest first using `HH:mm DD.MM.YYYY GMT+5 (Tashkent)`.
 
 <details open>
-<summary><strong>05:00 03.10.2026 UTC — Uzbek, Russian, and English interface</strong></summary>
+<summary><strong>10:22 03.10.2026 GMT+5 (Tashkent) — Tashkent time standardization</strong></summary>
+
+- Standardized date-only app logic, payment status, paid dates, habit dates, forecasts, exports, and calendar event time zones on `Asia/Tashkent`.
+- Kept stored ISO timestamps as absolute instants while displaying synchronized times in Tashkent time.
+- Corrected every existing change-history timestamp from UTC to the equivalent Tashkent publication time.
+
+Modified areas: `src/utils/timezone.ts`, date and calendar utilities, payment and habit flows, Settings, dashboard and calendar views, and `README.md`.
+
+</details>
+
+<details>
+<summary><strong>10:00 03.10.2026 GMT+5 (Tashkent) — Uzbek, Russian, and English interface</strong></summary>
 
 - Added a persistent language selector for Uzbek, Russian, and English in Settings.
 - Localized core navigation, dashboard summaries, payment views, settings, Telegram controls, reminders, item creation, alerts, and the native Android shell.
@@ -105,7 +117,7 @@ Modified areas: `src/i18n.tsx`, `src/main.tsx`, navigation, dashboard and paymen
 </details>
 
 <details>
-<summary><strong>04:27 03.10.2026 UTC — Native mobile UX and Telegram Login</strong></summary>
+<summary><strong>09:27 03.10.2026 GMT+5 (Tashkent) — Native mobile UX and Telegram Login</strong></summary>
 
 - Added a native Android top bar, bottom navigation, centered quick-add action, all-sections drawer, and device safe-area handling.
 - Added an APK-only quick setup panel for notification permission, reminder scheduling, today's due count, and direct device-calendar access.
@@ -119,7 +131,7 @@ Modified areas: `src/App.tsx`, `src/components/Navigation/`, `src/components/Nat
 </details>
 
 <details>
-<summary><strong>18:05 02.10.2026 UTC — MMV Hub launch, reminders, and Android build</strong></summary>
+<summary><strong>23:05 02.10.2026 GMT+5 (Tashkent) — MMV Hub launch, reminders, and Android build</strong></summary>
 
 - `src/views/SettingsView.tsx`, `src/views/CalendarView.tsx`, navigation, and shared styles: fixed narrow-screen text collisions, wrapping, scrolling, spacing, colors, and responsive controls.
 - `public/`, `assets/`, `src/components/MMVLogo.tsx`, `index.html`, and `vite.config.ts`: replaced the old branding, favicon, PWA icons, metadata, and duplicate PWA files.

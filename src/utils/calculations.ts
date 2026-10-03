@@ -1,4 +1,5 @@
 import { PaymentItem, PaymentStatus, CurrencyCode, CurrencyDisplayMode, CustomFrequency, PaymentHistoryRecord } from "../types";
+import { tashkentDateKey } from "./timezone";
 
 /**
  * Currency conversion using manual exchange rate (1 USD = rate UZS)
@@ -103,7 +104,7 @@ export function getItemStatus(item: PaymentItem, now: Date = new Date()): Paymen
 
   if (!item.date) return "upcoming";
 
-  const todayStr = now.toISOString().slice(0, 10);
+  const todayStr = tashkentDateKey(now);
   const itemDateStr = item.date.slice(0, 10);
 
   if (itemDateStr === todayStr) {
@@ -290,7 +291,7 @@ export function getNextRecurrenceDate(currentDateStr: string, frequency?: Custom
   if (!currentDateStr) {
     const today = new Date();
     today.setMonth(today.getMonth() + 1);
-    return today.toISOString().slice(0, 10);
+    return tashkentDateKey(today);
   }
 
   const [year, month, day] = currentDateStr.split("-").map(Number);
@@ -384,4 +385,3 @@ export function getItemDualPrice(
     };
   }
 }
-

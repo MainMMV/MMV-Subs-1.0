@@ -3,6 +3,7 @@ import { BellRing, CalendarPlus, Check, Clock3 } from "lucide-react";
 import { PaymentItem } from "../types";
 import { areDeviceRemindersEnabled, enableDeviceReminders, syncDeviceReminders } from "../services/deviceReminders";
 import { useI18n } from "../i18n";
+import { tashkentDateKey } from "../utils/timezone";
 
 interface NativeQuickSetupProps {
   items: PaymentItem[];
@@ -18,7 +19,7 @@ export const NativeQuickSetup: React.FC<NativeQuickSetupProps> = ({ items, onOpe
     areDeviceRemindersEnabled().then(setRemindersEnabled).catch(() => setRemindersEnabled(false));
   }, []);
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = tashkentDateKey();
   const dueToday = items.filter((item) => item.date === today && item.manualStatus !== "paid" && item.manualStatus !== "skipped").length;
 
   const enableReminders = async () => {

@@ -1,5 +1,6 @@
 import { PaymentItem, TelegramConfig } from "../types";
 import { formatCurrency } from "./calculations";
+import { APP_TIME_ZONE, tashkentDateKey } from "./timezone";
 
 export interface SendTelegramResult {
   success: boolean;
@@ -15,7 +16,7 @@ export function formatUpcomingBillsMessage(items: PaymentItem[]): string {
     return (
       `✨ <b>MMV Hub Notification</b>\n\n` +
       `You have no upcoming payments due in the next 7 days! All set. 🎉\n\n` +
-      `<i>Updated on ${new Date().toLocaleDateString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</i>`
+      `<i>Updated on ${new Date().toLocaleDateString(undefined, { timeZone: APP_TIME_ZONE, month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</i>`
     );
   }
 
@@ -56,7 +57,7 @@ export function formatPastDueBillsMessage(items: PaymentItem[]): string {
  * Format a single payment item reminder
  */
 export function formatSingleBillMessage(item: PaymentItem): string {
-  const isToday = new Date().toISOString().split("T")[0] === item.date;
+  const isToday = tashkentDateKey() === item.date;
   const isPast = new Date() > new Date(item.date + "T23:59:59");
 
   const header = isPast 

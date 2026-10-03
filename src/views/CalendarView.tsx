@@ -14,6 +14,7 @@ import { formatCurrency, convertCurrency } from "../utils/calculations";
 import { downloadAllItemsPhoneCalendar } from "../utils/phoneCalendar";
 import { isNativeApp } from "../services/deviceCalendar";
 import { useI18n } from "../i18n";
+import { formatTashkentDateTime, tashkentDateKey } from "../utils/timezone";
 import { PaymentItemRow } from "../components/PaymentItemRow";
 import { CashFlowForecastPanel } from "../components/CashFlowForecastPanel";
 
@@ -53,7 +54,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [calendarMode, setCalendarMode] = useState<CalendarViewMode>("monthly");
   const [selectedDate, setSelectedDate] = useState<string>(
-    new Date().toISOString().slice(0, 10)
+    tashkentDateKey()
   );
   const [showForecast, setShowForecast] = useState<boolean>(false);
   const [phoneExportNotice, setPhoneExportNotice] = useState<string | null>(null);
@@ -76,7 +77,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
       d.setDate(d.getDate() - 7);
     } else if (calendarMode === "dayly") {
       d.setDate(d.getDate() - 1);
-      setSelectedDate(d.toISOString().slice(0, 10));
+      setSelectedDate(tashkentDateKey(d));
     }
     setCurrentDate(d);
   };
@@ -91,7 +92,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
       d.setDate(d.getDate() + 7);
     } else if (calendarMode === "dayly") {
       d.setDate(d.getDate() + 1);
-      setSelectedDate(d.toISOString().slice(0, 10));
+      setSelectedDate(tashkentDateKey(d));
     }
     setCurrentDate(d);
   };
@@ -99,7 +100,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   const handleToday = () => {
     const today = new Date();
     setCurrentDate(today);
-    setSelectedDate(today.toISOString().slice(0, 10));
+    setSelectedDate(tashkentDateKey(today));
   };
 
   // Header Title
@@ -138,7 +139,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
     const d = prevMonthLastDay - i;
     const prevDate = new Date(year, month - 1, d);
     monthCalendarDays.push({
-      dateStr: prevDate.toISOString().slice(0, 10),
+      dateStr: tashkentDateKey(prevDate),
       dayNum: d,
       isCurrentMonth: false,
     });
@@ -157,7 +158,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   for (let d = 1; d <= remaining; d++) {
     const nextDate = new Date(year, month + 1, d);
     monthCalendarDays.push({
-      dateStr: nextDate.toISOString().slice(0, 10),
+      dateStr: tashkentDateKey(nextDate),
       dayNum: d,
       isCurrentMonth: false,
     });
@@ -177,7 +178,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
     const dObj = new Date(currD);
     dObj.setDate(currD.getDate() + i);
     weekCalendarDays.push({
-      dateStr: dObj.toISOString().slice(0, 10),
+      dateStr: tashkentDateKey(dObj),
       dayNum: dObj.getDate(),
       dayLabel: weekLabels[i],
     });
@@ -185,7 +186,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
 
   // Selected Day Items
   const dayDateStr = calendarMode === "dayly" 
-    ? currentDate.toISOString().slice(0, 10) 
+    ? tashkentDateKey(currentDate)
     : selectedDate;
   const dayItems = items.filter((i) => i.date === dayDateStr);
 
@@ -269,7 +270,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                   onClick={() => {
                     setCalendarMode(m);
                     if (m === "dayly") {
-                      setSelectedDate(currentDate.toISOString().slice(0, 10));
+                      setSelectedDate(tashkentDateKey(currentDate));
                     }
                   }}
                   className={`px-2.5 py-1 rounded-md transition-colors ${
@@ -321,7 +322,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
 
           {calendarSyncState?.isConnected && calendarSyncState.lastSyncedAt && (
             <span className="text-[11px] text-neutral-500 hidden sm:inline">
-              Synced {calendarSyncState.syncedEventCount} events ({new Date(calendarSyncState.lastSyncedAt).toLocaleDateString()})
+              Synced {calendarSyncState.syncedEventCount} events ({formatTashkentDateTime(calendarSyncState.lastSyncedAt, locale)})
             </span>
           )}
         </div>
@@ -422,7 +423,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                 {monthCalendarDays.map((d, idx) => {
                   const dayItemsList = items.filter((i) => i.date === d.dateStr);
                   const isSelected = d.dateStr === selectedDate;
-                  const isToday = d.dateStr === new Date().toISOString().slice(0, 10);
+                  const isToday = d.dateStr === tashkentDateKey();
 
                   return (
                     <button
@@ -476,7 +477,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                 {weekCalendarDays.map((d) => {
                   const dayItemsList = items.filter((i) => i.date === d.dateStr);
                   const isSelected = d.dateStr === selectedDate;
-                  const isToday = d.dateStr === new Date().toISOString().slice(0, 10);
+                  const isToday = d.dateStr === tashkentDateKey();
 
                   return (
                     <button

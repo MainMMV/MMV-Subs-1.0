@@ -10,6 +10,7 @@ import {
 import { ServiceIcon, AVAILABLE_ICONS } from "../ServiceIcon";
 import { getConversionPreview } from "../../utils/calculations";
 import { useI18n } from "../../i18n";
+import { tashkentDateKey } from "../../utils/timezone";
 
 interface ItemModalProps {
   isOpen: boolean;
@@ -60,7 +61,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
       setIconBgColor(initialItem.iconBgColor || "#2563EB");
       setPrice(initialItem.price.toString());
       setCurrency(initialItem.currency);
-      setDate(initialItem.date || new Date().toISOString().slice(0, 10));
+      setDate(initialItem.date || tashkentDateKey());
       if (initialItem.frequency) {
         setFreqInterval(initialItem.frequency.interval);
         setFreqUnit(initialItem.frequency.unit);
@@ -78,7 +79,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
       setIconBgColor("#2563EB");
       setPrice("");
       setCurrency("USD");
-      setDate(new Date().toISOString().slice(0, 10));
+      setDate(tashkentDateKey());
       setFreqInterval(1);
       setFreqUnit("months");
       setReminders([

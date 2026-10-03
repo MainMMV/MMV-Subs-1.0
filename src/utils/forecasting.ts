@@ -1,5 +1,6 @@
 import { PaymentItem, CashFlowForecast, ForecastDay, ForecastProjectedItem, ItemType } from "../types";
 import { convertCurrency, getNextRecurrenceDate } from "./calculations";
+import { tashkentDateKey } from "./timezone";
 
 const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -18,8 +19,8 @@ export function calculateCashFlowForecast(
   const endDate = new Date(startDate);
   endDate.setDate(startDate.getDate() + daysHorizon - 1);
 
-  const startDateStr = startDate.toISOString().slice(0, 10);
-  const endDateStr = endDate.toISOString().slice(0, 10);
+  const startDateStr = tashkentDateKey(startDate);
+  const endDateStr = tashkentDateKey(endDate);
 
   // Initialize timeline array for each day in horizon
   const timeline: ForecastDay[] = [];
@@ -28,7 +29,7 @@ export function calculateCashFlowForecast(
   for (let i = 0; i < daysHorizon; i++) {
     const d = new Date(startDate);
     d.setDate(startDate.getDate() + i);
-    const dateStr = d.toISOString().slice(0, 10);
+    const dateStr = tashkentDateKey(d);
     const dayOfWeek = DAY_NAMES[d.getDay()];
     const dayOfMonth = d.getDate();
 

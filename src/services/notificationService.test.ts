@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import type { PaymentItem } from "../types";
 import { generateInAppNotifications } from "./notificationService";
+import { tashkentDateKey } from "../utils/timezone";
 
 const item: PaymentItem = {
   id: "bill-1",
@@ -27,10 +28,15 @@ const item: PaymentItem = {
 };
 
 test("in-app reminders appear at the configured local time", () => {
-  assert.equal(generateInAppNotifications([item], new Date(2026, 9, 12, 9, 59)).length, 0);
-  const due = generateInAppNotifications([item], new Date(2026, 9, 12, 10));
+  assert.equal(generateInAppNotifications([item], new Date("2026-10-12T04:59:00Z")).length, 0);
+  const due = generateInAppNotifications([item], new Date("2026-10-12T05:00:00Z"));
   assert.equal(due.length, 1);
   assert.equal(due[0].daysUntilDue, 3);
+});
+
+test("Tashkent date advances at 19:00 UTC", () => {
+  assert.equal(tashkentDateKey(new Date("2026-10-02T18:59:59Z")), "2026-10-02");
+  assert.equal(tashkentDateKey(new Date("2026-10-02T19:00:00Z")), "2026-10-03");
 });
 
 test("Telegram-only reminders stay out of the in-app drawer", () => {

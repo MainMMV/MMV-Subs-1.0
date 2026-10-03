@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { tashkentDateKey } from "../../utils/timezone";
 import { X, Calendar, Plus, CheckCircle2, History, Trash2 } from "lucide-react";
 import { PaymentItem, PaymentHistoryRecord, CurrencyCode } from "../../types";
 import { convertCurrency, formatCurrency } from "../../utils/calculations";
@@ -26,7 +27,7 @@ export const ItemHistoryModal: React.FC<ItemHistoryModalProps> = ({
   onDeleteRecord,
 }) => {
   const [isAdding, setIsAdding] = useState(false);
-  const [newDate, setNewDate] = useState(new Date().toISOString().slice(0, 10));
+  const [newDate, setNewDate] = useState(tashkentDateKey());
   const [newAmount, setNewAmount] = useState<string>("");
   const [newNotes, setNewNotes] = useState("");
 

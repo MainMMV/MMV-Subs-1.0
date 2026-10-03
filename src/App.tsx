@@ -43,6 +43,7 @@ import { isNativeApp } from "./services/deviceCalendar";
 import { NativeTopBar } from "./components/Navigation/NativeTopBar";
 import { NativeBottomNavigation } from "./components/Navigation/NativeBottomNavigation";
 import { NativeQuickSetup } from "./components/NativeQuickSetup";
+import { tashkentDateKey } from "./utils/timezone";
 
 const STORAGE_KEYS = {
   ITEMS: "mmv_subs_items_v3",
@@ -347,7 +348,7 @@ export default function App() {
         weekdaySchedule: habitData.weekdaySchedule,
         weekendSchedule: habitData.weekendSchedule,
         timeOfDay: habitData.timeOfDay || "anytime",
-        startDate: habitData.startDate || new Date().toISOString().slice(0, 10),
+        startDate: habitData.startDate || tashkentDateKey(),
         endDate: habitData.endDate,
         order: habits.length + 1,
         isPinned: false,
@@ -454,7 +455,7 @@ export default function App() {
         notes: itemData.notes,
         price: itemData.price || 0,
         currency: itemData.currency || "USD",
-        date: itemData.date || new Date().toISOString().slice(0, 10),
+        date: itemData.date || tashkentDateKey(),
         time: itemData.time || "09:00",
         frequency: itemData.frequency,
         reminders: itemData.reminders || [],
@@ -478,7 +479,7 @@ export default function App() {
         itemId: item.id,
         itemName: item.name,
         itemType: item.type,
-        date: item.date || new Date().toISOString().slice(0, 10),
+        date: item.date || tashkentDateKey(),
         amount: item.price,
         originalCurrency: item.currency,
         status: "paid",
@@ -496,7 +497,7 @@ export default function App() {
                 ...i,
                 date: nextDate,
                 manualStatus: null, // Reset status to upcoming for the new month
-                paidAt: new Date().toISOString().slice(0, 10),
+                paidAt: tashkentDateKey(),
                 updatedAt: new Date().toISOString(),
               }
             : i
@@ -511,7 +512,7 @@ export default function App() {
             ? {
                 ...i,
                 manualStatus: nextManualStatus,
-                paidAt: nextManualStatus ? new Date().toISOString().slice(0, 10) : undefined,
+                paidAt: nextManualStatus ? tashkentDateKey() : undefined,
                 updatedAt: new Date().toISOString(),
               }
             : i
@@ -524,11 +525,11 @@ export default function App() {
           itemId: item.id,
           itemName: item.name,
           itemType: item.type,
-          date: new Date().toISOString().slice(0, 10),
+          date: tashkentDateKey(),
           amount: item.price,
           originalCurrency: item.currency,
           status: "paid",
-          notes: `Recorded on ${new Date().toLocaleDateString()}`,
+          notes: `Recorded on ${tashkentDateKey()}`,
         };
         setRecords((prev) => [newRecord, ...prev]);
       }
@@ -553,7 +554,7 @@ export default function App() {
         itemId: item.id,
         itemName: item.name,
         itemType: item.type,
-        date: item.date || new Date().toISOString().slice(0, 10),
+        date: item.date || tashkentDateKey(),
         amount: item.price,
         originalCurrency: item.currency,
         status: "paid",
@@ -570,7 +571,7 @@ export default function App() {
                 ...i,
                 date: nextDate,
                 manualStatus: null,
-                paidAt: new Date().toISOString().slice(0, 10),
+                paidAt: tashkentDateKey(),
                 updatedAt: new Date().toISOString(),
               }
             : i
@@ -590,7 +591,7 @@ export default function App() {
             ? {
                 ...i,
                 manualStatus,
-                paidAt: isNowPaid ? new Date().toISOString().slice(0, 10) : undefined,
+                paidAt: isNowPaid ? tashkentDateKey() : undefined,
                 updatedAt: new Date().toISOString(),
               }
             : i
@@ -603,11 +604,11 @@ export default function App() {
           itemId: item.id,
           itemName: item.name,
           itemType: item.type,
-          date: new Date().toISOString().slice(0, 10),
+          date: tashkentDateKey(),
           amount: item.price,
           originalCurrency: item.currency,
           status: "paid",
-          notes: `Recorded on ${new Date().toLocaleDateString()}`,
+          notes: `Recorded on ${tashkentDateKey()}`,
         };
         setRecords((prev) => [newRecord, ...prev]);
       }
@@ -618,7 +619,7 @@ export default function App() {
             ? {
                 ...prev,
                 manualStatus,
-                paidAt: isNowPaid ? new Date().toISOString().slice(0, 10) : undefined,
+                paidAt: isNowPaid ? tashkentDateKey() : undefined,
               }
             : null
         );

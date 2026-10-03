@@ -1,13 +1,11 @@
 import { Habit, HabitLog, HabitStatus, HabitStreakInfo, HabitAnalytics } from "../types/habit";
+import { tashkentDateKey } from "./timezone";
 
 /**
  * Format a Date object to YYYY-MM-DD
  */
 export const formatDateStr = (date: Date): string => {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
+  return tashkentDateKey(date);
 };
 
 /**

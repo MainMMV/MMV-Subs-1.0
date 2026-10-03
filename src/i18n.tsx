@@ -8,6 +8,7 @@ type TranslationKey = keyof typeof en;
 const en = {
   language: "Language",
   languageDescription: "Choose the language used across MMV Hub.",
+  timeZone: "Time zone",
   english: "English",
   uzbek: "O‘zbekcha",
   russian: "Русский",
@@ -134,7 +135,7 @@ const en = {
 } as const;
 
 const uz: Record<TranslationKey, string> = {
-  language: "Til", languageDescription: "MMV Hub interfeysi tilini tanlang.", english: "English", uzbek: "O‘zbekcha", russian: "Русский",
+  language: "Til", languageDescription: "MMV Hub interfeysi tilini tanlang.", timeZone: "Vaqt mintaqasi", english: "English", uzbek: "O‘zbekcha", russian: "Русский",
   home: "Bosh sahifa", today: "Bugun", overview: "Umumiy", habits: "Odatlar", habitTracker: "Odatlar kuzatuvi", subscriptions: "Obunalar", recurringBills: "Doimiy to‘lovlar", oneTimePurchases: "Bir martalik xaridlar", calendar: "Taqvim", goals: "Maqsadlar", goalsBudgets: "Maqsadlar va budjet", settings: "Sozlamalar", more: "Boshqa",
   openMenu: "Menyuni ochish", openNotifications: "Bildirishnomalarni ochish", appNavigation: "Ilova navigatsiyasi", addNewItem: "Yangi element qo‘shish", openAllSections: "Barcha bo‘limlarni ochish", newItem: "Yangi element", notifications: "Bildirishnomalar", notificationCenter: "Bildirishnomalar markazi", dueSoon: "Yaqin muddat", overdue: "Kechikkan", upcoming: "Yaqin", connect: "Ulash", syncNow: "Hozir sinxronlash", exchangeRate: "Valyuta kursi: 1 USD dan UZS ga",
   thisMonthSpending: "Bu oy xarajatlari", thisYearSpending: "Bu yil xarajatlari", fullYear: "{year} yil", projectedOutflow: "30 kunlik kutilayotgan xarajat", forecast: "Prognoz", peak: "Eng yuqori: {date}", upcomingPayments: "Yaqin to‘lovlar", recentPayments: "So‘nggi to‘lovlar", overduePayments: "Kechikkan to‘lovlar", noUpcomingPayments: "Yaqin to‘lovlar yo‘q.", noRecentPayments: "Hozircha to‘lov tarixi yo‘q.", addFirstPayment: "Birinchi to‘lovni qo‘shing", openFullCalendar: "To‘liq taqvimni ochish", previousMonth: "Oldingi oy", nextMonth: "Keyingi oy", dueToday: "Bugun {count} ta", active: "Faol", spendingSavingsGoals: "Xarajat va jamg‘arma maqsadlari",
@@ -146,7 +147,7 @@ const uz: Record<TranslationKey, string> = {
 };
 
 const ru: Record<TranslationKey, string> = {
-  language: "Язык", languageDescription: "Выберите язык интерфейса MMV Hub.", english: "English", uzbek: "O‘zbekcha", russian: "Русский",
+  language: "Язык", languageDescription: "Выберите язык интерфейса MMV Hub.", timeZone: "Часовой пояс", english: "English", uzbek: "O‘zbekcha", russian: "Русский",
   home: "Главная", today: "Сегодня", overview: "Обзор", habits: "Привычки", habitTracker: "Трекер привычек", subscriptions: "Подписки", recurringBills: "Регулярные счета", oneTimePurchases: "Разовые покупки", calendar: "Календарь", goals: "Цели", goalsBudgets: "Цели и бюджет", settings: "Настройки", more: "Ещё",
   openMenu: "Открыть меню", openNotifications: "Открыть уведомления", appNavigation: "Навигация приложения", addNewItem: "Добавить новый элемент", openAllSections: "Открыть все разделы", newItem: "Новый элемент", notifications: "Уведомления", notificationCenter: "Центр уведомлений", dueSoon: "Скоро", overdue: "Просрочено", upcoming: "Предстоит", connect: "Подключить", syncNow: "Синхронизировать", exchangeRate: "Курс: 1 USD к UZS",
   thisMonthSpending: "Расходы за месяц", thisYearSpending: "Расходы за год", fullYear: "Весь {year} год", projectedOutflow: "Прогноз расходов на 30 дней", forecast: "Прогноз", peak: "Пик: {date}", upcomingPayments: "Предстоящие платежи", recentPayments: "Последние платежи", overduePayments: "Просроченные платежи", noUpcomingPayments: "Предстоящих платежей нет.", noRecentPayments: "История платежей пока пуста.", addFirstPayment: "Добавить первый платёж", openFullCalendar: "Открыть весь календарь", previousMonth: "Предыдущий месяц", nextMonth: "Следующий месяц", dueToday: "Сегодня: {count}", active: "Активно", spendingSavingsGoals: "Цели расходов и накоплений",

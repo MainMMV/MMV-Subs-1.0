@@ -27,6 +27,7 @@ import { calculateCashFlowForecast } from "../utils/forecasting";
 import { PaymentItemRow } from "../components/PaymentItemRow";
 import { ServiceIcon } from "../components/ServiceIcon";
 import { useI18n } from "../i18n";
+import { tashkentDateKey } from "../utils/timezone";
 
 interface HomeViewProps {
   items: PaymentItem[];
@@ -69,7 +70,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
 }) => {
   const { t, locale } = useI18n();
   const [selectedDate, setSelectedDate] = useState<string>(
-    new Date().toISOString().slice(0, 10)
+    tashkentDateKey()
   );
 
   // Month navigation for compact home calendar
@@ -130,7 +131,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
     const d = prevMonthLastDay - i;
     const prevMonthDate = new Date(year, month - 1, d);
     calendarDays.push({
-      dateStr: prevMonthDate.toISOString().slice(0, 10),
+      dateStr: tashkentDateKey(prevMonthDate),
       dayNum: d,
       isCurrentMonth: false,
     });
@@ -152,7 +153,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
   for (let d = 1; d <= remaining; d++) {
     const nextDate = new Date(year, month + 1, d);
     calendarDays.push({
-      dateStr: nextDate.toISOString().slice(0, 10),
+      dateStr: tashkentDateKey(nextDate),
       dayNum: d,
       isCurrentMonth: false,
     });
@@ -496,7 +497,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
             <div className="grid grid-cols-7 gap-1 text-center">
               {calendarDays.map((cd, idx) => {
                 const isSelected = cd.dateStr === selectedDate;
-                const isToday = cd.dateStr === new Date().toISOString().slice(0, 10);
+                const isToday = cd.dateStr === tashkentDateKey();
 
                 // Items on this day
                 const dayItems = items.filter((i) => i.date === cd.dateStr);

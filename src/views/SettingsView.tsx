@@ -8,6 +8,7 @@ import { areDeviceRemindersEnabled, enableDeviceReminders, syncDeviceReminders }
 import { requestTelegramTest } from "../firebase";
 import { TelegramConnectButton, type TelegramIdentity } from "../components/TelegramConnectButton";
 import { useI18n, type AppLanguage } from "../i18n";
+import { APP_TIME_ZONE_LABEL, formatTashkentDateTime, tashkentDateKey } from "../utils/timezone";
 
 interface SettingsViewProps {
   displayCurrency: CurrencyDisplayMode;
@@ -114,7 +115,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `mmv-hub-payments-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `mmv-hub-payments-${tashkentDateKey()}.json`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -156,6 +157,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             </button>
           ))}
         </div>
+        <p className="rounded-lg bg-neutral-50 px-3 py-2 text-[11px] text-neutral-600">
+          <span className="font-medium text-neutral-800">{t("timeZone")}:</span> {APP_TIME_ZONE_LABEL}
+        </p>
       </div>
 
       {/* Theme */}
@@ -452,7 +456,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             {calendarSyncState.lastSyncedAt && (
             <div className="flex flex-wrap items-center justify-between gap-1 text-neutral-500 text-[11px]">
                 <span>Last Synchronized:</span>
-                <span>{new Date(calendarSyncState.lastSyncedAt).toLocaleString()}</span>
+                <span>{formatTashkentDateTime(calendarSyncState.lastSyncedAt)}</span>
               </div>
             )}
             <div className="flex items-center gap-1.5 text-[11px] text-neutral-500 pt-1 border-t border-neutral-200/60">
