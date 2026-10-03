@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { AppPage, PaymentItem } from "../../types";
 import { MMVLogo } from "../MMVLogo";
+import { useI18n } from "../../i18n";
 
 interface SidebarProps {
   currentPage: AppPage;
@@ -36,6 +37,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onCloseMobile,
   forceMobile = false,
 }) => {
+  const { t } = useI18n();
   const subscriptionsCount = items.filter((i) => i.type === "subscription").length;
   const billsCount = items.filter((i) => i.type === "bill").length;
   const purchasesCount = items.filter((i) => i.type === "purchase").length;
@@ -43,50 +45,50 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const navItems = [
     {
       id: "home" as AppPage,
-      label: "Home",
+      label: t("home"),
       icon: Home,
     },
     {
       id: "habits" as AppPage,
-      label: "Habits",
+      label: t("habits"),
       icon: CheckCircle2,
       count: habitsCount > 0 ? habitsCount : undefined,
       counterColor: "bg-emerald-100 text-emerald-800 border border-emerald-200",
     },
     {
       id: "subscriptions" as AppPage,
-      label: "Subscriptions",
+      label: t("subscriptions"),
       icon: CreditCard,
       count: subscriptionsCount,
       counterColor: "bg-blue-100 text-blue-700 border border-blue-200",
     },
     {
       id: "bills" as AppPage,
-      label: "Recurring Bills",
+      label: t("recurringBills"),
       icon: Repeat,
       count: billsCount,
       counterColor: "bg-emerald-100 text-emerald-700 border border-emerald-200",
     },
     {
       id: "purchases" as AppPage,
-      label: "One-Time Purchases",
+      label: t("oneTimePurchases"),
       icon: ShoppingBag,
       count: purchasesCount,
       counterColor: "bg-purple-100 text-purple-700 border border-purple-200",
     },
     {
       id: "calendar" as AppPage,
-      label: "Calendar",
+      label: t("calendar"),
       icon: Calendar,
     },
     {
       id: "goals" as AppPage,
-      label: "Goals",
+      label: t("goals"),
       icon: Target,
     },
     {
       id: "settings" as AppPage,
-      label: "Settings",
+      label: t("settings"),
       icon: Settings,
     },
   ];

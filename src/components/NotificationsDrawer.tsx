@@ -19,6 +19,7 @@ import { ServiceIcon } from "./ServiceIcon";
 import { downloadPhoneCalendarEvent } from "../utils/phoneCalendar";
 import { isNativeApp } from "../services/deviceCalendar";
 import { areDeviceRemindersEnabled, enableDeviceReminders, syncDeviceReminders } from "../services/deviceReminders";
+import { useI18n } from "../i18n";
 import { 
   generateInAppNotifications, 
   markNotificationAsRead, 
@@ -52,6 +53,7 @@ export const NotificationsDrawer: React.FC<NotificationsDrawerProps> = ({
   onOpenCalendarSync,
   calendarSyncState,
 }) => {
+  const { t } = useI18n();
   const [activeTab, setActiveTab] = useState<"urgent" | "overdue" | "all">("urgent");
   const [browserPushActive, setBrowserPushActive] = useState<boolean>(false);
   const [pushStatusMsg, setPushStatusMsg] = useState<string | null>(null);
@@ -156,7 +158,7 @@ export const NotificationsDrawer: React.FC<NotificationsDrawerProps> = ({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-sm font-medium text-neutral-900">Notification Center</h2>
+                <h2 className="text-sm font-medium text-neutral-900">{t("notificationCenter")}</h2>
                 {unreadCount > 0 && (
                   <span className="px-1.5 py-0.2 rounded text-[10px] bg-rose-100 text-rose-700 font-medium">
                     {unreadCount} new
@@ -199,7 +201,7 @@ export const NotificationsDrawer: React.FC<NotificationsDrawerProps> = ({
             <Volume2 size={14} className="text-neutral-500 shrink-0" />
             <div className="min-w-0">
               <span className="text-xs font-medium text-neutral-900 block truncate">
-                {isNativeApp() ? (browserPushActive ? "Device reminders active" : "Enable device reminders") : (browserPushActive ? "Browser alerts active" : "Enable browser alerts")}
+                {isNativeApp() ? (browserPushActive ? t("remindersActive") : t("enableDeviceAlerts")) : (browserPushActive ? t("browserAlerts") : t("enableBrowserAlerts"))}
               </span>
               <span className="text-[10px] text-neutral-500 block truncate">
                 {browserPushActive
@@ -238,7 +240,7 @@ export const NotificationsDrawer: React.FC<NotificationsDrawerProps> = ({
                   : "text-neutral-600 hover:text-neutral-900"
               }`}
             >
-              <span>Due Soon</span>
+              <span>{t("dueSoon")}</span>
               {urgentList.length > 0 && (
                 <span className="px-1.5 py-0.2 rounded text-[10px] bg-amber-100 text-amber-800 font-medium">
                   {urgentList.length}
@@ -254,7 +256,7 @@ export const NotificationsDrawer: React.FC<NotificationsDrawerProps> = ({
                   : "text-neutral-600 hover:text-neutral-900"
               }`}
             >
-              <span>Overdue</span>
+              <span>{t("overdue")}</span>
               {overdueList.length > 0 && (
                 <span className="px-1.5 py-0.2 rounded text-[10px] bg-rose-100 text-rose-700 font-medium">
                   {overdueList.length}
@@ -347,7 +349,7 @@ export const NotificationsDrawer: React.FC<NotificationsDrawerProps> = ({
                             : "bg-blue-100 text-blue-700"
                         }`}
                       >
-                        {isOverdue ? "Overdue" : isDueToday ? "Due Today" : "Upcoming"}
+                        {isOverdue ? t("overdue") : isDueToday ? t("today") : t("upcoming")}
                       </span>
                     </div>
                   </div>
@@ -366,7 +368,7 @@ export const NotificationsDrawer: React.FC<NotificationsDrawerProps> = ({
                       className="text-emerald-700 hover:text-emerald-800 font-medium flex items-center gap-1 hover:underline cursor-pointer"
                     >
                       <CheckCircle2 size={13} />
-                      <span>Mark Paid</span>
+                      <span>{t("markPaid")}</span>
                     </button>
 
                     <div className="flex items-center gap-1.5">
@@ -417,7 +419,7 @@ export const NotificationsDrawer: React.FC<NotificationsDrawerProps> = ({
             <div className="flex items-center gap-2 text-neutral-700">
               <CalendarSync size={15} className="text-neutral-500" />
               <div>
-                <span className="font-medium block">Calendar reminders</span>
+                <span className="font-medium block">{t("calendarReminders")}</span>
                 <span className="text-[10px] text-neutral-500 block">
                   {calendarSyncState?.isConnected
                     ? `Connected (${calendarSyncState.userEmail})`
@@ -434,7 +436,7 @@ export const NotificationsDrawer: React.FC<NotificationsDrawerProps> = ({
               }}
               className="px-2.5 py-1 text-xs font-medium text-neutral-700 border border-neutral-200 rounded-lg hover:bg-white transition-colors"
             >
-              {calendarSyncState?.isConnected ? "Sync Now" : "Connect"}
+              {calendarSyncState?.isConnected ? t("syncNow") : t("connect")}
             </button>
           </div>
         )}

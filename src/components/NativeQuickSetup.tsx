@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { BellRing, CalendarPlus, Check, Clock3 } from "lucide-react";
 import { PaymentItem } from "../types";
 import { areDeviceRemindersEnabled, enableDeviceReminders, syncDeviceReminders } from "../services/deviceReminders";
+import { useI18n } from "../i18n";
 
 interface NativeQuickSetupProps {
   items: PaymentItem[];
@@ -9,6 +10,7 @@ interface NativeQuickSetupProps {
 }
 
 export const NativeQuickSetup: React.FC<NativeQuickSetupProps> = ({ items, onOpenCalendar }) => {
+  const { t } = useI18n();
   const [remindersEnabled, setRemindersEnabled] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
 
@@ -24,22 +26,22 @@ export const NativeQuickSetup: React.FC<NativeQuickSetupProps> = ({ items, onOpe
       const granted = await enableDeviceReminders();
       setRemindersEnabled(granted);
       const count = granted ? await syncDeviceReminders(items) : 0;
-      setStatus(granted ? `${count} reminder${count === 1 ? "" : "s"} scheduled` : "Notification permission was not granted");
+      setStatus(granted ? t("remindersScheduled", { count }) : t("permissionDenied"));
     } catch (error) {
       setStatus(error instanceof Error ? error.message : "Could not schedule reminders");
     }
   };
 
   return (
-    <section className="mb-4 rounded-2xl border border-emerald-900/10 bg-emerald-950 p-4 text-white shadow-sm" aria-label="Device quick setup">
+    <section className="mb-4 rounded-2xl border border-emerald-900/10 bg-emerald-950 p-4 text-white shadow-sm" aria-label={t("onThisDevice")}>
       <div className="mb-3 flex items-center justify-between gap-3">
         <div>
-          <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-emerald-200">On this device</p>
-          <h2 className="mt-0.5 text-sm font-medium">Ready for today</h2>
+          <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-emerald-200">{t("onThisDevice")}</p>
+          <h2 className="mt-0.5 text-sm font-medium">{t("readyForToday")}</h2>
         </div>
         <div className="flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[11px] text-emerald-100">
           <Clock3 size={13} />
-          <span>{dueToday} due today</span>
+          <span>{t("dueToday", { count: dueToday })}</span>
         </div>
       </div>
 
@@ -50,7 +52,7 @@ export const NativeQuickSetup: React.FC<NativeQuickSetupProps> = ({ items, onOpe
           className="flex min-h-11 items-center justify-center gap-2 rounded-xl bg-white px-3 text-xs font-medium text-emerald-950 active:scale-[0.98]"
         >
           {remindersEnabled ? <Check size={16} /> : <BellRing size={16} />}
-          <span>{remindersEnabled ? "Reminders active" : "Enable reminders"}</span>
+          <span>{remindersEnabled ? t("remindersActive") : t("enableReminders")}</span>
         </button>
         <button
           type="button"
@@ -58,7 +60,7 @@ export const NativeQuickSetup: React.FC<NativeQuickSetupProps> = ({ items, onOpe
           className="flex min-h-11 items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-3 text-xs font-medium text-white active:scale-[0.98]"
         >
           <CalendarPlus size={16} />
-          <span>Device calendar</span>
+          <span>{t("deviceCalendar")}</span>
         </button>
       </div>
       {status ? <p className="mt-2 text-[11px] text-emerald-100" role="status">{status}</p> : null}

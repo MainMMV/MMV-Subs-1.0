@@ -14,6 +14,7 @@ MMV Hub is a responsive personal dashboard for subscriptions, recurring bills, o
 - Connect Google Calendar from the web or export standards-compliant `.ics` calendar files.
 - Track habits, completion history, goals, budgets, payment history, and cash-flow forecasts.
 - Use light and dark themes with responsive layouts for phones, tablets, and desktops.
+- Switch the interface between Uzbek, Russian, and English; the choice persists on web and Android.
 - Sync app data to Firebase for Telegram reminder delivery.
 - Use Telegram commands for payments, habits, goals, and upcoming calendar items.
 - Install the web app as a PWA or install the Android APK from GitHub Releases.
@@ -92,6 +93,18 @@ For Telegram Login on the web, open `@BotFather`, run `/setdomain`, select the M
 Each published update is recorded newest first using `HH:mm DD.MM.YYYY UTC`.
 
 <details open>
+<summary><strong>05:00 03.10.2026 UTC — Uzbek, Russian, and English interface</strong></summary>
+
+- Added a persistent language selector for Uzbek, Russian, and English in Settings.
+- Localized core navigation, dashboard summaries, payment views, settings, Telegram controls, reminders, item creation, alerts, and the native Android shell.
+- Added locale-aware month names and updated the document language for accessibility.
+- Verified Uzbek and Russian layouts at a 320 px mobile viewport without horizontal overflow.
+
+Modified areas: `src/i18n.tsx`, `src/main.tsx`, navigation, dashboard and payment views, Settings, item controls, notifications, Telegram connection, and native mobile components.
+
+</details>
+
+<details>
 <summary><strong>04:27 03.10.2026 UTC — Native mobile UX and Telegram Login</strong></summary>
 
 - Added a native Android top bar, bottom navigation, centered quick-add action, all-sections drawer, and device safe-area handling.

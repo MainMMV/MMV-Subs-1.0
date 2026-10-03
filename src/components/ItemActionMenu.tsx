@@ -4,6 +4,7 @@ import { MoreVertical, Edit3, Bell, BarChart2, History, Trash2, Smartphone } fro
 import { PaymentItem } from "../types";
 import { downloadPhoneCalendarEvent } from "../utils/phoneCalendar";
 import { isNativeApp } from "../services/deviceCalendar";
+import { useI18n } from "../i18n";
 
 interface ItemActionMenuProps {
   item: PaymentItem;
@@ -22,6 +23,7 @@ export const ItemActionMenu: React.FC<ItemActionMenuProps> = ({
   onViewHistory,
   onDelete,
 }) => {
+  const { t } = useI18n();
   const [isOpen, setIsOpen] = useState(false);
   const [coords, setCoords] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -120,7 +122,7 @@ export const ItemActionMenu: React.FC<ItemActionMenuProps> = ({
         className="w-full px-3 py-2 text-left flex items-center gap-2.5 text-neutral-700 hover:bg-neutral-50 transition-colors font-medium"
       >
         <Edit3 size={14} className="text-neutral-500" />
-        <span>Edit</span>
+        <span>{t("edit")}</span>
       </button>
 
       <button
@@ -132,7 +134,7 @@ export const ItemActionMenu: React.FC<ItemActionMenuProps> = ({
         className="w-full px-3 py-2 text-left flex items-center gap-2.5 text-neutral-700 hover:bg-neutral-50 transition-colors font-medium"
       >
         <Bell size={14} className="text-neutral-500" />
-        <span>Manage Reminders</span>
+        <span>{t("manageReminders")}</span>
       </button>
 
       {!isNativeApp() && <button
@@ -156,7 +158,7 @@ export const ItemActionMenu: React.FC<ItemActionMenuProps> = ({
         className="w-full px-3 py-2 text-left flex items-center gap-2.5 text-neutral-700 hover:bg-neutral-50 transition-colors font-medium"
       >
         <BarChart2 size={14} className="text-neutral-500" />
-        <span>Statistics</span>
+        <span>{t("statistics")}</span>
       </button>
 
       <button
@@ -168,7 +170,7 @@ export const ItemActionMenu: React.FC<ItemActionMenuProps> = ({
         className="w-full px-3 py-2 text-left flex items-center gap-2.5 text-neutral-700 hover:bg-neutral-50 transition-colors font-medium"
       >
         <History size={14} className="text-neutral-500" />
-        <span>History</span>
+        <span>{t("history")}</span>
       </button>
 
       <div className="my-1 border-t border-neutral-100" />
@@ -182,7 +184,7 @@ export const ItemActionMenu: React.FC<ItemActionMenuProps> = ({
         className="w-full px-3 py-2 text-left flex items-center gap-2.5 text-rose-600 hover:bg-rose-50 transition-colors font-medium"
       >
         <Trash2 size={14} className="text-rose-500" />
-        <span>Delete</span>
+        <span>{t("delete")}</span>
       </button>
     </div>
     </>

@@ -7,6 +7,7 @@ import {
   CheckCircle2, 
   ChevronRight 
 } from "lucide-react";
+import { useI18n } from "../../i18n";
 
 export type NewItemType = "subscription" | "bill" | "purchase" | "habit";
 
@@ -21,6 +22,7 @@ export const NewItemSelectModal: React.FC<NewItemSelectModalProps> = ({
   onClose,
   onSelectType,
 }) => {
+  const { t } = useI18n();
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape" && isOpen) {
@@ -42,28 +44,28 @@ export const NewItemSelectModal: React.FC<NewItemSelectModalProps> = ({
   }> = [
     {
       type: "subscription",
-      title: "Subscription",
+      title: t("subscription"),
       subtitle: "Recurring subscriptions (Netflix, Spotify, Cloud, etc.)",
       icon: CreditCard,
       accentColor: "text-blue-700 bg-blue-50 border-blue-200",
     },
     {
       type: "bill",
-      title: "Recurring bill",
+      title: t("recurringBill"),
       subtitle: "Scheduled bills, rent, utilities, insurance, etc.",
       icon: Repeat,
       accentColor: "text-emerald-700 bg-emerald-50 border-emerald-200",
     },
     {
       type: "purchase",
-      title: "One time Purchase",
+      title: t("oneTimePurchase"),
       subtitle: "Single non-recurring expenses, hardware, shopping",
       icon: ShoppingBag,
       accentColor: "text-purple-700 bg-purple-50 border-purple-200",
     },
     {
       type: "habit",
-      title: "Habit Tracker",
+      title: t("habitTracker"),
       subtitle: "Daily routines, streaks, counters, and goals",
       icon: CheckCircle2,
       accentColor: "text-amber-700 bg-amber-50 border-amber-200",
@@ -84,13 +86,13 @@ export const NewItemSelectModal: React.FC<NewItemSelectModalProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-3.5 border-b border-neutral-200">
           <div>
-            <h3 className="text-sm font-medium text-neutral-900">New Item</h3>
+            <h3 className="text-sm font-medium text-neutral-900">{t("newItem")}</h3>
           </div>
           <button
             type="button"
             onClick={onClose}
             className="p-1 rounded-md text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 transition-colors"
-            title="Close"
+            title={t("close")}
           >
             <X size={16} />
           </button>

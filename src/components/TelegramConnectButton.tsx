@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { ExternalLink, LoaderCircle, Send, ShieldCheck } from "lucide-react";
 import { isNativeApp } from "../services/deviceCalendar";
+import { useI18n } from "../i18n";
 
 const TELEGRAM_SERVICE_URL = "https://mmv-subs-telegram-bot.onrender.com";
 
@@ -25,6 +26,7 @@ declare global {
 }
 
 export const TelegramConnectButton: React.FC<TelegramConnectButtonProps> = ({ onConnected }) => {
+  const { t } = useI18n();
   const containerRef = useRef<HTMLDivElement>(null);
   const [botUsername, setBotUsername] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -41,8 +43,8 @@ export const TelegramConnectButton: React.FC<TelegramConnectButtonProps> = ({ on
         if (!profile.username) throw new Error("Telegram bot username is not configured.");
         setBotUsername(profile.username);
       })
-      .catch(() => setError("Telegram Login is temporarily unavailable. Use the manual Chat ID below."));
-  }, []);
+      .catch(() => setError(t("telegramUnavailable")));
+  }, [t]);
 
   useEffect(() => {
     if (!botUsername || nativeApp || !containerRef.current) return;
@@ -89,8 +91,8 @@ export const TelegramConnectButton: React.FC<TelegramConnectButtonProps> = ({ on
         <div className="mb-2 flex items-start gap-2">
           <Send size={16} className="mt-0.5 shrink-0 text-blue-600" />
           <div>
-            <p className="text-xs font-medium text-blue-950">Connect through Telegram</p>
-            <p className="mt-0.5 text-[11px] text-blue-800">Open the bot, tap Start, then copy the Chat ID it sends into the field below.</p>
+            <p className="text-xs font-medium text-blue-950">{t("connectThroughTelegram")}</p>
+            <p className="mt-0.5 text-[11px] text-blue-800">{t("telegramApkInstructions")}</p>
           </div>
         </div>
         <button
@@ -100,7 +102,7 @@ export const TelegramConnectButton: React.FC<TelegramConnectButtonProps> = ({ on
           className="flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-3 text-xs font-medium text-white disabled:cursor-wait disabled:opacity-60"
         >
           {botUsername ? <ExternalLink size={15} /> : <LoaderCircle size={15} className="animate-spin" />}
-          <span>{botUsername ? `Open @${botUsername}` : "Finding bot…"}</span>
+          <span>{botUsername ? `@${botUsername}` : t("findingBot")}</span>
         </button>
         {error ? <p className="mt-2 text-[11px] text-rose-700" role="alert">{error}</p> : null}
       </div>
@@ -112,12 +114,12 @@ export const TelegramConnectButton: React.FC<TelegramConnectButtonProps> = ({ on
       <div className="mb-2 flex items-start gap-2">
         <ShieldCheck size={16} className="mt-0.5 shrink-0 text-emerald-700" />
         <div>
-          <p className="text-xs font-medium text-neutral-900">Telegram Login</p>
-          <p className="mt-0.5 text-[11px] text-neutral-600">Telegram verifies your identity and fills your Chat ID automatically. MMV Hub never receives your bot token.</p>
+          <p className="text-xs font-medium text-neutral-900">{t("telegramLogin")}</p>
+          <p className="mt-0.5 text-[11px] text-neutral-600">{t("telegramLoginDescription")}</p>
         </div>
       </div>
       {verifying ? (
-        <div className="flex min-h-10 items-center gap-2 text-xs text-neutral-600"><LoaderCircle size={15} className="animate-spin" /> Verifying Telegram account…</div>
+        <div className="flex min-h-10 items-center gap-2 text-xs text-neutral-600"><LoaderCircle size={15} className="animate-spin" /> {t("verifyingTelegram")}</div>
       ) : (
         <div ref={containerRef} className="min-h-10" />
       )}

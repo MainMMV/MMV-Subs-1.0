@@ -9,6 +9,7 @@ import {
 } from "../../types";
 import { ServiceIcon, AVAILABLE_ICONS } from "../ServiceIcon";
 import { getConversionPreview } from "../../utils/calculations";
+import { useI18n } from "../../i18n";
 
 interface ItemModalProps {
   isOpen: boolean;
@@ -27,6 +28,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
   defaultType = "subscription",
   exchangeRateUsdToUzs,
 }) => {
+  const { t } = useI18n();
   const [type, setType] = useState<ItemType>(defaultType);
   const [name, setName] = useState("");
   const [notes, setNotes] = useState("");
@@ -165,10 +167,10 @@ export const ItemModal: React.FC<ItemModalProps> = ({
 
   const dateLabel =
     type === "subscription"
-      ? "Renewal Date"
+      ? t("renewalDate")
       : type === "bill"
-      ? "Due Date"
-      : "Purchase Date";
+      ? t("dueDate")
+      : t("purchaseDate");
 
   const parsedPrice = parseFloat(price) || 0;
 
@@ -184,7 +186,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
         {/* Header */}
         <div className="px-5 py-3.5 border-b border-neutral-100 flex items-center justify-between">
           <h3 className="text-sm font-medium text-neutral-900">
-            {initialItem ? "Edit Payment Item" : "New Payment Item"}
+            {initialItem ? `${t("edit")} ${t("paymentItem")}` : `${t("newItem")} · ${t("paymentItem")}`}
           </h3>
           <button
             type="button"
@@ -207,7 +209,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
           {/* 1. Item Type Selector */}
           <div>
             <label className="block text-xs font-medium text-neutral-700 mb-1.5">
-              Category
+              {t("category")}
             </label>
             <div className="grid grid-cols-3 gap-2">
               <button
@@ -219,7 +221,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
                     : "bg-white border-neutral-200 text-neutral-600 hover:bg-neutral-50"
                 }`}
               >
-                Subscription
+                {t("subscription")}
               </button>
               <button
                 type="button"
@@ -230,7 +232,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
                     : "bg-white border-neutral-200 text-neutral-600 hover:bg-neutral-50"
                 }`}
               >
-                Recurring Bill
+                {t("recurringBill")}
               </button>
               <button
                 type="button"
@@ -241,7 +243,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
                     : "bg-white border-neutral-200 text-neutral-600 hover:bg-neutral-50"
                 }`}
               >
-                One-Time Purchase
+                {t("oneTimePurchase")}
               </button>
             </div>
           </div>
@@ -250,7 +252,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
           <div className="space-y-3">
             <div>
               <label className="block text-xs font-medium text-neutral-700 mb-1">
-                Name <span className="text-rose-500">*</span>
+                {t("name")} <span className="text-rose-500">*</span>
               </label>
               <input
                 type="text"
@@ -310,7 +312,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
               >
                 <div className="flex items-center gap-2">
                   <Bell size={14} className={isRemindersSectionOpen ? "text-white" : "text-neutral-500"} />
-                  <span>Reminders</span>
+                  <span>{t("reminders")}</span>
                 </div>
                 <span
                   className={`px-1.5 py-0.2 rounded text-[10px] font-medium ${
@@ -375,7 +377,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
                     className="text-xs text-neutral-900 hover:text-neutral-700 font-medium flex items-center gap-1"
                   >
                     <Plus size={13} />
-                    <span>Add Reminder</span>
+                    <span>{t("addReminder")}</span>
                   </button>
                 </div>
 
@@ -501,7 +503,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
           <div className="p-3 rounded-lg bg-neutral-50 border border-neutral-200 space-y-2">
             <div className="flex items-center justify-between">
               <label className="block text-xs font-medium text-neutral-700">
-                Price & Currency
+                {t("price")}
               </label>
               <span className="text-[11px] text-neutral-500">
                 1 USD = {exchangeRateUsdToUzs.toLocaleString()} UZS
@@ -563,7 +565,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
           {type !== "purchase" && (
             <div className="p-3 rounded-lg bg-neutral-50 border border-neutral-200 space-y-2">
               <label className="block text-xs font-medium text-neutral-700">
-                Custom Recurring Frequency
+                {t("frequency")}
               </label>
               <div className="flex items-center gap-2">
                 <span className="text-xs text-neutral-500">Every</span>
@@ -596,13 +598,13 @@ export const ItemModal: React.FC<ItemModalProps> = ({
               onClick={onClose}
               className="px-3.5 py-2 text-xs font-medium text-neutral-700 hover:bg-neutral-100 rounded-lg transition-colors border border-neutral-200"
             >
-              Cancel
+              {t("cancel")}
             </button>
             <button
               type="submit"
               className="px-4 py-2 text-xs font-medium text-white bg-neutral-900 hover:bg-neutral-800 rounded-lg transition-colors shadow-2xs"
             >
-              {initialItem ? "Save Changes" : "Create Item"}
+              {initialItem ? t("saveChanges") : t("createItem")}
             </button>
           </div>
         </form>

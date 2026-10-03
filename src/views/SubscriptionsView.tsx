@@ -5,6 +5,7 @@ import { PaymentItem, CurrencyCode, CurrencyDisplayMode } from "../types";
 import { PaymentItemRow } from "../components/PaymentItemRow";
 import { PaymentItemCard } from "../components/PaymentItemCard";
 import { getItemStatus } from "../utils/calculations";
+import { useI18n } from "../i18n";
 
 interface SubscriptionsViewProps {
   items: PaymentItem[];
@@ -32,6 +33,7 @@ export const SubscriptionsView: React.FC<SubscriptionsViewProps> = ({
   onDelete,
   onTogglePaid,
 }) => {
+  const { t } = useI18n();
   const [viewMode, setViewMode] = useState<"list" | "card">("list");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [filter, setFilter] = useState<"all" | "active" | "overdue" | "due_today" | "upcoming" | "paid">("all");
@@ -57,7 +59,7 @@ export const SubscriptionsView: React.FC<SubscriptionsViewProps> = ({
       {/* Header: Title and counter badge with View Toggle & Hopper Filter Icon */}
       <div className="flex items-center justify-between border-b border-neutral-200 pb-3">
         <div className="flex items-center gap-2.5">
-          <h2 className="text-base font-medium text-neutral-900">Subscriptions</h2>
+          <h2 className="text-base font-medium text-neutral-900">{t("subscriptions")}</h2>
           <span className="px-2 py-0.5 rounded-md text-xs font-medium bg-blue-100 text-blue-700 border border-blue-200">
             {subs.length}
           </span>
@@ -129,7 +131,7 @@ export const SubscriptionsView: React.FC<SubscriptionsViewProps> = ({
       {/* Subscription List or Card Grid */}
       {filteredSubs.length === 0 ? (
         <div className="p-10 text-center border border-neutral-200 rounded-lg bg-white text-xs text-neutral-400">
-          <p>No subscriptions found.</p>
+          <p>{t("noItems")}</p>
         </div>
       ) : viewMode === "list" ? (
         <div className="space-y-2">

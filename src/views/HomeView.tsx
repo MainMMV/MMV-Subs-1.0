@@ -26,6 +26,7 @@ import {
 import { calculateCashFlowForecast } from "../utils/forecasting";
 import { PaymentItemRow } from "../components/PaymentItemRow";
 import { ServiceIcon } from "../components/ServiceIcon";
+import { useI18n } from "../i18n";
 
 interface HomeViewProps {
   items: PaymentItem[];
@@ -66,6 +67,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
   onOpenAddGoal,
   onOpenCalendarSync,
 }) => {
+  const { t, locale } = useI18n();
   const [selectedDate, setSelectedDate] = useState<string>(
     new Date().toISOString().slice(0, 10)
   );
@@ -159,10 +161,9 @@ export const HomeView: React.FC<HomeViewProps> = ({
   // Items on selected date
   const itemsOnSelectedDate = items.filter((i) => i.date === selectedDate);
 
-  const monthNames = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December"
-  ];
+  const monthNames = Array.from({ length: 12 }, (_, monthIndex) =>
+    new Intl.DateTimeFormat(locale, { month: "long" }).format(new Date(2026, monthIndex, 1))
+  );
 
   return (
     <motion.div 
@@ -177,7 +178,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
         <div className="p-3.5 rounded-lg border border-neutral-200 bg-white">
           <div className="flex items-center justify-between mb-1">
             <span className="text-[11px] font-medium text-neutral-500 uppercase tracking-wider">
-              This Month Spending
+              {t("thisMonthSpending")}
             </span>
             <span className="text-[11px] text-neutral-400">
               {monthNames[month]} {year}
@@ -198,10 +199,10 @@ export const HomeView: React.FC<HomeViewProps> = ({
         <div className="p-3.5 rounded-lg border border-neutral-200 bg-white">
           <div className="flex items-center justify-between mb-1">
             <span className="text-[11px] font-medium text-neutral-500 uppercase tracking-wider">
-              This Year Spending
+              {t("thisYearSpending")}
             </span>
             <span className="text-[11px] text-neutral-400">
-              Full Year {year}
+              {t("fullYear", { year })}
             </span>
           </div>
 
@@ -223,10 +224,10 @@ export const HomeView: React.FC<HomeViewProps> = ({
           <div className="flex items-center justify-between mb-1">
             <span className="text-[11px] font-medium text-neutral-500 uppercase tracking-wider flex items-center gap-1">
               <TrendingUp size={12} className="text-neutral-500" />
-              <span>30-Day Projected Outflow</span>
+              <span>{t("projectedOutflow")}</span>
             </span>
             <span className="text-[11px] font-medium text-neutral-600 group-hover:text-neutral-900 flex items-center gap-0.5">
-              <span>Forecast</span>
+              <span>{t("forecast")}</span>
               <ArrowRight size={10} />
             </span>
           </div>
@@ -239,7 +240,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
               <span>≈ {formatCurrency(forecast30.totalProjectedUzs, "UZS")}</span>
               {forecast30.peakDay && (
                 <span className="text-[10px] text-amber-700 bg-amber-50 px-1.5 py-0.2 rounded border border-amber-200">
-                  Peak: {forecast30.peakDay.date.slice(5)}
+                  {t("peak", { date: forecast30.peakDay.date.slice(5) })}
                 </span>
               )}
             </div>
@@ -253,9 +254,9 @@ export const HomeView: React.FC<HomeViewProps> = ({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Target size={14} className="text-neutral-700" />
-              <h3 className="text-xs font-medium text-neutral-900">Spending & Savings Goals</h3>
+              <h3 className="text-xs font-medium text-neutral-900">{t("spendingSavingsGoals")}</h3>
               <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-50 text-amber-800 border border-amber-200">
-                {goals.filter((g) => !g.isCompleted).length} Active
+                {goals.filter((g) => !g.isCompleted).length} {t("active")}
               </span>
             </div>
             <div className="flex items-center gap-2">
@@ -329,7 +330,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5 text-rose-800 font-medium text-xs">
                   <AlertCircle size={14} className="text-rose-600 shrink-0" />
-                  <span>Overdue Payments</span>
+                  <span>{t("overduePayments")}</span>
                   <span className="ml-1 px-1.5 py-0.2 rounded text-[10px] font-medium bg-rose-100 text-rose-700">
                     {overduePayments.length}
                   </span>
@@ -360,7 +361,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
           <div className="space-y-2.5">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-medium text-neutral-900">
-                Upcoming Payments
+                {t("upcomingPayments")}
               </h3>
               <span className="text-xs text-neutral-500">
                 {upcomingPayments.length} upcoming
@@ -369,10 +370,10 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
             {upcomingPayments.length === 0 ? (
               <div className="py-5 text-xs text-neutral-500">
-                <p>No upcoming payments.</p>
+                <p>{t("noUpcomingPayments")}</p>
                 {items.length === 0 && (
                   <button type="button" onClick={onOpenAddModal} className="mt-2 inline-flex items-center gap-1.5 text-neutral-900 underline underline-offset-2 hover:opacity-75">
-                    <Plus size={13} /> Add your first payment
+                    <Plus size={13} /> {t("addFirstPayment")}
                   </button>
                 )}
               </div>
@@ -400,12 +401,12 @@ export const HomeView: React.FC<HomeViewProps> = ({
           {/* 4.2 RECENT PAYMENTS */}
           <div className="pt-4 space-y-3">
             <h3 className="text-sm font-medium text-neutral-900">
-              Recent Payments
+              {t("recentPayments")}
             </h3>
 
             {recentPayments.length === 0 ? (
               <div className="py-3 text-xs text-neutral-500">
-                No recent payment records logged yet.
+                {t("noRecentPayments")}
               </div>
             ) : (
               <div className="rounded-lg border border-neutral-200 bg-white divide-y divide-neutral-100 overflow-hidden">
@@ -462,7 +463,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                   type="button"
                   onClick={handlePrevMonth}
                   className="p-1 rounded text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 transition-colors"
-                  title="Previous month"
+                  title={t("previousMonth")}
                 >
                   <ChevronLeft size={15} />
                 </button>
@@ -473,7 +474,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                   type="button"
                   onClick={handleNextMonth}
                   className="p-1 rounded text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 transition-colors"
-                  title="Next month"
+                  title={t("nextMonth")}
                 >
                   <ChevronRight size={15} />
                 </button>
@@ -616,7 +617,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
               onClick={onNavigateToCalendar}
               className="w-full pt-2 flex items-center justify-center gap-1 text-xs text-blue-600 hover:text-blue-700 font-medium"
             >
-              <span>Open full calendar</span>
+              <span>{t("openFullCalendar")}</span>
               <ArrowRight size={13} />
             </button>
           </div>

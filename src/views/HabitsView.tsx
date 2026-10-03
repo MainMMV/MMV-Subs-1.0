@@ -21,6 +21,7 @@ import { HabitRow } from "../components/Habits/HabitRow";
 import { HabitMatrixView } from "../components/Habits/HabitMatrixView";
 import { HabitModal } from "../components/Modals/HabitModal";
 import { HabitStatsModal } from "../components/Habits/HabitStatsModal";
+import { useI18n } from "../i18n";
 import { HabitNotesModal, HabitBackdateModal } from "../components/Modals/HabitNotesModal";
 import { 
   formatDateStr, 
@@ -49,6 +50,7 @@ export const HabitsView: React.FC<HabitsViewProps> = ({
   externalCreateHabitOpen,
   onCloseExternalCreateHabit,
 }) => {
+  const { t } = useI18n();
   // Navigation / View Tabs: "today" | "matrix" | "analytics"
   const [activeTab, setActiveTab] = useState<"today" | "matrix" | "analytics">("today");
 
@@ -269,7 +271,7 @@ export const HabitsView: React.FC<HabitsViewProps> = ({
             }`}
           >
             <CheckCircle2 size={14} />
-            <span>Today's Habits</span>
+            <span>{t("today")} · {t("habits")}</span>
           </button>
 
           <button
@@ -354,7 +356,7 @@ export const HabitsView: React.FC<HabitsViewProps> = ({
               onClick={handleTodayShortcut}
               className="h-8 px-2.5 text-xs font-medium text-neutral-700 bg-neutral-50 hover:bg-neutral-100 border border-neutral-200 rounded-lg transition-colors flex items-center justify-center"
             >
-              Today
+              {t("today")}
             </button>
           )}
 
@@ -470,7 +472,7 @@ export const HabitsView: React.FC<HabitsViewProps> = ({
           {scheduledHabits.length === 0 ? (
             <div className="p-12 text-center bg-white border border-neutral-200 rounded-lg">
               <CheckCircle2 size={32} className="mx-auto text-neutral-300 mb-2" />
-              <h3 className="text-xs font-medium text-neutral-800">No Habits Scheduled</h3>
+              <h3 className="text-xs font-medium text-neutral-800">{t("noItems")}</h3>
             </div>
           ) : habitViewMode === "card" ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 w-full">

@@ -12,6 +12,7 @@ import {
   Plus
 } from "lucide-react";
 import { motion } from "motion/react";
+import { useI18n } from "../i18n";
 import { SpendingGoal, CurrencyCode, CurrencyDisplayMode, PaymentItem, PaymentHistoryRecord } from "../types";
 import { formatCurrency, convertCurrency } from "../utils/calculations";
 
@@ -38,6 +39,7 @@ export const GoalsView: React.FC<GoalsViewProps> = ({
   onUpdateProgress,
   onToggleComplete,
 }) => {
+  const { t } = useI18n();
   const [viewMode, setViewMode] = useState<"card" | "list">("card");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [filter, setFilter] = useState<"all" | "active" | "completed">("all");
@@ -74,9 +76,9 @@ export const GoalsView: React.FC<GoalsViewProps> = ({
       {/* Header: Title and counter badge with View Toggle & Hopper Filter Icon */}
       <div className="flex items-center justify-between border-b border-neutral-200 pb-3">
         <div className="flex items-center gap-2.5">
-          <h2 className="text-base font-medium text-neutral-900">Goals</h2>
+          <h2 className="text-base font-medium text-neutral-900">{t("goals")}</h2>
           <span className="px-2 py-0.5 rounded-md text-xs font-medium bg-amber-100 text-amber-800 border border-amber-200">
-            {activeGoals.length} Active
+            {activeGoals.length} {t("active")}
           </span>
         </div>
 
@@ -89,7 +91,7 @@ export const GoalsView: React.FC<GoalsViewProps> = ({
             title="Create new goal"
           >
             <Plus size={14} />
-            <span>Add Goal</span>
+            <span>{t("createGoal")}</span>
           </button>
 
           {/* View Toggle: toggles icon between LayoutGrid and List */}
@@ -153,7 +155,7 @@ export const GoalsView: React.FC<GoalsViewProps> = ({
       {/* Goals Content: Card or List */}
       {filteredGoals.length === 0 ? (
         <div className="p-10 text-center border border-neutral-200 rounded-lg bg-white text-xs text-neutral-400">
-          <p>No goals found.</p>
+          <p>{t("noItems")}</p>
         </div>
       ) : viewMode === "card" ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">

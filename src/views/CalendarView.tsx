@@ -13,6 +13,7 @@ import { PaymentItem, CurrencyCode, CurrencyDisplayMode, GoogleCalendarSyncState
 import { formatCurrency, convertCurrency } from "../utils/calculations";
 import { downloadAllItemsPhoneCalendar } from "../utils/phoneCalendar";
 import { isNativeApp } from "../services/deviceCalendar";
+import { useI18n } from "../i18n";
 import { PaymentItemRow } from "../components/PaymentItemRow";
 import { CashFlowForecastPanel } from "../components/CashFlowForecastPanel";
 
@@ -34,11 +35,6 @@ interface CalendarViewProps {
   calendarSyncState?: GoogleCalendarSyncState;
 }
 
-const MONTH_NAMES = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December"
-];
-
 export const CalendarView: React.FC<CalendarViewProps> = ({
   items,
   displayCurrency,
@@ -53,6 +49,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   onOpenCalendarSync,
   calendarSyncState,
 }) => {
+  const { t, locale } = useI18n();
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [calendarMode, setCalendarMode] = useState<CalendarViewMode>("monthly");
   const [selectedDate, setSelectedDate] = useState<string>(
@@ -64,6 +61,9 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
+  const monthNames = Array.from({ length: 12 }, (_, monthIndex) =>
+    new Intl.DateTimeFormat(locale, { month: "long" }).format(new Date(2026, monthIndex, 1))
+  );
 
   // Navigation handlers based on calendarMode
   const handlePrev = () => {
@@ -108,20 +108,20 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
       return `${year}`;
     }
     if (calendarMode === "monthly") {
-      return `${MONTH_NAMES[month]} ${year}`;
+      return `${monthNames[month]} ${year}`;
     }
     if (calendarMode === "weekly") {
       const d = new Date(currentDate);
       let dayOfWeek = d.getDay() - 1;
       if (dayOfWeek === -1) dayOfWeek = 6;
       d.setDate(d.getDate() - dayOfWeek);
-      const startStr = `${MONTH_NAMES[d.getMonth()].slice(0, 3)} ${d.getDate()}`;
+      const startStr = new Intl.DateTimeFormat(locale, { month: "short", day: "numeric" }).format(d);
       d.setDate(d.getDate() + 6);
-      const endStr = `${MONTH_NAMES[d.getMonth()].slice(0, 3)} ${d.getDate()}, ${d.getFullYear()}`;
+      const endStr = new Intl.DateTimeFormat(locale, { month: "short", day: "numeric", year: "numeric" }).format(d);
       return `${startStr} – ${endStr}`;
     }
     // Dayly mode
-    return `${MONTH_NAMES[currentDate.getMonth()]} ${currentDate.getDate()}, ${currentDate.getFullYear()}`;
+    return new Intl.DateTimeFormat(locale, { month: "long", day: "numeric", year: "numeric" }).format(currentDate);
   };
 
   // Monthly Grid Data (Square Days)
@@ -165,7 +165,9 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
 
   // Weekly Days (7 Square Days)
   const weekCalendarDays: Array<{ dateStr: string; dayNum: number; dayLabel: string }> = [];
-  const weekLabels = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
+  const weekLabels = Array.from({ length: 7 }, (_, dayIndex) =>
+    new Intl.DateTimeFormat(locale, { weekday: "short" }).format(new Date(2024, 0, dayIndex + 1))
+  );
   const currD = new Date(currentDate);
   let dow = currD.getDay() - 1;
   if (dow === -1) dow = 6;
@@ -199,7 +201,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
     try {
       const [y, m, d] = dayDateStr.split("-").map(Number);
       const dateObj = new Date(y, m - 1, d);
-      return dateObj.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+      return dateObj.toLocaleDateString(locale, { month: "short", day: "numeric", year: "numeric" });
     } catch {
       return dayDateStr;
     }
@@ -243,7 +245,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
             onClick={handleToday}
             className="ml-2 px-2.5 py-1 text-xs font-medium text-neutral-700 bg-white border border-neutral-200 rounded-lg hover:bg-neutral-50 transition-colors"
           >
-            Today
+            {t("today")}
           </button>
         </div>
 
@@ -294,7 +296,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
               className="px-2.5 py-1.5 rounded-lg border border-neutral-200 bg-white hover:bg-neutral-50 text-neutral-800 font-medium transition-colors flex items-center gap-1.5 shadow-2xs"
             >
               <CalendarSync size={14} className="shrink-0 text-neutral-600" />
-              <span className="whitespace-nowrap">{nativeApp ? "Device calendar" : "Google Calendar"}</span>
+              <span className="whitespace-nowrap">{nativeApp ? t("deviceCalendar") : "Google Calendar"}</span>
               {!nativeApp && calendarSyncState?.isConnected && (
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" title="Connected" />
               )}
@@ -363,7 +365,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
           {calendarMode === "yearly" && (
             <div className="space-y-3">
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                {MONTH_NAMES.map((mName, mIdx) => {
+                {monthNames.map((mName, mIdx) => {
                   const prefix = `${year}-${String(mIdx + 1).padStart(2, "0")}`;
                   const mItems = items.filter((i) => i.date.startsWith(prefix));
                   const isCurrentM = new Date().getFullYear() === year && new Date().getMonth() === mIdx;
@@ -572,7 +574,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
 
           {dayItems.length === 0 ? (
             <div className="py-12 text-center text-xs text-neutral-400">
-              No payments scheduled for this date.
+              {t("noUpcomingPayments")}
             </div>
           ) : (
             <div className="space-y-2 max-h-[520px] overflow-y-auto pr-0.5">

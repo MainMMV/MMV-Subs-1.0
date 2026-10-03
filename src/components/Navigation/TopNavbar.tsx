@@ -7,6 +7,7 @@ import {
   DollarSign
 } from "lucide-react";
 import { CurrencyDisplayMode, AppPage } from "../../types";
+import { useI18n } from "../../i18n";
 
 interface TopNavbarProps {
   currentPage: AppPage;
@@ -29,15 +30,16 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
   onOpenAddModal,
   onOpenMobileMenu,
 }) => {
+  const { t } = useI18n();
   const pageTitles: Record<AppPage, string> = {
-    home: "Overview",
-    habits: "Habit Tracker",
-    subscriptions: "Subscriptions",
-    bills: "Recurring Bills",
-    purchases: "One-Time Purchases",
-    calendar: "Calendar",
-    goals: "Goals & Budgets",
-    settings: "Settings",
+    home: t("overview"),
+    habits: t("habitTracker"),
+    subscriptions: t("subscriptions"),
+    bills: t("recurringBills"),
+    purchases: t("oneTimePurchases"),
+    calendar: t("calendar"),
+    goals: t("goalsBudgets"),
+    settings: t("settings"),
   };
 
   return (
@@ -47,14 +49,14 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
         <button
           onClick={onOpenMobileMenu}
           className="p-1.5 rounded-lg text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 md:hidden"
-          title="Open Menu"
+          title={t("openMenu")}
         >
           <Menu size={18} />
         </button>
 
         <div className="min-w-0">
           <h1 className="truncate text-sm font-medium text-neutral-900">
-            {pageTitles[currentPage] || "Overview"}
+            {pageTitles[currentPage] || t("overview")}
           </h1>
         </div>
       </div>
@@ -64,7 +66,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
         {/* Exchange Rate Badge */}
         <div 
           className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 text-[11px] text-neutral-600 bg-neutral-100 rounded-lg border border-neutral-200 font-medium"
-          title="Exchange rate: 1 USD to UZS"
+          title={t("exchangeRate")}
         >
           <span>1 USD = {exchangeRateUsdToUzs.toLocaleString()} UZS</span>
         </div>
@@ -73,7 +75,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
         <button
           onClick={onOpenNotifications}
           className="relative p-2 text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 rounded-lg transition-colors"
-          title="Notifications"
+          title={t("notifications")}
         >
           <Bell size={17} />
           {notificationCount > 0 && (
@@ -86,10 +88,10 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
           type="button"
           onClick={onOpenAddModal}
           className="flex items-center gap-1.5 px-3 py-1.5 bg-neutral-900 hover:bg-neutral-800 text-white rounded-lg text-xs font-medium transition-colors shadow-2xs"
-          title="New Item"
+          title={t("newItem")}
         >
           <Plus size={14} />
-          <span className="hidden sm:inline">New Item</span>
+          <span className="hidden sm:inline">{t("newItem")}</span>
         </button>
       </div>
     </header>

@@ -1,5 +1,5 @@
 import React, { useCallback, useState, useEffect } from "react";
-import { Send, Check, Download, RotateCcw, CalendarSync, Bell, ShieldCheck, Palette, Terminal } from "lucide-react";
+import { Send, Check, Download, RotateCcw, CalendarSync, Bell, ShieldCheck, Palette, Terminal, Languages } from "lucide-react";
 import { motion } from "motion/react";
 import { CurrencyDisplayMode, TelegramConfig, PaymentItem, GoogleCalendarSyncState, AppTheme } from "../types";
 import { isBrowserPushEnabled, requestBrowserPushPermission } from "../services/notificationService";
@@ -7,6 +7,7 @@ import { isNativeApp } from "../services/deviceCalendar";
 import { areDeviceRemindersEnabled, enableDeviceReminders, syncDeviceReminders } from "../services/deviceReminders";
 import { requestTelegramTest } from "../firebase";
 import { TelegramConnectButton, type TelegramIdentity } from "../components/TelegramConnectButton";
+import { useI18n, type AppLanguage } from "../i18n";
 
 interface SettingsViewProps {
   displayCurrency: CurrencyDisplayMode;
@@ -37,6 +38,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   theme = "warm-dark",
   onChangeTheme,
 }) => {
+  const { language, setLanguage, t } = useI18n();
   const [rateInput, setRateInput] = useState(exchangeRateUsdToUzs.toString());
   const [browserPushActive, setBrowserPushActive] = useState<boolean>(() => isBrowserPushEnabled());
   const [pushStatus, setPushStatus] = useState<string | null>(null);
@@ -125,7 +127,35 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       className="space-y-6 w-full pb-16 select-none"
     >
       <div className="border-b border-neutral-200 pb-4">
-        <h2 className="text-base font-medium text-neutral-900">Settings</h2>
+        <h2 className="text-base font-medium text-neutral-900">{t("settings")}</h2>
+      </div>
+
+      <div className="p-5 rounded-lg border border-neutral-200 bg-white space-y-3">
+        <div className="flex items-center gap-2">
+          <Languages size={16} className="text-neutral-700" />
+          <div>
+            <h3 className="text-sm font-medium text-neutral-900">{t("language")}</h3>
+            <p className="mt-0.5 text-[11px] text-neutral-500">{t("languageDescription")}</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-3 gap-2" role="group" aria-label={t("language")}>
+          {([
+            ["uz", "UZ", t("uzbek")],
+            ["ru", "RU", t("russian")],
+            ["en", "EN", t("english")],
+          ] as [AppLanguage, string, string][]).map(([code, shortLabel, label]) => (
+            <button
+              key={code}
+              type="button"
+              onClick={() => setLanguage(code)}
+              aria-pressed={language === code}
+              className={`min-h-11 rounded-lg border px-2 py-2 text-center transition-colors ${language === code ? "border-emerald-700 bg-emerald-700 text-white" : "border-neutral-200 bg-neutral-50 text-neutral-700 hover:bg-neutral-100"}`}
+            >
+              <span className="block text-xs font-medium">{shortLabel}</span>
+              <span className={`block truncate text-[10px] ${language === code ? "text-emerald-50" : "text-neutral-500"}`}>{label}</span>
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Theme */}
@@ -133,7 +163,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         <div>
           <h3 className="text-sm font-medium text-neutral-900 flex items-center gap-2">
             <Palette size={16} className="text-neutral-700" />
-            <span>Theme & Appearance</span>
+            <span>{t("themeAppearance")}</span>
           </h3>
         </div>
 
@@ -150,9 +180,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           >
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-medium text-[#f1f4f2]">Dark</span>
+                <span className="text-xs font-medium text-[#f1f4f2]">{t("dark")}</span>
                 <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-[#ADC385]/20 text-[#ADC385] border border-[#ADC385]/40">
-                  Default
+                  {t("default")}
                 </span>
               </div>
               {theme === "warm-dark" && (
@@ -182,7 +212,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             }`}
           >
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-medium" style={{ color: "#1e2825" }}>Light</span>
+              <span className="text-xs font-medium" style={{ color: "#1e2825" }}>{t("light")}</span>
               {theme === "light" && (
                 <Check size={14} style={{ color: "#317459" }} />
               )}
@@ -203,13 +233,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       {/* 2. Currency & Manual Exchange Rate Configuration */}
       <div className="p-5 rounded-lg border border-neutral-200 bg-white space-y-4">
         <div>
-          <h3 className="text-sm font-medium text-neutral-900">Currency & Conversion</h3>
+          <h3 className="text-sm font-medium text-neutral-900">{t("currencyConversion")}</h3>
         </div>
 
         {/* Display Priority Mode: Default, USD, UZS */}
         <div>
           <label className="block text-xs font-medium text-neutral-700 mb-1.5">
-            Currency Priority & Display
+            {t("currencyPriority")}
           </label>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             <button
@@ -221,9 +251,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   : "bg-white text-neutral-700 border-neutral-200 hover:bg-neutral-50"
               }`}
             >
-              <span className="block font-medium">Default</span>
+              <span className="block font-medium">{t("default")}</span>
               <span className={`text-[10px] block mt-0.5 ${displayCurrency === "default" ? "text-neutral-300" : "text-neutral-400"}`}>
-                Created currency on top
+                {t("createdCurrencyTop")}
               </span>
             </button>
             <button
@@ -237,7 +267,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             >
               <span className="block font-medium">USD ($)</span>
               <span className={`text-[10px] block mt-0.5 ${displayCurrency === "USD" ? "text-neutral-300" : "text-neutral-400"}`}>
-                USD on top, UZS below
+                {t("usdTop")}
               </span>
             </button>
             <button
@@ -251,7 +281,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             >
               <span className="block font-medium">UZS (Som)</span>
               <span className={`text-[10px] block mt-0.5 ${displayCurrency === "UZS" ? "text-neutral-300" : "text-neutral-400"}`}>
-                UZS on top, USD below
+                {t("uzsTop")}
               </span>
             </button>
           </div>
@@ -260,12 +290,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         {/* Manual Exchange Rate */}
         <form onSubmit={handleSaveRate} className="pt-2 border-t border-neutral-100 space-y-2">
           <label className="block text-xs font-medium text-neutral-700">
-            Manual exchange rate
+            {t("manualExchangeRate")}
           </label>
           <div className="grid max-w-sm grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 sm:grid-cols-[auto_minmax(5rem,1fr)_auto_auto]">
             <span className="whitespace-nowrap text-xs text-neutral-500 font-medium">1 USD =</span>
             <input
-              aria-label="UZS per USD"
+              aria-label={t("uzsPerUsd")}
               type="number"
               step="any"
               min="1"
@@ -278,7 +308,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               type="submit"
               className="col-span-3 w-full px-3.5 py-1.5 text-xs font-medium text-white bg-neutral-900 hover:bg-neutral-800 rounded-lg transition-colors sm:col-span-1 sm:w-auto"
             >
-              Update
+              {t("update")}
             </button>
           </div>
           {rateSavedMessage && (
@@ -296,7 +326,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <h3 className="text-sm font-medium text-neutral-900 flex items-center gap-2">
               <Send size={15} className="text-blue-500" />
-              <span>Telegram Notifications</span>
+              <span>{t("telegramNotifications")}</span>
             </h3>
             <label className="flex items-center gap-1.5 cursor-pointer">
               <input
@@ -305,7 +335,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 onChange={(e) => setTgEnabled(e.target.checked)}
                 className="rounded border-neutral-300 text-neutral-900 focus:ring-0"
               />
-              <span className="text-xs font-medium text-neutral-700">Enable Telegram Alerts</span>
+              <span className="text-xs font-medium text-neutral-700">{t("enableTelegramAlerts")}</span>
             </label>
           </div>
         </div>
@@ -315,7 +345,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         <form onSubmit={handleSaveTelegram} className="space-y-3">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-neutral-700 mb-1">Telegram Chat ID <span className="font-normal text-neutral-400">(manual fallback)</span></label>
+              <label className="block text-xs font-medium text-neutral-700 mb-1">{t("telegramChatId")} <span className="font-normal text-neutral-400">({t("manualFallback")})</span></label>
               <input
                 type="text"
                 placeholder="e.g. 987654321"
@@ -335,7 +365,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               type="submit"
               className="px-3.5 py-1.5 text-xs font-medium text-white bg-neutral-900 hover:bg-neutral-800 rounded-lg transition-colors"
             >
-              Save Telegram Settings
+              {t("saveTelegram")}
             </button>
             <button
               type="button"
@@ -343,7 +373,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               disabled={isTesting}
               className="px-3.5 py-1.5 text-xs font-medium text-neutral-700 bg-white hover:bg-neutral-50 border border-neutral-200 rounded-lg transition-colors"
             >
-              {isTesting ? "Sending..." : "Send Test Notification"}
+              {isTesting ? `${t("sendTest")}…` : t("sendTest")}
             </button>
           </div>
 
@@ -357,7 +387,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           <div className="pt-3 border-t border-neutral-200/60">
             <h4 className="text-xs font-medium text-neutral-700 mb-2 flex items-center gap-1.5">
               <Terminal size={13} className="text-neutral-500" />
-              <span>Available Telegram Bot Commands</span>
+              <span>{t("availableBotCommands")}</span>
             </h4>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
               <div className="p-2 rounded border border-neutral-200 bg-neutral-50">
@@ -390,7 +420,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           <div>
             <div className="flex items-center gap-2">
               <CalendarSync size={16} className="text-neutral-700" />
-              <h3 className="text-sm font-medium text-neutral-900">Calendar reminders</h3>
+              <h3 className="text-sm font-medium text-neutral-900">{t("calendarReminders")}</h3>
               {calendarSyncState?.isConnected && (
                 <span className="px-1.5 py-0.2 rounded text-[10px] bg-emerald-100 text-emerald-800 font-medium border border-emerald-200">
                   Connected
@@ -406,7 +436,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               className="px-3.5 py-1.5 text-xs font-medium text-white bg-neutral-900 hover:bg-neutral-800 rounded-lg transition-colors flex items-center gap-1.5 shrink-0 shadow-2xs"
             >
               <CalendarSync size={13} />
-              <span>{nativeApp ? "Choose device calendar" : (calendarSyncState?.isConnected ? "Manage Calendar Sync" : "Connect Google Calendar")}</span>
+              <span>{nativeApp ? t("deviceCalendar") : (calendarSyncState?.isConnected ? t("calendarReminders") : t("connectGoogleCalendar"))}</span>
             </button>
           )}
         </div>
@@ -439,7 +469,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 onClick={onOpenCalendarSync}
                 className="shrink-0 text-xs font-medium text-neutral-900 underline hover:text-neutral-700"
               >
-                Connect Now
+                {t("connectNow")}
               </button>
             )}
           </div>
@@ -452,7 +482,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           <div>
             <div className="flex items-center gap-2">
               <Bell size={16} className="text-neutral-700" />
-              <h3 className="text-sm font-medium text-neutral-900">{nativeApp ? "Device reminders" : "Browser alerts"}</h3>
+              <h3 className="text-sm font-medium text-neutral-900">{nativeApp ? t("deviceAlerts") : t("browserAlerts")}</h3>
               <span
                 className={`px-1.5 py-0.2 rounded text-[10px] font-medium border ${
                   browserPushActive
@@ -495,7 +525,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             }}
             className="px-3.5 py-1.5 text-xs font-medium text-neutral-800 bg-white hover:bg-neutral-50 border border-neutral-300 rounded-lg transition-colors shrink-0 shadow-2xs"
           >
-            {nativeApp ? (browserPushActive ? "Reschedule reminders" : "Enable reminders") : (browserPushActive ? "Verify permission" : "Enable browser alerts")}
+            {nativeApp ? (browserPushActive ? t("remindersActive") : t("enableReminders")) : (browserPushActive ? t("browserAlerts") : t("enableBrowserAlerts"))}
           </button>
         </div>
 
@@ -510,7 +540,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       {/* 5. Data Backup & Reset */}
       <div className="p-5 rounded-lg border border-neutral-200 bg-white space-y-4">
         <div>
-          <h3 className="text-sm font-medium text-neutral-900">Data Management</h3>
+          <h3 className="text-sm font-medium text-neutral-900">{t("dataManagement")}</h3>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
@@ -520,7 +550,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-medium text-neutral-700 bg-white border border-neutral-200 hover:bg-neutral-50 rounded-lg transition-colors"
           >
             <Download size={14} />
-            <span>Export payments (JSON)</span>
+            <span>{t("exportPayments")}</span>
           </button>
 
           <button
@@ -533,7 +563,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-medium text-rose-600 bg-white border border-rose-200 hover:bg-rose-50 rounded-lg transition-colors"
           >
             <RotateCcw size={14} />
-            <span>Clear data</span>
+            <span>{t("clearData")}</span>
           </button>
         </div>
       </div>
