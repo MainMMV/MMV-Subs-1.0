@@ -22,6 +22,7 @@ interface SidebarProps {
   onToggleCollapse?: () => void;
   onOpenAddModal?: () => void;
   onCloseMobile?: () => void;
+  forceMobile?: boolean;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -33,6 +34,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onToggleCollapse,
   onOpenAddModal,
   onCloseMobile,
+  forceMobile = false,
 }) => {
   const subscriptionsCount = items.filter((i) => i.type === "subscription").length;
   const billsCount = items.filter((i) => i.type === "bill").length;
@@ -128,7 +130,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {onCloseMobile && (
             <button
               onClick={onCloseMobile}
-              className="p-1 rounded-md text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 md:hidden"
+              className={`p-1 rounded-md text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 ${forceMobile ? "" : "md:hidden"}`}
             >
               <X size={18} />
             </button>

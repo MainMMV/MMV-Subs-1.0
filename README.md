@@ -84,9 +84,29 @@ The Telegram worker runs from `telegram-bot/` and requires these environment var
 
 For Render, use `telegram-bot` as the root directory, `npm ci` as the build command, `npm start` as the start command, and `/health` as the health-check path. Run only one bot instance because Telegram long polling must have one active owner.
 
-## Recent changes and modified files
+For Telegram Login on the web, open `@BotFather`, run `/setdomain`, select the MMV Hub bot, and set the domain to `mmv-subs-1-0.vercel.app`. The app verifies every Telegram Login signature on the Render worker before accepting the Telegram user ID. The Android APK opens the registered bot directly because Telegram's web Login Widget is domain-based.
 
-The October 2026 update renamed the product to MMV Hub and changed these areas:
+## Change history
+
+<!-- Add every new published update above older entries. Use: HH:mm DD.MM.YYYY UTC. Keep each release inside a details block. -->
+Each published update is recorded newest first using `HH:mm DD.MM.YYYY UTC`.
+
+<details open>
+<summary><strong>04:27 03.10.2026 UTC — Native mobile UX and Telegram Login</strong></summary>
+
+- Added a native Android top bar, bottom navigation, centered quick-add action, all-sections drawer, and device safe-area handling.
+- Added an APK-only quick setup panel for notification permission, reminder scheduling, today's due count, and direct device-calendar access.
+- Added web Telegram Login with server-side signature and expiry verification.
+- Added direct bot launch from the Android APK and retained manual Chat ID entry as a fallback.
+- Added `/bot-info`, Telegram registration status in `/health`, restricted CORS, and `/auth/telegram` to the Render worker.
+- Changed the README history into collapsible timestamped entries and added the rule for future updates.
+
+Modified areas: `src/App.tsx`, `src/components/Navigation/`, `src/components/NativeQuickSetup.tsx`, `src/components/TelegramConnectButton.tsx`, `src/views/SettingsView.tsx`, `src/index.css`, `telegram-bot/src/`, and `README.md`.
+
+</details>
+
+<details>
+<summary><strong>18:05 02.10.2026 UTC — MMV Hub launch, reminders, and Android build</strong></summary>
 
 - `src/views/SettingsView.tsx`, `src/views/CalendarView.tsx`, navigation, and shared styles: fixed narrow-screen text collisions, wrapping, scrolling, spacing, colors, and responsive controls.
 - `public/`, `assets/`, `src/components/MMVLogo.tsx`, `index.html`, and `vite.config.ts`: replaced the old branding, favicon, PWA icons, metadata, and duplicate PWA files.
@@ -96,6 +116,8 @@ The October 2026 update renamed the product to MMV Hub and changed these areas:
 - `android/`, `capacitor.config.ts`, and `.github/workflows/android-apk.yml`: added the Capacitor Android project, app permissions, launcher assets, and automated APK builds.
 - `src/data/initialData.ts`, `src/data/defaultHabits.ts`, and obsolete install placeholders: removed temporary seeded content so new installs start clean.
 
+</details>
+
 ## Still needs configuration
 
 The code, Vercel production deployment, Android build, and Render worker are deployed. The following account-level Firebase settings are not stored in this repository and still need to be completed in project `micro-pilot-465509-m3`:
@@ -104,6 +126,7 @@ The code, Vercel production deployment, Android build, and Render worker are dep
 2. Enable Anonymous Authentication.
 3. Enable Google Authentication and authorize `mmv-subs-1-0.vercel.app`.
 4. Confirm the Google Calendar API and OAuth consent configuration.
+5. In `@BotFather`, set the Telegram Login domain to `mmv-subs-1-0.vercel.app` with `/setdomain`.
 
 Until the first two items are enabled, the Telegram bot can run and receive Telegram updates, but it cannot read synchronized MMV Hub data or deliver data-driven reminders. Android local reminders and direct device-calendar access work independently of Firebase.
 

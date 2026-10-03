@@ -1,7 +1,7 @@
 import "dotenv/config";
-import { createServer } from "node:http";
+import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { allItems, activeGoals, addCalendarDays, daysBetween, findUserByChatId, formatMoney, getLocalClock, isHabitComplete, isHabitScheduled, listUserStates, markHabitDone, rememberDelivery, wasDelivered, type UserState } from "./data.js";
-import { answerCallbackQuery, escapeHtml, mainKeyboard, sendMessage, telegram, type Keyboard } from "./telegram.js";
+import { answerCallbackQuery, escapeHtml, getBotProfile, mainKeyboard, sendMessage, telegram, verifyTelegramLogin, type Keyboard, type TelegramBotProfile } from "./telegram.js";
 import type { Goal, Habit, ItemReminder, PaymentItem } from "./types.js";
 
 if (!process.env.TELEGRAM_BOT_TOKEN) throw new Error("TELEGRAM_BOT_TOKEN is required.");
@@ -17,6 +17,40 @@ const PORT = Number(process.env.PORT || 10_000);
 let updateOffset = 0;
 let lastScheduledMinute = "";
 let stopping = false;
+let botProfile: TelegramBotProfile | null = null;
+
+const allowedOrigins = new Set([
+  "https://mmv-subs-1-0.vercel.app",
+  "http://localhost:3000",
+  "http://localhost",
+  "https://localhost",
+  "capacitor://localhost",
+]);
+
+function sendJson(response: ServerResponse, status: number, value: unknown) {
+  response.writeHead(status, { "content-type": "application/json; charset=utf-8" });
+  response.end(JSON.stringify(value));
+}
+
+async function readJson(request: IncomingMessage): Promise<Record<string, unknown>> {
+  const chunks: Buffer[] = [];
+  let size = 0;
+  for await (const chunk of request) {
+    const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+    size += buffer.length;
+    if (size > 16_384) throw new Error("Request is too large.");
+    chunks.push(buffer);
+  }
+  const parsed = JSON.parse(Buffer.concat(chunks).toString("utf8"));
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error("Invalid Telegram login payload.");
+  return parsed as Record<string, unknown>;
+}
+
+async function refreshBotProfile() {
+  botProfile = await getBotProfile();
+  console.log(`Telegram bot registered as @${botProfile.username} (${botProfile.id}).`);
+  return botProfile;
+}
 
 function paymentKeyboard(item: PaymentItem): Keyboard {
   return [[{ text: "Open payment list", callback_data: "payments" }, { text: "Refresh", callback_data: "home" }]];
@@ -314,16 +348,54 @@ async function startPolling() {
 }
 
 console.log(`MMV Hub Telegram bot started. Time zone: ${TZ}`);
-const healthServer = createServer((request, response) => {
-  if (request.url === "/health") {
-    response.writeHead(200, { "content-type": "application/json" });
-    response.end(JSON.stringify({ status: "ok", service: "mmv-subs-telegram-bot", time: new Date().toISOString() }));
+const healthServer = createServer(async (request, response) => {
+  const origin = request.headers.origin;
+  if (origin && allowedOrigins.has(origin)) {
+    response.setHeader("access-control-allow-origin", origin);
+    response.setHeader("vary", "Origin");
+    response.setHeader("access-control-allow-methods", "GET, POST, OPTIONS");
+    response.setHeader("access-control-allow-headers", "content-type");
+  }
+  if (request.method === "OPTIONS") {
+    response.writeHead(204);
+    response.end();
     return;
   }
-  response.writeHead(200, { "content-type": "text/plain; charset=utf-8" });
-  response.end("MMV Hub Telegram Bot is running.");
+
+  const path = new URL(request.url || "/", "http://localhost").pathname;
+  try {
+    if (path === "/health") {
+      sendJson(response, 200, {
+        status: "ok",
+        service: "mmv-subs-telegram-bot",
+        telegram: botProfile ? { status: "registered", username: botProfile.username, id: botProfile.id } : { status: "checking" },
+        time: new Date().toISOString(),
+      });
+      return;
+    }
+    if (path === "/bot-info" && request.method === "GET") {
+      const profile = botProfile || await refreshBotProfile();
+      sendJson(response, 200, { status: "registered", id: profile.id, username: profile.username, firstName: profile.first_name });
+      return;
+    }
+    if (path === "/auth/telegram" && request.method === "POST") {
+      const identity = verifyTelegramLogin(await readJson(request));
+      if (!identity) {
+        sendJson(response, 401, { verified: false, error: "Telegram login signature is invalid or expired." });
+        return;
+      }
+      sendJson(response, 200, { verified: true, identity });
+      return;
+    }
+    response.writeHead(200, { "content-type": "text/plain; charset=utf-8" });
+    response.end("MMV Hub Telegram Bot is running.");
+  } catch (error) {
+    console.error("HTTP request error:", error);
+    sendJson(response, 400, { error: error instanceof Error ? error.message : "Request failed." });
+  }
 });
 healthServer.listen(PORT, "0.0.0.0", () => console.log(`Health server listening on 0.0.0.0:${PORT}`));
+void refreshBotProfile().catch((error) => console.error("Could not verify Telegram bot registration:", error));
 void runScheduler().catch((error) => console.error("Initial scheduler error:", error));
 const schedulerTimer = setInterval(() => void runScheduler().catch((error) => console.error("Scheduler error:", error)), 30_000);
 void startPolling();

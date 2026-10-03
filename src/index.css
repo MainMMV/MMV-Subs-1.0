@@ -467,3 +467,35 @@ html[data-theme="light"] .nav-item-border-active {
   -webkit-overflow-scrolling: touch;
   scroll-behavior: smooth;
 }
+
+/* Capacitor-only shell: thumb-friendly navigation and a quieter mobile canvas. */
+.native-shell {
+  background-color: #eef3f0;
+}
+
+.native-shell main > * {
+  width: 100%;
+  max-width: 48rem;
+  margin-inline: auto;
+}
+
+.native-shell main button,
+.native-shell .native-bottom-nav button,
+.native-shell .native-top-bar button {
+  touch-action: manipulation;
+}
+
+.native-bottom-nav {
+  min-height: calc(3.75rem + env(safe-area-inset-bottom));
+  padding-bottom: max(0.4rem, env(safe-area-inset-bottom));
+}
+
+html[data-theme="warm-dark"] .native-shell {
+  background-color: #202825 !important;
+}
+
+html[data-theme="warm-dark"] .native-top-bar,
+html[data-theme="warm-dark"] .native-bottom-nav {
+  background-color: #29312e !important;
+  border-color: #4b5750 !important;
+}

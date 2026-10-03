@@ -14,9 +14,13 @@ The bot is a separate service for the MMV Hub app. The current Blueprint deploys
 
 ## Link the bot
 
-1. Start the bot and copy the Chat ID shown by `/start`.
-2. In MMV Hub, open Settings → Telegram Notifications.
-3. Paste the Chat ID, enable alerts, and save. The app syncs items, habits, habit logs, and goals to Firestore.
+On the web, open Settings → Telegram Notifications and use Telegram Login. The worker verifies Telegram's signed login payload before the app accepts the Telegram user ID.
+
+For web login, open `@BotFather`, run `/setdomain`, select this bot, and set `mmv-subs-1-0.vercel.app`.
+
+In the Android APK, tap the button that opens the bot, tap Start, and paste the Chat ID returned by the bot. Telegram's Login Widget is tied to a web domain, so the APK keeps this direct bot flow as a fallback.
+
+After linking, enable alerts and save. The app syncs items, habits, habit logs, and goals to Firestore.
 
 The bot token belongs only in the background worker's `TELEGRAM_BOT_TOKEN` variable. Do not place it in browser code, Firebase client data, or Git.
 
@@ -27,5 +31,7 @@ The bot token belongs only in the background worker's `TELEGRAM_BOT_TOKEN` varia
 - Start command: `npm start`
 - Environment variables: `TELEGRAM_BOT_TOKEN`, `FIREBASE_SERVICE_ACCOUNT`, and optional `TIME_ZONE=Asia/Tashkent`
 - Health check path: `/health`
+
+The worker also exposes `GET /bot-info` for the public bot username and `POST /auth/telegram` for signed Telegram Login verification. The bot token is never returned by either endpoint.
 
 Run one instance only. Telegram long polling and reminder delivery must have one active owner. Render's free web service can sleep after inactivity; the first request after sleep may have a cold start. Use the Starter worker plan when guaranteed continuous operation is required.

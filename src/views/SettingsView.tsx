@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useState, useEffect } from "react";
 import { Send, Check, Download, RotateCcw, CalendarSync, Bell, ShieldCheck, Palette, Terminal } from "lucide-react";
 import { motion } from "motion/react";
 import { CurrencyDisplayMode, TelegramConfig, PaymentItem, GoogleCalendarSyncState, AppTheme } from "../types";
@@ -6,6 +6,7 @@ import { isBrowserPushEnabled, requestBrowserPushPermission } from "../services/
 import { isNativeApp } from "../services/deviceCalendar";
 import { areDeviceRemindersEnabled, enableDeviceReminders, syncDeviceReminders } from "../services/deviceReminders";
 import { requestTelegramTest } from "../firebase";
+import { TelegramConnectButton, type TelegramIdentity } from "../components/TelegramConnectButton";
 
 interface SettingsViewProps {
   displayCurrency: CurrencyDisplayMode;
@@ -90,6 +91,20 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       setIsTesting(false);
     }
   };
+
+  const handleTelegramConnected = useCallback((identity: TelegramIdentity, botUsername: string) => {
+    const chatId = String(identity.id);
+    setTgChatId(chatId);
+    setTgEnabled(true);
+    onUpdateTelegramConfig({
+      ...telegramConfig,
+      botToken: "",
+      botUsername,
+      chatId,
+      isEnabled: true,
+    });
+    setTestStatus(`Connected${identity.username ? ` as @${identity.username}` : ""}. Telegram alerts are enabled.`);
+  }, [onUpdateTelegramConfig, telegramConfig]);
 
   const handleExportData = () => {
     const jsonStr = JSON.stringify(items, null, 2);
@@ -295,10 +310,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           </div>
         </div>
 
+        <TelegramConnectButton onConnected={handleTelegramConnected} />
+
         <form onSubmit={handleSaveTelegram} className="space-y-3">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-neutral-700 mb-1">Telegram Chat ID</label>
+              <label className="block text-xs font-medium text-neutral-700 mb-1">Telegram Chat ID <span className="font-normal text-neutral-400">(manual fallback)</span></label>
               <input
                 type="text"
                 placeholder="e.g. 987654321"
@@ -306,7 +323,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 onChange={(e) => setTgChatId(e.target.value)}
                 className="w-full px-3 py-1.5 text-xs rounded-lg border border-neutral-300 focus:outline-none focus:border-neutral-900 font-mono"
               />
-              <p className="mt-1 text-[11px] text-neutral-500">Start the MMV Hub bot and copy the Chat ID it shows.</p>
+              <p className="mt-1 text-[11px] text-neutral-500">Use this field if Telegram Login is unavailable or when linking from the APK.</p>
             </div>
             <div>
               <p className="pt-6 text-xs text-neutral-500">The bot token is managed securely by the Telegram worker and is never stored in this browser.</p>

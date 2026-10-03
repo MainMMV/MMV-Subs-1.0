@@ -39,6 +39,10 @@ import { GoalsView } from "./views/GoalsView";
 import { SettingsView } from "./views/SettingsView";
 import { HabitsView } from "./views/HabitsView";
 import { Habit, HabitLog } from "./types";
+import { isNativeApp } from "./services/deviceCalendar";
+import { NativeTopBar } from "./components/Navigation/NativeTopBar";
+import { NativeBottomNavigation } from "./components/Navigation/NativeBottomNavigation";
+import { NativeQuickSetup } from "./components/NativeQuickSetup";
 
 const STORAGE_KEYS = {
   ITEMS: "mmv_subs_items_v3",
@@ -55,6 +59,7 @@ const STORAGE_KEYS = {
 const DEFAULT_EXCHANGE_RATE_USD_TO_UZS = 12800;
 
 export default function App() {
+  const nativeApp = isNativeApp();
   // Theme State: "warm-dark" is default
   const [theme, setTheme] = useState<AppTheme>(() => {
     try {
@@ -737,9 +742,9 @@ export default function App() {
   };
 
   return (
-    <div className="flex h-dvh min-h-0 w-full overflow-hidden bg-neutral-50 text-neutral-900 select-none">
+    <div className={`flex h-dvh min-h-0 w-full overflow-hidden bg-neutral-50 text-neutral-900 select-none ${nativeApp ? "native-shell" : "web-shell"}`}>
       {/* 1. FIXED MAIN NAVIGATION SIDEBAR */}
-      <div className="hidden md:block h-full">
+      {!nativeApp && <div className="hidden md:block h-full">
         <Sidebar
           currentPage={currentPage}
           onSelectPage={(p) => setCurrentPage(p)}
@@ -749,12 +754,12 @@ export default function App() {
           onToggleCollapse={handleToggleSidebar}
           onOpenAddModal={() => handleOpenAddModal()}
         />
-      </div>
+      </div>}
 
       {/* Mobile Drawer Overlay */}
       {isMobileSidebarOpen && (
         <div 
-          className="fixed inset-0 z-50 bg-neutral-900/40 backdrop-blur-xs md:hidden"
+          className={`fixed inset-0 z-50 bg-neutral-900/40 backdrop-blur-xs ${nativeApp ? "" : "md:hidden"}`}
           onClick={() => setIsMobileSidebarOpen(false)}
         >
           <div 
@@ -775,6 +780,7 @@ export default function App() {
                 handleOpenAddModal();
               }}
               onCloseMobile={() => setIsMobileSidebarOpen(false)}
+              forceMobile={nativeApp}
             />
           </div>
         </div>
@@ -783,17 +789,28 @@ export default function App() {
       {/* Main App Content Area */}
       <div className="flex-1 flex flex-col h-full overflow-hidden min-w-0">
         {/* Top Navbar */}
-        <TopNavbar
-          currentPage={currentPage}
-          exchangeRateUsdToUzs={exchangeRateUsdToUzs}
-          notificationCount={activeNotificationsCount}
-          onOpenNotifications={() => setIsNotificationsOpen(true)}
-          onOpenAddModal={() => handleOpenAddModal()}
-          onOpenMobileMenu={() => setIsMobileSidebarOpen(true)}
-        />
+        {nativeApp ? (
+          <NativeTopBar
+            currentPage={currentPage}
+            notificationCount={activeNotificationsCount}
+            onOpenNotifications={() => setIsNotificationsOpen(true)}
+          />
+        ) : (
+          <TopNavbar
+            currentPage={currentPage}
+            exchangeRateUsdToUzs={exchangeRateUsdToUzs}
+            notificationCount={activeNotificationsCount}
+            onOpenNotifications={() => setIsNotificationsOpen(true)}
+            onOpenAddModal={() => handleOpenAddModal()}
+            onOpenMobileMenu={() => setIsMobileSidebarOpen(true)}
+          />
+        )}
 
         {/* View Router */}
-        <main className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] md:p-6 lg:p-8">
+        <main className={`flex-1 min-h-0 overflow-y-auto overscroll-contain ${nativeApp ? "native-scroll px-4 pb-5 pt-4 sm:px-6" : "p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] md:p-6 lg:p-8"}`}>
+          {nativeApp && currentPage === "home" ? (
+            <NativeQuickSetup items={items} onOpenCalendar={() => setIsCalendarSyncModalOpen(true)} />
+          ) : null}
           {currentPage === "home" && (
             <HomeView
               items={displayItems}
@@ -926,6 +943,15 @@ export default function App() {
             />
           )}
         </main>
+
+        {nativeApp ? (
+          <NativeBottomNavigation
+            currentPage={currentPage}
+            onSelectPage={setCurrentPage}
+            onAdd={() => handleOpenAddModal()}
+            onMore={() => setIsMobileSidebarOpen(true)}
+          />
+        ) : null}
       </div>
 
       {/* SMART SINGLE CREATION / EDIT MODAL */}
