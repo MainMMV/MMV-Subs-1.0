@@ -1,0 +1,8 @@
+{
+  "firestore": [
+    {
+      "database": "ai-studio-mmvsubs-7f61226f-682f-4402-823f-82cb55675031",
+      "rules": "firestore.rules"
+    }
+  ]
+}

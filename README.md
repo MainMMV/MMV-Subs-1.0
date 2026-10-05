@@ -94,6 +94,20 @@ For Telegram Login on the web, open `@BotFather`, run `/setdomain`, select the M
 Each published update is recorded newest first using `HH:mm DD.MM.YYYY GMT+5 (Tashkent)`.
 
 <details open>
+<summary><strong>20:18 05.10.2026 GMT+5 (Tashkent) — Firebase registration and secure storage</strong></summary>
+
+- Enabled the Cloud Firestore, Identity Toolkit, and Google Calendar APIs for `micro-pilot-465509-m3`.
+- Created named Firestore database `ai-studio-mmvsubs-7f61226f-682f-4402-823f-82cb55675031` in multi-region `eur3` with deletion protection.
+- Enabled automatic anonymous registration and password-based account registration; confirmed the existing Google provider is enabled.
+- Authorized `mmv-subs-1-0.vercel.app` for Firebase Authentication.
+- Deployed owner-only Firestore rules and verified that one user can read/write its own sync record while another authenticated user receives HTTP 403.
+- Added reproducible Firebase project and named-database deployment configuration.
+
+Modified areas: `.firebaserc`, `firebase.json`, Firebase Authentication configuration, Firestore database and rules, and Google Cloud service configuration.
+
+</details>
+
+<details>
 <summary><strong>12:40 05.10.2026 GMT+5 (Tashkent) — MMV Classics and responsive creation flow</strong></summary>
 
 - Added native MMV Classics modules rebuilt from earlier MainMMV projects: Tasks, Notes, Bookmarks, Focus, Reflection, Salary Plan, Debt Calculator, QR Generator, JSON Editor, Clock, and Trade Calculator.
@@ -157,22 +171,28 @@ Modified areas: `src/App.tsx`, `src/components/Navigation/`, `src/components/Nat
 
 </details>
 
-## Still needs configuration
+## Backend configuration status
 
-The code, Vercel production deployment, Android build, and Render worker are deployed. The following account-level Firebase settings are not stored in this repository and still need to be completed in project `micro-pilot-465509-m3`:
+Firebase registration and storage are configured for project `micro-pilot-465509-m3`:
 
-1. Enable the Cloud Firestore API and create/confirm database `ai-studio-mmvsubs-7f61226f-682f-4402-823f-82cb55675031`.
-2. Enable Anonymous Authentication.
-3. Enable Google Authentication and authorize `mmv-subs-1-0.vercel.app`.
-4. Confirm the Google Calendar API and OAuth consent configuration.
-5. In `@BotFather`, set the Telegram Login domain to `mmv-subs-1-0.vercel.app` with `/setdomain`.
+- Firestore and Identity Toolkit APIs are enabled.
+- Named Firestore database `ai-studio-mmvsubs-7f61226f-682f-4402-823f-82cb55675031` is active in `eur3` with deletion protection.
+- Anonymous and password registration are enabled; the Google provider is enabled.
+- `mmv-subs-1-0.vercel.app` is an authorized authentication domain.
+- Owner-only Firestore rules are deployed and isolation-tested.
 
-Until the first two items are enabled, the Telegram bot can run and receive Telegram updates, but it cannot read synchronized MMV Hub data or deliver data-driven reminders. Android local reminders and direct device-calendar access work independently of Firebase.
+The current app automatically uses anonymous registration. A visible email/password account screen is not implemented yet, although the backend provider is ready.
+
+Still requiring external account configuration:
+
+1. In `@BotFather`, set the Telegram Login domain to `mmv-subs-1-0.vercel.app` with `/setdomain`.
+2. Confirm the Render worker has `TELEGRAM_BOT_TOKEN`, `FIREBASE_SERVICE_ACCOUNT`, and `FIRESTORE_DATABASE_ID` configured, then redeploy it.
+3. Publish the Google OAuth consent screen if users outside the project owner's test-user list need Google Calendar access.
 
 ## Deployment status
 
 - Vercel production: deployed from `main`
-- Render Telegram service: live at [mmv-subs-telegram-bot.onrender.com/health](https://mmv-subs-telegram-bot.onrender.com/health)
+- Render Telegram service: configured at [mmv-subs-telegram-bot.onrender.com/health](https://mmv-subs-telegram-bot.onrender.com/health); the latest health check timed out and requires a Render status/log check
 - Android CI: TypeScript, reminder tests, Capacitor sync, native Gradle build, and APK artifact upload are enabled
 
 See [MOBILE.md](MOBILE.md) for Android behavior and [telegram-bot/README.md](telegram-bot/README.md) for bot details.
