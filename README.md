@@ -94,6 +94,18 @@ For Telegram Login on the web, open `@BotFather`, run `/setdomain`, select the M
 Each published update is recorded newest first using `HH:mm DD.MM.YYYY GMT+5 (Tashkent)`.
 
 <details open>
+<summary><strong>20:43 05.10.2026 GMT+5 (Tashkent) — Android Firebase and backend hardening</strong></summary>
+
+- Registered the native Android application `com.mainmmv.subs` in Firebase and added its generated Google services configuration to APK builds.
+- Enabled IAM, IAM Credentials, Monitoring, Logging, App Check, and API Keys management APIs.
+- Created the dedicated `mmv-hub-telegram` backend service account with only the Firestore Datastore User role; no owner/admin role or downloadable credential was created.
+- Audited API-key restrictions and retained Capacitor compatibility until native authentication and permanent release signing are complete.
+
+Modified areas: `android/app/google-services.json`, Google Cloud service configuration, IAM, and `README.md`.
+
+</details>
+
+<details>
 <summary><strong>20:18 05.10.2026 GMT+5 (Tashkent) — Firebase registration and secure storage</strong></summary>
 
 - Enabled the Cloud Firestore, Identity Toolkit, and Google Calendar APIs for `micro-pilot-465509-m3`.
@@ -180,14 +192,20 @@ Firebase registration and storage are configured for project `micro-pilot-465509
 - Anonymous and password registration are enabled; the Google provider is enabled.
 - `mmv-subs-1-0.vercel.app` is an authorized authentication domain.
 - Owner-only Firestore rules are deployed and isolation-tested.
+- Native Android app `com.mainmmv.subs` is registered and its Firebase build configuration is present.
+- The Telegram worker has a dedicated least-privilege service account with the Firestore Datastore User role.
+- Monitoring, Logging, App Check, and API Keys management APIs are enabled.
 
 The current app automatically uses anonymous registration. A visible email/password account screen is not implemented yet, although the backend provider is ready.
 
 Still requiring external account configuration:
 
 1. In `@BotFather`, set the Telegram Login domain to `mmv-subs-1-0.vercel.app` with `/setdomain`.
-2. Confirm the Render worker has `TELEGRAM_BOT_TOKEN`, `FIREBASE_SERVICE_ACCOUNT`, and `FIRESTORE_DATABASE_ID` configured, then redeploy it.
+2. Connect Render access, create a credential for the dedicated `mmv-hub-telegram` service account, store it only as `FIREBASE_SERVICE_ACCOUNT`, confirm the other required variables, and redeploy. No service-account key is stored in this repository.
 3. Publish the Google OAuth consent screen if users outside the project owner's test-user list need Google Calendar access.
+4. Create and securely retain a permanent Android release keystore, then register its SHA-1 and SHA-256 fingerprints for native Google sign-in and key restrictions.
+5. Upgrade Firebase to a billing-enabled plan before enabling point-in-time Firestore recovery, paid backup features, or reCAPTCHA Enterprise. Billing is currently disabled.
+6. Integrate App Check in both web and APK clients and verify metrics before enforcement; enforcing it now would block the current clients.
 
 ## Deployment status
 

@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "189776208517",
+    "project_id": "micro-pilot-465509-m3",
+    "storage_bucket": "micro-pilot-465509-m3.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:189776208517:android:a4f59eee3cba5ad920bfec",
+        "android_client_info": {
+          "package_name": "com.mainmmv.subs"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "189776208517-1gekjecnuje2dn8bju93l1gh1bvdekf3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBz8JSO_LOD1wfSQTkgNFBZnSWOiGEjoJU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "189776208517-1gekjecnuje2dn8bju93l1gh1bvdekf3.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
