@@ -1,58 +1,6 @@
-name: Android APK
-
-on:
-  push:
-    branches: [main, 'codex/**']
-  workflow_dispatch:
-    inputs:
-      release_tag:
-        description: Optional release tag that receives the built APK (for example, v1.3.0)
-        required: false
-        type: string
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: npm
-      - uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '21'
-      - uses: android-actions/setup-android@v3
-        with:
-          packages: platform-tools platforms;android-36 build-tools;36.0.0
-      - run: npm ci
-      - run: npm run lint
-      - run: npm test
-      - run: npm run android:sync
-      - run: ./gradlew assembleDebug --no-daemon
-        working-directory: android
-      - uses: actions/upload-artifact@v4
-        with:
-          name: mmv-hub-installable-apk
-          path: android/app/build/outputs/apk/debug/app-debug.apk
-          if-no-files-found: error
-          retention-days: 30
-      - name: Publish APK release
-        if: github.event_name == 'workflow_dispatch' && inputs.release_tag != ''
-        env:
-          GH_TOKEN: ${{ github.token }}
-          RELEASE_TAG: ${{ inputs.release_tag }}
-        run: |
-          apk_path="MMV-Hub-${RELEASE_TAG}.apk"
-          cp android/app/build/outputs/apk/debug/app-debug.apk "$apk_path"
-          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
-            gh release upload "$RELEASE_TAG" "$apk_path#MMV Hub ${RELEASE_TAG} Android APK" --clobber
-          else
-            gh release create "$RELEASE_TAG" "$apk_path#MMV Hub ${RELEASE_TAG} Android APK" \
-              --target "$GITHUB_SHA" \
-              --title "MMV Hub ${RELEASE_TAG}" \
-              --notes "Installable Android build with MMV Classics, responsive navigation and creation-flow fixes."
-          fi
+YªçŠx-®éÜj×¢ëiºÚ+Š§j[h‘éÜ¢éí×½ýßÔèµ©hºÚn¶X§zÏ˜[YNˆ[™›ÚYTÂ‚›ÛŽ‚ˆ\Ú‚ˆœ˜[˜Ú\ÎˆÛXZ[‹	ØÛÙ^ÊŠ‰×BˆÛÜšÙ›Ý×Ù\Ü]Ú‚ˆ[œ]Î‚ˆ™[X\ÙWÝYÎ‚ˆ\ØÜš\[ÛŽˆÜ[Û˜[™[X\ÙHYÈ]™XÙZ]™\ÈHZ[TÈ
+›Üˆ^[\KŒKŒËŒ
+Bˆ™\]Z\™Yˆ˜[ÙBˆ\NˆÝš[™Â‚š›ØœÎ‚ˆZ[‚ˆ[œË[ÛŽˆX[K[]\Ýˆ\›Z\ÜÚ[ÛœÎ‚ˆÛÛ[ÎˆÜš]BˆÝ\Î‚ˆH\Ù\ÎˆXÝ[ÛœËØÚXÚÛÝ]ˆH\Ù\ÎˆXÝ[ÛœËÜÙ]\[›ÙPˆÚ]‚ˆ›ÙK]™\œÚ[ÛŽˆˆØXÚNˆœBˆH\Ù\ÎˆXÝ[ÛœËÜÙ]\Z˜]˜PˆÚ]‚ˆ\ÝšX][ÛŽˆ[]\š[‚ˆ˜]˜K]™\œÚ[ÛŽˆ	ÌŒIÂˆH\Ù\Îˆ[™›ÚYXXÝ[ÛœËÜÙ]\X[™›ÚYŒÂˆÚ]‚ˆXÚØYÙ\Îˆ]›Ü›K]ÛÛÈ]›Ü›\ÎØ[™›ÚYLÍˆZ[]ÛÛÎÌÍ‹ŒŒˆH[ŽˆœHÚBˆH[ŽˆœH[ˆ[ˆH[ŽˆœH\ÝˆH[ŽˆœH[ˆ[™›ÚYœÞ[˜ÂˆH[Žˆ‹ÙÜ˜Y]È\ÜÙ[X›QXYÈK[›ËYY[[Û‚ˆÛÜšÚ[™ËY\™XÝÜžNˆ[™›ÚYˆH\Ù\ÎˆXÝ[ÛœËÝ\ØYX\Y˜XÝˆÚ]‚ˆ˜[YNˆ[]‹ZX‹Z[œÝ[X›KX\Âˆ]ˆ[™›ÚYØ\ØZ[ÛÝ]]ËØ\ËÙXYËØ\YXYË˜\ÂˆY‹[›ËYš[\ËY›Ý[™ˆ\œ›Ü‚ˆ™][[Û‹Y^\ÎˆÌˆH˜[YNˆX›\ÚTÈ™[X\ÙBˆYŽˆ
+Ú]X‹™]™[Û˜[YHOH	Ü\Ú	È	‰ˆÚ]X‹œ™YˆOH	Ü™YœËÚXYËÛXZ[‰ÊH
+Ú]X‹™]™[Û˜[YHOH	ÝÛÜšÙ›Ý×Ù\Ü]Ú	È	‰ˆ[œ]Ëœ™[X\ÙWÝYÈOH	ÉÊBˆ[Ž‚ˆÒÕÒÑSŽˆ	ÞÈÚ]X‹ÚÙ[ˆ_Bˆ‘SPTÑWÕQÎˆ	ÞÈ[œ]Ëœ™[X\ÙWÝYÈ_Bˆ[Žˆˆ™[X\ÙWÝYÏH‰Ô‘SPTÑWÕQÎ‹]‰
+›ÙH\œ™\]Z\™J	Ë‹ÜXÚØYÙKšœÛÛ‰ÊK™\œÚ[ÛˆŠ_H‚ˆ\×Ü]H“SU‹RX‹IÜ™[X\ÙWÝYßK˜\È‚ˆÜ[™›ÚYØ\ØZ[ÛÝ]]ËØ\ËÙXYËØ\YXYË˜\È‰\×Ü]‚ˆYˆÚ™[X\ÙHšY]È‰™[X\ÙWÝYÈˆ‹Ù]‹Û[‰ŒNÈ[‚ˆÚ™[X\ÙH\ØY‰™[X\ÙWÝYÈˆ‰\×Ü]ÓSUˆXˆ	Ü™[X\ÙWÝYßH[™›ÚYTÈˆKXÛØ˜™\‚ˆ[ÙBˆÚ™[X\ÙHÜ™X]H‰™[X\ÙWÝYÈˆ‰\×Ü]ÓSUˆXˆ	Ü™[X\ÙWÝYßH[™›ÚYTÈˆˆK]\™Ù]‰ÒUP—ÔÒHˆˆK]]H“SUˆXˆ	Ü™[X\ÙWÝYßHˆˆK[›Ý\È’[œÝ[X›H[™›ÚYZ[Ú]š\™X˜\ÙH[YÜ˜][Û‹SUˆÛ\ÜÚXÜË™\ÜÛœÚ]™H˜]šYØ][Û‹™[Z[™\œËØ[[™\ˆXØÙ\ÜË[™Ü™X][Û‹Y›ÝÈš^\Ëˆ‚ˆšB

@@ -100,8 +100,9 @@ Each published update is recorded newest first using `HH:mm DD.MM.YYYY GMT+5 (Ta
 - Enabled IAM, IAM Credentials, Monitoring, Logging, App Check, and API Keys management APIs.
 - Created the dedicated `mmv-hub-telegram` backend service account with only the Firestore Datastore User role; no owner/admin role or downloadable credential was created.
 - Audited API-key restrictions and retained Capacitor compatibility until native authentication and permanent release signing are complete.
+- Updated the Android pipeline to publish every successful `main` build to the matching versioned GitHub Release.
 
-Modified areas: `android/app/google-services.json`, Google Cloud service configuration, IAM, and `README.md`.
+Modified areas: `android/app/google-services.json`, `.github/workflows/android-apk.yml`, package metadata, Google Cloud service configuration, IAM, and `README.md`.
 
 </details>
 
