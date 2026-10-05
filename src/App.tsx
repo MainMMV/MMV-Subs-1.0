@@ -44,6 +44,9 @@ import { NativeTopBar } from "./components/Navigation/NativeTopBar";
 import { NativeBottomNavigation } from "./components/Navigation/NativeBottomNavigation";
 import { NativeQuickSetup } from "./components/NativeQuickSetup";
 import { tashkentDateKey } from "./utils/timezone";
+import { NativeMoreView } from "./views/NativeMoreView";
+import { PastModuleView } from "./views/PastModuleView";
+import type { PastModuleId } from "./config/pastModules";
 
 const STORAGE_KEYS = {
   ITEMS: "mmv_subs_items_v3",
@@ -85,6 +88,7 @@ export default function App() {
 
   // Navigation State
   const [currentPage, setCurrentPage] = useState<AppPage>("home");
+  const [selectedPastModule, setSelectedPastModule] = useState<PastModuleId | null>(null);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
     try {
       return localStorage.getItem("mmv_subs_sidebar_collapsed") === "true";
@@ -101,6 +105,11 @@ export default function App() {
       } catch {}
       return next;
     });
+  };
+
+  const handleSelectPastModule = (moduleId: PastModuleId) => {
+    setSelectedPastModule(moduleId);
+    setCurrentPage("more");
   };
 
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
@@ -748,12 +757,17 @@ export default function App() {
       {!nativeApp && <div className="hidden md:block h-full">
         <Sidebar
           currentPage={currentPage}
-          onSelectPage={(p) => setCurrentPage(p)}
+          onSelectPage={(p) => {
+            setSelectedPastModule(null);
+            setCurrentPage(p);
+          }}
           items={items}
           habitsCount={habits.filter((h) => !h.isPaused).length}
           isCollapsed={isSidebarCollapsed}
           onToggleCollapse={handleToggleSidebar}
           onOpenAddModal={() => handleOpenAddModal()}
+          selectedPastModule={selectedPastModule}
+          onSelectPastModule={handleSelectPastModule}
         />
       </div>}
 
@@ -770,6 +784,7 @@ export default function App() {
             <Sidebar
               currentPage={currentPage}
               onSelectPage={(p) => {
+                setSelectedPastModule(null);
                 setCurrentPage(p);
                 setIsMobileSidebarOpen(false);
               }}
@@ -782,6 +797,11 @@ export default function App() {
               }}
               onCloseMobile={() => setIsMobileSidebarOpen(false)}
               forceMobile={nativeApp}
+              selectedPastModule={selectedPastModule}
+              onSelectPastModule={(moduleId) => {
+                handleSelectPastModule(moduleId);
+                setIsMobileSidebarOpen(false);
+              }}
             />
           </div>
         </div>
@@ -811,6 +831,31 @@ export default function App() {
         <main className={`flex-1 min-h-0 overflow-y-auto overscroll-contain ${nativeApp ? "native-scroll px-4 pb-5 pt-4 sm:px-6" : "p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] md:p-6 lg:p-8"}`}>
           {nativeApp && currentPage === "home" ? (
             <NativeQuickSetup items={items} onOpenCalendar={() => setIsCalendarSyncModalOpen(true)} />
+          ) : null}
+          {nativeApp && currentPage === "more" ? (
+            <NativeMoreView
+              subscriptionsCount={items.filter((item) => item.type === "subscription").length}
+              billsCount={items.filter((item) => item.type === "bill").length}
+              purchasesCount={items.filter((item) => item.type === "purchase").length}
+              goalsCount={goals.filter((goal) => !goal.isCompleted).length}
+              notificationCount={activeNotificationsCount}
+              onSelectPage={(page) => {
+                setSelectedPastModule(null);
+                setCurrentPage(page);
+              }}
+              onOpenNotifications={() => setIsNotificationsOpen(true)}
+              selectedPastModule={selectedPastModule}
+              onSelectPastModule={setSelectedPastModule}
+            />
+          ) : null}
+          {!nativeApp && currentPage === "more" && selectedPastModule ? (
+            <PastModuleView
+              moduleId={selectedPastModule}
+              onBack={() => {
+                setSelectedPastModule(null);
+                setCurrentPage("home");
+              }}
+            />
           ) : null}
           {currentPage === "home" && (
             <HomeView
@@ -950,7 +995,10 @@ export default function App() {
             currentPage={currentPage}
             onSelectPage={setCurrentPage}
             onAdd={() => handleOpenAddModal()}
-            onMore={() => setIsMobileSidebarOpen(true)}
+            onMore={() => {
+              setSelectedPastModule(null);
+              setCurrentPage("more");
+            }}
           />
         ) : null}
       </div>

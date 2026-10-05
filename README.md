@@ -94,6 +94,20 @@ For Telegram Login on the web, open `@BotFather`, run `/setdomain`, select the M
 Each published update is recorded newest first using `HH:mm DD.MM.YYYY GMT+5 (Tashkent)`.
 
 <details open>
+<summary><strong>12:31 05.10.2026 GMT+5 (Tashkent) — MMV Classics and responsive creation flow</strong></summary>
+
+- Added native MMV Classics modules rebuilt from earlier MainMMV projects: Tasks, Notes, Bookmarks, Focus, Reflection, Salary Plan, Debt Calculator, QR Generator, JSON Editor, Clock, and Trade Calculator.
+- Added a collapsible More navigation group on the web and retained the bottom-right More launcher in the Android app, both backed by one shared module registry.
+- Removed the outlined More container so the launcher follows the selected theme, and kept every launcher icon as SVG.
+- Reworked the mobile creation form with compact category labels, collision-free Icon and Reminder controls, concise currency and frequency fields, safer scrolling, and a smaller dismissible modal.
+- Applied Tashkent time to device-calendar events and native/in-app reminder scheduling without displaying a GMT label in the interface.
+- Added QR generation support and synchronized the updated web application into the Android project.
+
+Modified areas: mobile and web navigation, MMV Classics views and registry, item creation modal, translations, timezone/reminder services, Android metadata, and package dependencies.
+
+</details>
+
+<details>
 <summary><strong>10:22 03.10.2026 GMT+5 (Tashkent) — Tashkent time standardization</strong></summary>
 
 - Standardized date-only app logic, payment status, paid dates, habit dates, forecasts, exports, and calendar event time zones on `Asia/Tashkent`.

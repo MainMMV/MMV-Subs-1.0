@@ -8,7 +8,7 @@ import { areDeviceRemindersEnabled, enableDeviceReminders, syncDeviceReminders }
 import { requestTelegramTest } from "../firebase";
 import { TelegramConnectButton, type TelegramIdentity } from "../components/TelegramConnectButton";
 import { useI18n, type AppLanguage } from "../i18n";
-import { APP_TIME_ZONE_LABEL, formatTashkentDateTime, tashkentDateKey } from "../utils/timezone";
+import { formatTashkentDateTime, tashkentDateKey } from "../utils/timezone";
 
 interface SettingsViewProps {
   displayCurrency: CurrencyDisplayMode;
@@ -157,9 +157,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             </button>
           ))}
         </div>
-        <p className="rounded-lg bg-neutral-50 px-3 py-2 text-[11px] text-neutral-600">
-          <span className="font-medium text-neutral-800">{t("timeZone")}:</span> {APP_TIME_ZONE_LABEL}
-        </p>
       </div>
 
       {/* Theme */}

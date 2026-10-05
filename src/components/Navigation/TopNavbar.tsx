@@ -40,6 +40,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
     calendar: t("calendar"),
     goals: t("goalsBudgets"),
     settings: t("settings"),
+    more: t("more"),
   };
 
   return (

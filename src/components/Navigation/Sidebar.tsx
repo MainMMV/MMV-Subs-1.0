@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { 
   Home, 
   CreditCard, 
@@ -8,11 +8,14 @@ import {
   Target,
   Settings, 
   X,
-  CheckCircle2 
+  CheckCircle2,
+  ChevronDown,
+  Grid2X2,
 } from "lucide-react";
 import { AppPage, PaymentItem } from "../../types";
 import { MMVLogo } from "../MMVLogo";
 import { useI18n } from "../../i18n";
+import { PAST_MODULES, type PastModuleId } from "../../config/pastModules";
 
 interface SidebarProps {
   currentPage: AppPage;
@@ -24,6 +27,8 @@ interface SidebarProps {
   onOpenAddModal?: () => void;
   onCloseMobile?: () => void;
   forceMobile?: boolean;
+  selectedPastModule?: PastModuleId | null;
+  onSelectPastModule?: (moduleId: PastModuleId) => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -36,8 +41,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onOpenAddModal,
   onCloseMobile,
   forceMobile = false,
+  selectedPastModule = null,
+  onSelectPastModule,
 }) => {
   const { t } = useI18n();
+  const [isMoreOpen, setIsMoreOpen] = useState(currentPage === "more");
+  useEffect(() => {
+    if (currentPage === "more") setIsMoreOpen(true);
+  }, [currentPage]);
   const subscriptionsCount = items.filter((i) => i.type === "subscription").length;
   const billsCount = items.filter((i) => i.type === "bill").length;
   const purchasesCount = items.filter((i) => i.type === "purchase").length;
@@ -99,7 +110,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         isCollapsed ? "w-16" : "w-64"
       } h-full bg-white border-r border-neutral-200 flex flex-col justify-between select-none flex-shrink-0 transition-all duration-200`}
     >
-      <div>
+      <div className="min-h-0 flex-1 overflow-y-auto">
         {/* Brand Header: Logo button collapses/expands navigation */}
         <div className={`px-4 pt-4 pb-3 flex items-center ${isCollapsed ? "justify-center" : "justify-between"}`}>
           <button
@@ -173,6 +184,44 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </button>
             );
           })}
+
+          <div>
+            <button
+              type="button"
+              onClick={() => {
+                if (isCollapsed) onToggleCollapse?.();
+                setIsMoreOpen((open) => !open);
+              }}
+              className={`flex h-9 w-full items-center rounded-lg border text-xs font-medium transition-colors ${
+                isCollapsed ? "justify-center px-0" : "justify-between px-3"
+              } ${currentPage === "more" ? "bg-neutral-100 text-neutral-900 nav-item-border-active" : "text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900 nav-item-border"}`}
+              aria-expanded={isMoreOpen}
+              title={t("more")}
+            >
+              <span className="flex min-w-0 items-center gap-2.5">
+                <Grid2X2 size={16} className={currentPage === "more" ? "text-neutral-900" : "text-neutral-500"} />
+                {!isCollapsed ? <span>{t("more")}</span> : null}
+              </span>
+              {!isCollapsed ? <ChevronDown size={14} className={`transition-transform ${isMoreOpen ? "rotate-180" : ""}`} /> : null}
+            </button>
+
+            {!isCollapsed && isMoreOpen ? (
+              <div className="ml-3 mt-1 space-y-0.5 border-l border-neutral-200 pl-2">
+                {PAST_MODULES.map(({ id, labelKey, icon: Icon }) => (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => onSelectPastModule?.(id)}
+                    className={`flex min-h-8 w-full min-w-0 items-center gap-2 rounded-lg px-2 py-1.5 text-left text-[11px] transition-colors ${selectedPastModule === id ? "bg-neutral-100 font-medium text-neutral-900" : "text-neutral-500 hover:bg-neutral-50 hover:text-neutral-900"}`}
+                    title={t(labelKey)}
+                  >
+                    <Icon size={14} className="shrink-0" />
+                    <span className="truncate">{t(labelKey)}</span>
+                  </button>
+                ))}
+              </div>
+            ) : null}
+          </div>
         </nav>
       </div>
     </aside>

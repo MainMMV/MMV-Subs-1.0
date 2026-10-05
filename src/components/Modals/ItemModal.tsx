@@ -178,10 +178,10 @@ export const ItemModal: React.FC<ItemModalProps> = ({
   return (
     <div 
       onClick={onClose} 
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-900/40 backdrop-blur-xs overflow-y-auto select-none"
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-neutral-900/40 px-4 py-[max(3.5rem,env(safe-area-inset-top))] backdrop-blur-xs select-none"
     >
       <div 
-        className="w-full max-w-xl bg-white rounded-lg shadow-md border border-neutral-200 overflow-hidden my-6 animate-in fade-in zoom-in-95 duration-150"
+        className="flex max-h-[calc(100dvh-7rem)] w-full max-w-xl flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-md animate-in fade-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -199,7 +199,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-5 space-y-4 max-h-[82vh] overflow-y-auto">
+        <form onSubmit={handleSubmit} className="min-h-0 space-y-4 overflow-y-auto p-4 sm:p-5">
           {error && (
             <div className="p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2">
               <AlertCircle size={15} className="shrink-0" />
@@ -216,7 +216,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
               <button
                 type="button"
                 onClick={() => setType("subscription")}
-                className={`py-2 px-3 rounded-lg text-xs font-medium border text-center transition-colors ${
+                className={`rounded-lg border px-1.5 py-2 text-center text-[11px] font-medium transition-colors ${
                   type === "subscription"
                     ? "bg-blue-50 border-blue-300 text-blue-700 shadow-2xs"
                     : "bg-white border-neutral-200 text-neutral-600 hover:bg-neutral-50"
@@ -227,24 +227,24 @@ export const ItemModal: React.FC<ItemModalProps> = ({
               <button
                 type="button"
                 onClick={() => setType("bill")}
-                className={`py-2 px-3 rounded-lg text-xs font-medium border text-center transition-colors ${
+                className={`rounded-lg border px-1.5 py-2 text-center text-[11px] font-medium transition-colors ${
                   type === "bill"
                     ? "bg-emerald-50 border-emerald-300 text-emerald-700 shadow-2xs"
                     : "bg-white border-neutral-200 text-neutral-600 hover:bg-neutral-50"
                 }`}
               >
-                {t("recurringBill")}
+                {t("billShort")}
               </button>
               <button
                 type="button"
                 onClick={() => setType("purchase")}
-                className={`py-2 px-3 rounded-lg text-xs font-medium border text-center transition-colors ${
+                className={`rounded-lg border px-1.5 py-2 text-center text-[11px] font-medium transition-colors ${
                   type === "purchase"
                     ? "bg-purple-50 border-purple-300 text-purple-700 shadow-2xs"
                     : "bg-white border-neutral-200 text-neutral-600 hover:bg-neutral-50"
                 }`}
               >
-                {t("oneTimePurchase")}
+                {t("purchaseShort")}
               </button>
             </div>
           </div>
@@ -279,7 +279,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
               <button
                 type="button"
                 onClick={() => setIsIconPickerOpen(!isIconPickerOpen)}
-                className={`px-3 py-2 rounded-lg border flex items-center justify-between text-xs font-medium transition-colors ${
+                className={`min-w-0 px-2.5 py-2 rounded-lg border flex items-center text-xs font-medium transition-colors ${
                   isIconPickerOpen
                     ? "border-neutral-900 bg-neutral-900 text-white"
                     : "border-neutral-200 bg-neutral-50 hover:bg-neutral-100 text-neutral-700"
@@ -293,30 +293,27 @@ export const ItemModal: React.FC<ItemModalProps> = ({
                   >
                     <ServiceIcon icon={icon} size={13} />
                   </div>
-                  <span className="truncate">Icon</span>
+                  <span className="truncate">{t("icon")}</span>
                 </div>
-                <span className="text-[11px] opacity-75 truncate max-w-[80px]">
-                  {AVAILABLE_ICONS.find((i) => i.id === icon)?.label || "Change"}
-                </span>
               </button>
 
               {/* Reminders Button */}
               <button
                 type="button"
                 onClick={() => setIsRemindersSectionOpen(!isRemindersSectionOpen)}
-                className={`px-3 py-2 rounded-lg border flex items-center justify-between text-xs font-medium transition-colors ${
+                className={`min-w-0 px-2 py-2 rounded-lg border flex items-center justify-between gap-1 text-[11px] font-medium transition-colors ${
                   isRemindersSectionOpen
                     ? "border-neutral-900 bg-neutral-900 text-white"
                     : "border-neutral-200 bg-neutral-50 hover:bg-neutral-100 text-neutral-700"
                 }`}
                 title="Configure item reminders"
               >
-                <div className="flex items-center gap-2">
-                  <Bell size={14} className={isRemindersSectionOpen ? "text-white" : "text-neutral-500"} />
-                  <span>{t("reminders")}</span>
+                <div className="flex min-w-0 items-center gap-1.5">
+                  <Bell size={13} className={`shrink-0 ${isRemindersSectionOpen ? "text-white" : "text-neutral-500"}`} />
+                  <span className="whitespace-nowrap">{t("reminderShort")}</span>
                 </div>
                 <span
-                  className={`px-1.5 py-0.2 rounded text-[10px] font-medium ${
+                  className={`ml-auto shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium ${
                     isRemindersSectionOpen
                       ? "bg-white/20 text-white"
                       : reminders.length > 0
@@ -502,11 +499,11 @@ export const ItemModal: React.FC<ItemModalProps> = ({
 
           {/* 4. Price & Currency with Conversion Preview */}
           <div className="p-3 rounded-lg bg-neutral-50 border border-neutral-200 space-y-2">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
               <label className="block text-xs font-medium text-neutral-700">
                 {t("price")}
               </label>
-              <span className="text-[11px] text-neutral-500">
+              <span className="whitespace-nowrap text-[10px] text-neutral-500">
                 1 USD = {exchangeRateUsdToUzs.toLocaleString()} UZS
               </span>
             </div>
@@ -530,7 +527,7 @@ export const ItemModal: React.FC<ItemModalProps> = ({
                 onChange={(e) => setCurrency(e.target.value as CurrencyCode)}
                 className="w-24 px-2 py-2 text-xs rounded-lg bg-white border border-neutral-300 focus:outline-none focus:border-neutral-900 transition-colors font-medium"
               >
-                <option value="USD">USD ($)</option>
+                <option value="USD">USD</option>
                 <option value="UZS">UZS</option>
               </select>
             </div>
@@ -568,25 +565,25 @@ export const ItemModal: React.FC<ItemModalProps> = ({
               <label className="block text-xs font-medium text-neutral-700">
                 {t("frequency")}
               </label>
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-neutral-500">Every</span>
+              <div className="grid grid-cols-[auto_4rem_minmax(0,1fr)] items-center gap-2">
+                <span className="whitespace-nowrap text-xs text-neutral-500">{t("every")}</span>
                 <input
                   type="number"
                   min="1"
                   max="365"
                   value={freqInterval}
                   onChange={(e) => setFreqInterval(Math.max(1, parseInt(e.target.value) || 1))}
-                  className="w-20 px-2.5 py-1.5 text-xs rounded-lg bg-white border border-neutral-300 focus:outline-none focus:border-neutral-900 text-center"
+                  className="w-16 min-w-0 rounded-lg border border-neutral-300 bg-white px-2 py-1.5 text-center text-xs focus:border-neutral-900 focus:outline-none"
                 />
                 <select
                   value={freqUnit}
                   onChange={(e) => setFreqUnit(e.target.value as FrequencyUnit)}
-                  className="flex-1 px-3 py-1.5 text-xs rounded-lg bg-white border border-neutral-300 focus:outline-none focus:border-neutral-900 font-medium"
+                  className="min-w-0 w-full rounded-lg border border-neutral-300 bg-white px-2 py-1.5 text-xs font-medium focus:border-neutral-900 focus:outline-none"
                 >
-                  <option value="days">Days (e.g. Every 2 days, Every 45 days)</option>
-                  <option value="weeks">Weeks (e.g. Every 2 weeks)</option>
-                  <option value="months">Months (e.g. Every 1 month, Every 3 months)</option>
-                  <option value="years">Years (e.g. Every 1 year)</option>
+                  <option value="days">{t("days")}</option>
+                  <option value="weeks">{t("weeks")}</option>
+                  <option value="months">{t("months")}</option>
+                  <option value="years">{t("years")}</option>
                 </select>
               </div>
             </div>

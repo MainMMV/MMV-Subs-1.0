@@ -71,7 +71,8 @@ export type AppPage =
   | "purchases"
   | "calendar"
   | "goals"
-  | "settings";
+  | "settings"
+  | "more";
 
 export * from "./types/habit";
 
@@ -175,4 +176,3 @@ export interface InAppNotification {
   read: boolean;
   dismissed: boolean;
 }
-

@@ -73,10 +73,11 @@ export const NativeBottomNavigation: React.FC<NativeBottomNavigationProps> = ({
       <button
         type="button"
         onClick={onMore}
-        className="flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl text-[10px] font-medium text-neutral-500"
+        className={`flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl text-[10px] font-medium transition-colors ${currentPage === "more" ? "text-emerald-700" : "text-neutral-500"}`}
         aria-label={t("openAllSections")}
+        aria-current={currentPage === "more" ? "page" : undefined}
       >
-        <Grid2X2 size={19} strokeWidth={1.8} />
+        <Grid2X2 size={19} strokeWidth={currentPage === "more" ? 2.3 : 1.8} />
         <span>{t("more")}</span>
       </button>
     </nav>

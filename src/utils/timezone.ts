@@ -1,5 +1,4 @@
 export const APP_TIME_ZONE = "Asia/Tashkent";
-export const APP_TIME_ZONE_LABEL = "GMT+5 (Tashkent)";
 
 export function tashkentDateKey(date = new Date()): string {
   const parts = new Intl.DateTimeFormat("en-CA", {

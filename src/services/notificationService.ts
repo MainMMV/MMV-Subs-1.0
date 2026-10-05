@@ -82,11 +82,14 @@ export function generateInAppNotifications(
 function reminderMoment(date: string, reminder: ItemReminder): Date {
   const moment = tashkentDateTime(date, reminder.exactTime || "09:00");
   const amount = reminder.timing === "before" ? -reminder.duration : reminder.timing === "after" ? reminder.duration : 0;
-  if (reminder.unit === "weeks") moment.setDate(moment.getDate() + amount * 7);
-  else if (reminder.unit === "days") moment.setDate(moment.getDate() + amount);
-  else if (reminder.unit === "hours") moment.setHours(moment.getHours() + amount);
-  else moment.setMinutes(moment.getMinutes() + amount);
-  return moment;
+  const unitMilliseconds = reminder.unit === "weeks"
+    ? 7 * 86_400_000
+    : reminder.unit === "days"
+      ? 86_400_000
+      : reminder.unit === "hours"
+        ? 3_600_000
+        : 60_000;
+  return new Date(moment.getTime() + amount * unitMilliseconds);
 }
 
 /**

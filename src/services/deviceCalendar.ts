@@ -2,10 +2,12 @@ import { Capacitor } from "@capacitor/core";
 import { CapacitorCalendar } from "@ebarooni/capacitor-calendar";
 import type { PaymentItem } from "../types";
 import { formatCurrency } from "../utils/calculations";
+import { tashkentDateTime } from "../utils/timezone";
 
 const STORAGE_KEY = "mmv_subs_device_calendar_events_v1";
 
-export const isNativeApp = () => Capacitor.isNativePlatform();
+export const isNativeApp = () => Capacitor.isNativePlatform()
+  || (import.meta.env.DEV && new URLSearchParams(window.location.search).get("native-preview") === "1");
 
 export interface DeviceCalendar {
   id: string;
@@ -44,7 +46,7 @@ export async function addToDeviceCalendar(items: PaymentItem[], calendarId: stri
   for (const item of items) {
     if (!item.date || item.manualStatus === "paid" || item.manualStatus === "skipped") continue;
     try {
-      const start = new Date(`${item.date}T${item.time || "09:00"}:00`);
+      const start = tashkentDateTime(item.date, item.time || "09:00");
       if (Number.isNaN(start.getTime())) throw new Error("Invalid due date or time");
       const key = `${calendarId}:${item.id}`;
       const event = {

@@ -2,6 +2,7 @@ import { LocalNotifications, type LocalNotificationSchema } from "@capacitor/loc
 import { isNativeApp } from "./deviceCalendar";
 import type { ItemReminder, PaymentItem } from "../types";
 import { formatCurrency } from "../utils/calculations";
+import { tashkentDateTime } from "../utils/timezone";
 
 const STORAGE_KEY = "mmv_subs_scheduled_device_ids_v1";
 
@@ -15,15 +16,18 @@ function notificationId(value: string): number {
 }
 
 function reminderDate(item: PaymentItem, reminder: ItemReminder): Date {
-  const date = new Date(`${item.date}T${reminder.exactTime || item.time || "09:00"}:00`);
+  const date = tashkentDateTime(item.date, reminder.exactTime || item.time || "09:00");
   if (reminder.timing === "on_date") return date;
   const direction = reminder.timing === "before" ? -1 : 1;
   const amount = Math.max(0, reminder.duration) * direction;
-  if (reminder.unit === "weeks") date.setDate(date.getDate() + amount * 7);
-  else if (reminder.unit === "days") date.setDate(date.getDate() + amount);
-  else if (reminder.unit === "hours") date.setHours(date.getHours() + amount);
-  else date.setMinutes(date.getMinutes() + amount);
-  return date;
+  const unitMilliseconds = reminder.unit === "weeks"
+    ? 7 * 86_400_000
+    : reminder.unit === "days"
+      ? 86_400_000
+      : reminder.unit === "hours"
+        ? 3_600_000
+        : 60_000;
+  return new Date(date.getTime() + amount * unitMilliseconds);
 }
 
 export async function enableDeviceReminders(): Promise<boolean> {
