@@ -94,7 +94,7 @@ For Telegram Login on the web, open `@BotFather`, run `/setdomain`, select the M
 Each published update is recorded newest first using `HH:mm DD.MM.YYYY GMT+5 (Tashkent)`.
 
 <details open>
-<summary><strong>12:31 05.10.2026 GMT+5 (Tashkent) — MMV Classics and responsive creation flow</strong></summary>
+<summary><strong>12:40 05.10.2026 GMT+5 (Tashkent) — MMV Classics and responsive creation flow</strong></summary>
 
 - Added native MMV Classics modules rebuilt from earlier MainMMV projects: Tasks, Notes, Bookmarks, Focus, Reflection, Salary Plan, Debt Calculator, QR Generator, JSON Editor, Clock, and Trade Calculator.
 - Added a collapsible More navigation group on the web and retained the bottom-right More launcher in the Android app, both backed by one shared module registry.

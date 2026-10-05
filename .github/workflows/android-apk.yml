@@ -4,12 +4,17 @@ on:
   push:
     branches: [main, 'codex/**']
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Optional release tag that receives the built APK (for example, v1.3.0)
+        required: false
+        type: string
 
 jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -35,3 +40,19 @@ jobs:
           path: android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 30
+      - name: Publish APK release
+        if: github.event_name == 'workflow_dispatch' && inputs.release_tag != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: |
+          apk_path="MMV-Hub-${RELEASE_TAG}.apk"
+          cp android/app/build/outputs/apk/debug/app-debug.apk "$apk_path"
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" "$apk_path#MMV Hub ${RELEASE_TAG} Android APK" --clobber
+          else
+            gh release create "$RELEASE_TAG" "$apk_path#MMV Hub ${RELEASE_TAG} Android APK" \
+              --target "$GITHUB_SHA" \
+              --title "MMV Hub ${RELEASE_TAG}" \
+              --notes "Installable Android build with MMV Classics, responsive navigation and creation-flow fixes."
+          fi
