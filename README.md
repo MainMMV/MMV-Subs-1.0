@@ -94,6 +94,19 @@ For Telegram Login on the web, open `@BotFather`, run `/setdomain`, select the M
 Each published update is recorded newest first using `HH:mm DD.MM.YYYY GMT+5 (Tashkent)`.
 
 <details open>
+<summary><strong>08:24 06.10.2026 GMT+5 (Tashkent) — Unified MMV interface system</strong></summary>
+
+- Introduced one shared surface, border, radius, spacing, accent, and shadow system across dashboard, finance, goals, habits, calendar, settings, More, and MMV Classics.
+- Standardized module counters and launcher colors on the MMV green accent while retaining status colors only for meaningful warnings, overdue items, and completion states.
+- Equalized payment, habit, and goal card heights so responsive grids remain aligned on phone, tablet, and desktop layouts.
+- Normalized page spacing and narrow-screen containment to prevent inconsistent blocks and horizontal overflow.
+- Preserved the current MMV Hub identity; earlier repositories were used only as feature references, not as design sources.
+
+Modified areas: shared theme primitives, primary views, navigation counters, module launcher registry, finance cards, habit cards, goal cards, and MMV Classics surfaces.
+
+</details>
+
+<details>
 <summary><strong>08:06 06.10.2026 GMT+5 (Tashkent) — Android habit reminder repair</strong></summary>
 
 - Connected saved habit reminder settings to Android local-notification scheduling.

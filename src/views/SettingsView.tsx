@@ -125,7 +125,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       initial={{ opacity: 0, y: 4 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.16, ease: "easeOut" }}
-      className="space-y-6 w-full pb-16 select-none"
+      className="mmv-page space-y-4 w-full pb-16 select-none min-w-0 overflow-hidden"
     >
       <div className="border-b border-neutral-200 pb-4">
         <h2 className="text-base font-medium text-neutral-900">{t("settings")}</h2>

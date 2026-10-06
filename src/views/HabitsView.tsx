@@ -255,7 +255,7 @@ export const HabitsView: React.FC<HabitsViewProps> = ({
       initial={{ opacity: 0, y: 4 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.16, ease: "easeOut" }}
-      className="space-y-4 w-full pb-12"
+      className="mmv-page space-y-4 w-full pb-12 min-w-0 overflow-hidden"
     >
       {/* Top Main Navigation Bar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 p-3.5 bg-white border border-neutral-200 rounded-lg shadow-2xs">

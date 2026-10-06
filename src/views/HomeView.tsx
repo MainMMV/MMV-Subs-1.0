@@ -171,7 +171,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
       initial={{ opacity: 0, y: 4 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.18, ease: "easeOut" }}
-      className="space-y-4 w-full pb-12 select-none min-w-0 overflow-hidden"
+      className="mmv-page space-y-4 w-full pb-12 select-none min-w-0 overflow-hidden"
     >
       {/* TOTAL SPENDING & 30-DAY CASH FLOW FORECAST CARDS */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 min-w-0">

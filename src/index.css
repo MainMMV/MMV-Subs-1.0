@@ -24,6 +24,54 @@
   }
 }
 
+/* MMV unified interface primitives */
+.mmv-page {
+  --mmv-card-radius: 0.875rem;
+  --mmv-card-border: #e5e7eb;
+  --mmv-card-bg: #ffffff;
+  --mmv-accent: #047857;
+  --mmv-accent-soft: #d1fae5;
+  container-type: inline-size;
+}
+
+.mmv-card {
+  min-width: 0;
+  border: 1px solid var(--mmv-card-border);
+  border-radius: var(--mmv-card-radius);
+  background: var(--mmv-card-bg);
+  box-shadow: 0 1px 2px rgb(15 23 42 / 0.04);
+}
+
+.mmv-count-badge {
+  border: 1px solid #a7f3d0;
+  background: var(--mmv-accent-soft);
+  color: var(--mmv-accent);
+}
+
+/* One card language across dashboard, finance, goals, habits, calendar and settings. */
+.mmv-page .rounded-lg {
+  border-radius: var(--mmv-card-radius);
+}
+
+.mmv-page .grid > :is(.bg-white, .mmv-card) {
+  min-width: 0;
+  height: 100%;
+}
+
+.mmv-page :is(.bg-white, .mmv-card).border {
+  box-shadow: 0 1px 2px rgb(15 23 42 / 0.04);
+}
+
+@media (max-width: 639px) {
+  .mmv-page {
+    --mmv-card-radius: 0.75rem;
+  }
+
+  .mmv-page > :is(section, div) {
+    min-width: 0;
+  }
+}
+
 /* WARM DARK THEME (DEFAULT) - SPECS MATCHED EXACTLY */
 html[data-theme="warm-dark"],
 html[data-theme="warm-dark"] body {
@@ -34,6 +82,21 @@ html[data-theme="warm-dark"] body {
 html[data-theme="warm-dark"] ::selection {
   background-color: #ADC385 !important;
   color: #25292E !important;
+}
+
+html[data-theme="warm-dark"] .mmv-page {
+  --mmv-card-border: #4b5750;
+  --mmv-card-bg: #35403a;
+  --mmv-accent: #d7efc8;
+  --mmv-accent-soft: #294434;
+}
+
+html[data-theme="warm-dark"] .mmv-card {
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.14);
+}
+
+html[data-theme="warm-dark"] .mmv-count-badge {
+  border-color: #476b50;
 }
 
 /* Sidebar & Darker Surface (#25292E) */

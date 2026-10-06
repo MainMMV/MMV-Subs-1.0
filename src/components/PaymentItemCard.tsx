@@ -39,7 +39,7 @@ export const PaymentItemCard: React.FC<PaymentItemCardProps> = ({
   return (
     <div
       onClick={() => onClick?.(item)}
-      className={`p-3.5 rounded-lg border transition-colors flex flex-col justify-between select-none cursor-pointer text-xs ${
+      className={`p-3.5 rounded-lg border transition-colors flex min-h-32 h-full flex-col justify-between select-none cursor-pointer text-xs ${
         isPaid
           ? "border-neutral-200 bg-neutral-50/60 opacity-80"
           : isOverdue

@@ -76,7 +76,7 @@ export const NativeMoreView: React.FC<NativeMoreViewProps> = ({
   }
 
   return (
-    <section className="space-y-4 pb-4" aria-label={t("openAllSections")}>
+    <section className="mmv-page space-y-4 pb-4" aria-label={t("openAllSections")}>
       <div>
         <h2 className="text-lg font-medium text-neutral-900">{t("allModules")}</h2>
         <p className="mt-1 text-xs text-neutral-500">{t("allModulesDescription")}</p>

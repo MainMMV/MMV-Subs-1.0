@@ -213,7 +213,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
       initial={{ opacity: 0, y: 4 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.18, ease: "easeOut" }}
-      className="space-y-4 w-full pb-12 select-none min-w-0 overflow-hidden"
+      className="mmv-page space-y-4 w-full pb-12 select-none min-w-0 overflow-hidden"
     >
       {/* Top Header & Controls */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-neutral-200 pb-3">

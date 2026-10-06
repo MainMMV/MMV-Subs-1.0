@@ -71,13 +71,13 @@ export const GoalsView: React.FC<GoalsViewProps> = ({
       initial={{ opacity: 0, y: 4 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.18, ease: "easeOut" }}
-      className="space-y-4 w-full pb-12 select-none min-w-0 overflow-hidden"
+      className="mmv-page space-y-4 w-full pb-12 select-none min-w-0 overflow-hidden"
     >
       {/* Header: Title and counter badge with View Toggle & Hopper Filter Icon */}
       <div className="flex items-center justify-between border-b border-neutral-200 pb-3">
         <div className="flex items-center gap-2.5">
           <h2 className="text-base font-medium text-neutral-900">{t("goals")}</h2>
-          <span className="px-2 py-0.5 rounded-md text-xs font-medium bg-amber-100 text-amber-800 border border-amber-200">
+          <span className="mmv-count-badge px-2 py-0.5 rounded-md text-xs font-medium">
             {activeGoals.length} {t("active")}
           </span>
         </div>
@@ -170,7 +170,7 @@ export const GoalsView: React.FC<GoalsViewProps> = ({
             return (
               <div 
                 key={goal.id} 
-                className={`p-3.5 rounded-lg border bg-white flex flex-col justify-between text-xs space-y-3 transition-colors ${
+                className={`p-3.5 rounded-lg border bg-white flex h-full min-h-52 flex-col justify-between text-xs space-y-3 transition-colors ${
                   goal.isCompleted ? "border-emerald-200 bg-emerald-50/20" : "border-neutral-200"
                 }`}
               >

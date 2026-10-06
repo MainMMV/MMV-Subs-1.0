@@ -28,7 +28,7 @@ function useStoredState<T>(key: string, initialValue: T) {
 }
 
 const inputClass = "w-full min-w-0 rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-sm text-neutral-900 focus:border-emerald-600 focus:outline-none";
-const cardClass = "rounded-2xl bg-white p-4 shadow-sm";
+const cardClass = "mmv-card p-4";
 
 function NumberField({ label, value, onChange }: { label: string; value: number; onChange: (value: number) => void }) {
   return (
@@ -173,7 +173,7 @@ export function PastModuleView({ moduleId, onBack }: { moduleId: PastModuleId; o
   }, [moduleId]);
 
   return (
-    <section className="space-y-4 pb-4">
+    <section className="mmv-page space-y-4 pb-4">
       <div className="flex items-center gap-3">
         <button type="button" onClick={onBack} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-neutral-100 text-neutral-700" aria-label={t("backToModules")}><ArrowLeft size={19} /></button>
         <div className="min-w-0"><p className="text-[10px] font-medium uppercase tracking-[0.14em] text-neutral-500">{t("mmvClassics")}</p><h2 className="truncate text-lg font-medium text-neutral-900">{t(MODULE_LABELS[moduleId])}</h2></div>

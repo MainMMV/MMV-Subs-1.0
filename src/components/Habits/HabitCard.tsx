@@ -94,7 +94,7 @@ export const HabitCard: React.FC<HabitCardProps> = ({
 
   return (
     <div
-      className={`p-3.5 rounded-lg border transition-all h-full flex flex-col justify-between ${
+      className={`p-3.5 rounded-lg border transition-all min-h-32 h-full flex flex-col justify-between ${
         habit.isPaused
           ? "bg-neutral-100/60 border-neutral-200 opacity-70"
           : isCompleted

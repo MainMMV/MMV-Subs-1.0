@@ -53,13 +53,13 @@ export const OneTimePurchasesView: React.FC<OneTimePurchasesViewProps> = ({
       initial={{ opacity: 0, y: 4 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.18, ease: "easeOut" }}
-      className="space-y-3.5 w-full pb-12 select-none min-w-0 overflow-hidden"
+      className="mmv-page space-y-4 w-full pb-12 select-none min-w-0 overflow-hidden"
     >
       {/* Header: Title and counter badge with View Toggle & Hopper Filter Icon */}
       <div className="flex items-center justify-between border-b border-neutral-200 pb-3">
         <div className="flex items-center gap-2.5">
           <h2 className="text-base font-medium text-neutral-900">{t("oneTimePurchases")}</h2>
-          <span className="px-2 py-0.5 rounded-md text-xs font-medium bg-purple-100 text-purple-700 border border-purple-200">
+          <span className="mmv-count-badge px-2 py-0.5 rounded-md text-xs font-medium">
             {purchases.length}
           </span>
         </div>
@@ -89,7 +89,7 @@ export const OneTimePurchasesView: React.FC<OneTimePurchasesViewProps> = ({
           >
             <Filter size={15} />
             {hasActiveFilters && !isFilterOpen && (
-              <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-purple-600" />
+              <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-emerald-600" />
             )}
           </button>
         </div>
