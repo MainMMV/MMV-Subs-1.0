@@ -94,6 +94,18 @@ For Telegram Login on the web, open `@BotFather`, run `/setdomain`, select the M
 Each published update is recorded newest first using `HH:mm DD.MM.YYYY GMT+5 (Tashkent)`.
 
 <details open>
+<summary><strong>08:06 06.10.2026 GMT+5 (Tashkent) — Android habit reminder repair</strong></summary>
+
+- Connected saved habit reminder settings to Android local-notification scheduling.
+- Added support for habit schedules, reminder weekdays and times, paused habits, and incomplete-only reminders.
+- Reschedules when habits or completion logs change, suppressing incomplete-only alerts after completion.
+- Added automated coverage for active, completed, and paused habit reminder behavior.
+
+Modified areas: habit reminder planning, Android device notification synchronization, app synchronization effects, tests, and package metadata.
+
+</details>
+
+<details>
 <summary><strong>20:43 05.10.2026 GMT+5 (Tashkent) — Android Firebase and backend hardening</strong></summary>
 
 - Registered the native Android application `com.mainmmv.subs` in Firebase and added its generated Google services configuration to APK builds.

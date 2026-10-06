@@ -1,10 +1,23 @@
 import { LocalNotifications, type LocalNotificationSchema } from "@capacitor/local-notifications";
 import { isNativeApp } from "./deviceCalendar";
 import type { ItemReminder, PaymentItem } from "../types";
+import type { Habit, HabitLog } from "../types/habit";
 import { formatCurrency } from "../utils/calculations";
 import { tashkentDateTime } from "../utils/timezone";
+import { planHabitReminders } from "./habitReminderSchedule";
 
 const STORAGE_KEY = "mmv_subs_scheduled_device_ids_v1";
+const HABITS_STORAGE_KEY = "mmv_subs_habits_v2";
+const HABIT_LOGS_STORAGE_KEY = "mmv_subs_habit_logs_v2";
+
+function storedJson<T>(key: string, fallback: T): T {
+  try {
+    const value = localStorage.getItem(key);
+    return value ? JSON.parse(value) as T : fallback;
+  } catch {
+    return fallback;
+  }
+}
 
 function notificationId(value: string): number {
   let hash = 2166136261;
@@ -42,7 +55,11 @@ export async function areDeviceRemindersEnabled(): Promise<boolean> {
   return display === "granted";
 }
 
-export async function syncDeviceReminders(items: PaymentItem[]): Promise<number> {
+export async function syncDeviceReminders(
+  items: PaymentItem[],
+  habits?: Habit[],
+  habitLogs?: Record<string, Record<string, HabitLog>>,
+): Promise<number> {
   if (!isNativeApp()) return 0;
   const { display } = await LocalNotifications.checkPermissions();
   if (display !== "granted") return 0;
@@ -67,6 +84,17 @@ export async function syncDeviceReminders(items: PaymentItem[]): Promise<number>
         extra: { itemId: item.id },
       });
     }
+  }
+  const currentHabits = habits ?? storedJson<Habit[]>(HABITS_STORAGE_KEY, []);
+  const currentHabitLogs = habitLogs ?? storedJson<Record<string, Record<string, HabitLog>>>(HABIT_LOGS_STORAGE_KEY, {});
+  for (const reminder of planHabitReminders(currentHabits, currentHabitLogs, new Date())) {
+    notifications.push({
+      id: notificationId(`habit:${reminder.key}`),
+      title: reminder.title,
+      body: reminder.body,
+      schedule: { at: reminder.at, allowWhileIdle: true },
+      extra: { habitId: reminder.habitId, page: "habits" },
+    });
   }
   if (previous.length) await LocalNotifications.cancel({ notifications: previous.map((id) => ({ id })) });
   // Android limits pending alarms. The nearest reminders are the most useful.

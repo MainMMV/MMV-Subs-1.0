@@ -264,8 +264,8 @@ export default function App() {
   useEffect(() => {
     const notifs = generateInAppNotifications(items);
     triggerBrowserDueAlerts(notifs);
-    syncDeviceReminders(items).catch((error) => console.warn("Device reminders could not be scheduled:", error));
-  }, [items]);
+    syncDeviceReminders(items, habits, habitLogs).catch((error) => console.warn("Device reminders could not be scheduled:", error));
+  }, [items, habits, habitLogs]);
 
   // Persistence to localStorage
   useEffect(() => {
