@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { 
   ChevronLeft, 
   ChevronRight, 
@@ -6,10 +6,12 @@ import {
   CalendarDays,
   CalendarSync,
   TrendingUp,
-  Smartphone
+  Smartphone,
+  Bell,
+  ChevronDown
 } from "lucide-react";
 import { motion } from "motion/react";
-import { PaymentItem, CurrencyCode, CurrencyDisplayMode, GoogleCalendarSyncState } from "../types";
+import { PaymentItem, CurrencyDisplayMode, GoogleCalendarSyncState } from "../types";
 import { formatCurrency, convertCurrency } from "../utils/calculations";
 import { downloadAllItemsPhoneCalendar } from "../utils/phoneCalendar";
 import { isNativeApp } from "../services/deviceCalendar";
@@ -17,8 +19,10 @@ import { useI18n } from "../i18n";
 import { formatTashkentDateTime, tashkentDateKey } from "../utils/timezone";
 import { PaymentItemRow } from "../components/PaymentItemRow";
 import { CashFlowForecastPanel } from "../components/CashFlowForecastPanel";
+import { describePaymentReminder, getPaymentReminderOccurrences } from "../services/paymentReminderSchedule";
+import { formatDateDDMMYYYY } from "../utils/dateFormat";
 
-type CalendarViewMode = "yearly" | "monthly" | "weekly" | "dayly";
+type CalendarViewMode = "yearly" | "monthly" | "weekly" | "daily";
 
 interface CalendarViewProps {
   items: PaymentItem[];
@@ -57,6 +61,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
     tashkentDateKey()
   );
   const [showForecast, setShowForecast] = useState<boolean>(false);
+  const [viewMenuOpen, setViewMenuOpen] = useState(false);
   const [phoneExportNotice, setPhoneExportNotice] = useState<string | null>(null);
   const nativeApp = isNativeApp();
 
@@ -75,7 +80,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
       d.setMonth(d.getMonth() - 1);
     } else if (calendarMode === "weekly") {
       d.setDate(d.getDate() - 7);
-    } else if (calendarMode === "dayly") {
+    } else if (calendarMode === "daily") {
       d.setDate(d.getDate() - 1);
       setSelectedDate(tashkentDateKey(d));
     }
@@ -90,7 +95,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
       d.setMonth(d.getMonth() + 1);
     } else if (calendarMode === "weekly") {
       d.setDate(d.getDate() + 7);
-    } else if (calendarMode === "dayly") {
+    } else if (calendarMode === "daily") {
       d.setDate(d.getDate() + 1);
       setSelectedDate(tashkentDateKey(d));
     }
@@ -185,10 +190,12 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
   }
 
   // Selected Day Items
-  const dayDateStr = calendarMode === "dayly" 
+  const reminderOccurrences = useMemo(() => getPaymentReminderOccurrences(items), [items]);
+  const dayDateStr = calendarMode === "daily"
     ? tashkentDateKey(currentDate)
     : selectedDate;
   const dayItems = items.filter((i) => i.date === dayDateStr);
+  const dayReminders = reminderOccurrences.filter((occurrence) => occurrence.dateKey === dayDateStr);
 
   // Total daily amount calculation for dayly view or drawer
   let dailyTotalUSD = 0;
@@ -202,7 +209,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
     try {
       const [y, m, d] = dayDateStr.split("-").map(Number);
       const dateObj = new Date(y, m - 1, d);
-      return dateObj.toLocaleDateString(locale, { month: "short", day: "numeric", year: "numeric" });
+      return formatDateDDMMYYYY(dayDateStr);
     } catch {
       return dayDateStr;
     }
@@ -250,40 +257,13 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
           </button>
         </div>
 
-        {/* View Mode Selector with Icon: Yearly, Monthly, Weekly, Dayly */}
-        <div className="flex items-center gap-1.5 self-start sm:self-auto">
-          <div className="flex items-center p-0.5 rounded-lg border border-neutral-200 bg-white text-xs font-medium">
-            <span className="px-2 text-neutral-400 flex items-center gap-1">
-              <CalendarDays size={13} />
-            </span>
-            {(["yearly", "monthly", "weekly", "dayly"] as const).map((m) => {
-              const labels: Record<CalendarViewMode, string> = {
-                yearly: "Yearly",
-                monthly: "Monthly",
-                weekly: "Weekly",
-                dayly: "Dayly",
-              };
-              return (
-                <button
-                  key={m}
-                  type="button"
-                  onClick={() => {
-                    setCalendarMode(m);
-                    if (m === "dayly") {
-                      setSelectedDate(tashkentDateKey(currentDate));
-                    }
-                  }}
-                  className={`px-2.5 py-1 rounded-md transition-colors ${
-                    calendarMode === m
-                      ? "bg-neutral-900 text-white shadow-2xs"
-                      : "text-neutral-600 hover:bg-neutral-100"
-                  }`}
-                >
-                  {labels[m]}
-                </button>
-              );
-            })}
-          </div>
+        <div className="relative self-start sm:self-auto">
+          <button type="button" onClick={() => setViewMenuOpen((open) => !open)} className="flex items-center gap-2 rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs font-medium text-neutral-700 shadow-2xs">
+            <CalendarDays size={14} />
+            <span>{{ yearly: "Yearly", monthly: "Monthly", weekly: "Weekly", daily: "Daily" }[calendarMode]} view</span>
+            <ChevronDown size={13} className={`transition-transform ${viewMenuOpen ? "rotate-180" : ""}`} />
+          </button>
+          {viewMenuOpen ? <><button type="button" className="fixed inset-0 z-10 cursor-default" onClick={() => setViewMenuOpen(false)} aria-label="Close view menu" /><div className="absolute right-0 top-10 z-20 w-36 rounded-xl border border-neutral-200 bg-white p-1.5 shadow-xl">{(["yearly", "monthly", "weekly", "daily"] as CalendarViewMode[]).map((mode) => <button key={mode} type="button" onClick={() => { setCalendarMode(mode); if (mode === "daily") setSelectedDate(tashkentDateKey(currentDate)); setViewMenuOpen(false); }} className={`w-full rounded-lg px-3 py-2 text-left text-xs capitalize ${calendarMode === mode ? "bg-neutral-900 text-white" : "text-neutral-700 hover:bg-neutral-100"}`}>{mode}</button>)}</div></> : null}
         </div>
       </div>
 
@@ -422,6 +402,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
               <div className="grid grid-cols-7 gap-1 sm:gap-1.5">
                 {monthCalendarDays.map((d, idx) => {
                   const dayItemsList = items.filter((i) => i.date === d.dateStr);
+                  const reminderCount = reminderOccurrences.filter((reminder) => reminder.dateKey === d.dateStr).length;
                   const isSelected = d.dateStr === selectedDate;
                   const isToday = d.dateStr === tashkentDateKey();
 
@@ -456,9 +437,9 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                       </span>
 
                       {/* Clean item badge below number */}
-                      {dayItemsList.length > 0 ? (
+                      {dayItemsList.length + reminderCount > 0 ? (
                         <span className="mt-1 w-4 h-4 rounded-full bg-neutral-900 text-white text-[9px] font-medium flex items-center justify-center shrink-0">
-                          {dayItemsList.length}
+                          {dayItemsList.length + reminderCount}
                         </span>
                       ) : isToday ? (
                         <span className="mt-1 w-1.5 h-1.5 rounded-full bg-blue-600 shrink-0" />
@@ -476,6 +457,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
               <div className="grid grid-cols-7 gap-1 sm:gap-1.5">
                 {weekCalendarDays.map((d) => {
                   const dayItemsList = items.filter((i) => i.date === d.dateStr);
+                  const reminderCount = reminderOccurrences.filter((reminder) => reminder.dateKey === d.dateStr).length;
                   const isSelected = d.dateStr === selectedDate;
                   const isToday = d.dateStr === tashkentDateKey();
 
@@ -503,9 +485,9 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                         {d.dayNum}
                       </span>
 
-                      {dayItemsList.length > 0 ? (
+                      {dayItemsList.length + reminderCount > 0 ? (
                         <span className="mt-1.5 w-4 h-4 rounded-full bg-neutral-900 text-white text-[9px] font-medium flex items-center justify-center shrink-0">
-                          {dayItemsList.length}
+                          {dayItemsList.length + reminderCount}
                         </span>
                       ) : (
                         <span className="mt-1.5 text-[10px] text-neutral-300 leading-none">—</span>
@@ -517,8 +499,8 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
             </div>
           )}
 
-          {/* 4. DAYLY VIEW: Quick Date Selector */}
-          {calendarMode === "dayly" && (
+          {/* 4. DAILY VIEW: Quick Date Selector */}
+          {calendarMode === "daily" && (
             <div className="p-5 rounded-lg border border-neutral-200 bg-white text-center space-y-3">
               <CalendarIcon size={26} className="mx-auto text-neutral-400" />
               <div>
@@ -558,7 +540,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
             <div className="flex items-center gap-2">
               <CalendarIcon size={14} className="text-neutral-600" />
               <h3 className="text-xs font-medium text-neutral-900 truncate">
-                Payments on {formattedSelectedDate}
+                Schedule · {formattedSelectedDate}
               </h3>
             </div>
             <div className="flex items-center gap-1.5 shrink-0">
@@ -568,17 +550,19 @@ export const CalendarView: React.FC<CalendarViewProps> = ({
                 </span>
               )}
               <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-neutral-100 text-neutral-700">
-                {dayItems.length}
+                {dayItems.length + dayReminders.length}
               </span>
             </div>
           </div>
 
-          {dayItems.length === 0 ? (
+          {dayItems.length === 0 && dayReminders.length === 0 ? (
             <div className="py-12 text-center text-xs text-neutral-400">
               {t("noUpcomingPayments")}
             </div>
           ) : (
-            <div className="space-y-2 max-h-[520px] overflow-y-auto pr-0.5">
+            <div className="space-y-3 max-h-[520px] overflow-y-auto pr-0.5">
+              {dayReminders.length ? <div className="space-y-1.5"><p className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wide text-neutral-500"><Bell size={12} />Reminders</p>{dayReminders.map((occurrence) => <button key={occurrence.id} type="button" onClick={() => onViewDetail?.(occurrence.item)} className="flex w-full items-center justify-between gap-2 rounded-lg border border-emerald-100 bg-emerald-50/60 px-3 py-2 text-left"><span className="min-w-0"><strong className="block truncate text-[11px] text-neutral-900">{occurrence.item.name}</strong><span className="text-[10px] text-neutral-500">{describePaymentReminder(occurrence.reminder)}</span></span><span className="shrink-0 text-[11px] font-semibold tabular-nums text-emerald-800">{occurrence.reminder.exactTime}</span></button>)}</div> : null}
+              {dayItems.length ? <p className="text-[10px] font-semibold uppercase tracking-wide text-neutral-500">Payments</p> : null}
               {dayItems.map((item) => (
                 <PaymentItemRow
                   key={item.id}

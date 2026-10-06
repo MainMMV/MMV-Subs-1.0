@@ -8,7 +8,8 @@ MMV Hub is a responsive personal dashboard for subscriptions, recurring bills, o
 ## Features
 
 - Track subscriptions, recurring bills, and one-time purchases in USD or UZS.
-- Configure custom reminder timing and delivery channels for each payment.
+- Add a five-step smart reminder plan (5 days, 1 day, and 1 hour before; 1 and 3 days after if unpaid) and edit every reminder individually.
+- Review payment history, upcoming commitments, and monthly or yearly totals in the Reports module.
 - Receive in-app and Android local notifications, including while the app is closed.
 - Add reminders directly to a calendar on Android after granting calendar access.
 - Connect Google Calendar from the web or export standards-compliant `.ics` calendar files.
@@ -94,6 +95,23 @@ For Telegram Login on the web, open `@BotFather`, run `/setdomain`, select the M
 Each published update is recorded newest first using `HH:mm DD.MM.YYYY GMT+5 (Tashkent)`.
 
 <details open>
+<summary><strong>22:15 06.10.2026 GMT+5 (Tashkent) — Reminder-first mobile workflow and reports</strong></summary>
+
+- Rebuilt payment creation as a compact, type-specific flow and removed the duplicate category selector.
+- Added an editable five-step smart reminder plan with in-app and Telegram delivery controls and unpaid-only follow-ups.
+- Added reminder occurrences to calendar days, plus compact daily, weekly, monthly, and yearly view selection.
+- Standardized payment and reminder date/time entry and display as `DD.MM.YYYY` and `HH:MM`.
+- Replaced the large item status/footer action areas with a compact three-dot action menu.
+- Added a Reports module with overview, payment history, upcoming, monthly, and yearly sections selected from its three-dot menu.
+- Connected dashboard spending, upcoming, recent-payment, and calendar labels to their relevant destinations; removed the duplicate selected-day dashboard panel.
+- Replaced Habits with Subscriptions in the Android bottom navigation while keeping Habits available in More.
+- Added automated coverage for payment reminders before and after due dates and suppression after payment.
+
+Modified areas: item creation and detail dialogs, reminder scheduling, calendar, dashboard, reports, shared date formatting, web/mobile navigation, Android assets, tests, and package metadata.
+
+</details>
+
+<details>
 <summary><strong>08:24 06.10.2026 GMT+5 (Tashkent) — Unified MMV interface system</strong></summary>
 
 - Introduced one shared surface, border, radius, spacing, accent, and shadow system across dashboard, finance, goals, habits, calendar, settings, More, and MMV Classics.

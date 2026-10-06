@@ -1,29 +1,22 @@
-import React from "react";
-import { 
-  X, 
-  Calendar, 
-  Clock, 
-  Bell, 
-  CheckCircle2, 
-  SkipForward, 
+import React, { useEffect, useRef, useState } from "react";
+import {
+  BarChart2,
+  Bell,
+  Calendar,
+  CheckCircle2,
+  Edit2,
+  History,
+  MoreVertical,
   RotateCcw,
-  Edit2, 
-  BarChart2, 
-  History, 
+  SkipForward,
   Trash2,
-  AlertCircle,
-  Smartphone
+  X,
 } from "lucide-react";
-import { PaymentItem, CurrencyDisplayMode } from "../../types";
+import type { CurrencyDisplayMode, PaymentItem } from "../../types";
 import { ServiceIcon } from "../ServiceIcon";
-import { 
-  getItemStatus, 
-  formatCurrency, 
-  convertCurrency, 
-  formatFrequency,
-  getItemDualPrice
-} from "../../utils/calculations";
-import { downloadPhoneCalendarEvent } from "../../utils/phoneCalendar";
+import { formatFrequency, getItemDualPrice, getItemStatus } from "../../utils/calculations";
+import { formatDateDDMMYYYY } from "../../utils/dateFormat";
+import { describePaymentReminder } from "../../services/paymentReminderSchedule";
 
 interface ItemDetailModalProps {
   isOpen: boolean;
@@ -36,6 +29,7 @@ interface ItemDetailModalProps {
   onViewStatistics: (item: PaymentItem) => void;
   onViewHistory: (item: PaymentItem) => void;
   onDelete: (item: PaymentItem) => void;
+  onOpenCalendar: () => void;
   onUpdateStatus: (item: PaymentItem, status: "paid" | "skipped" | "upcoming") => void;
 }
 
@@ -50,316 +44,73 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({
   onViewStatistics,
   onViewHistory,
   onDelete,
+  onOpenCalendar,
   onUpdateStatus,
 }) => {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isOpen) setMenuOpen(false);
+    const close = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) setMenuOpen(false);
+    };
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, [isOpen]);
+
   if (!isOpen || !item) return null;
 
-  const [phoneExported, setPhoneExported] = React.useState(false);
   const status = getItemStatus(item);
-  const isPaid = status === "paid";
-  const isSkipped = status === "skipped";
-  const isDueToday = status === "due_today";
-  const isOverdue = status === "overdue";
+  const statusLabel = status === "due_today" ? "Due today" : status.charAt(0).toUpperCase() + status.slice(1);
+  const statusTone = status === "paid" ? "bg-emerald-100 text-emerald-800" : status === "overdue" ? "bg-rose-100 text-rose-700" : status === "due_today" ? "bg-amber-100 text-amber-800" : "bg-neutral-100 text-neutral-700";
+  const dateLabel = item.type === "subscription" ? "Renewal" : item.type === "bill" ? "Due" : "Purchased";
+  const typeLabel = item.type === "subscription" ? "Subscription" : item.type === "bill" ? "Recurring bill" : "Purchase";
+  const { topText, bottomText } = getItemDualPrice(item.price, item.currency, displayCurrency, exchangeRateUsdToUzs);
+  const activeReminders = (item.reminders || []).filter((reminder) => reminder.enabled);
 
-  const convertedAmount = convertCurrency(
-    item.price,
-    item.currency,
-    displayCurrency,
-    exchangeRateUsdToUzs
-  );
-
-  const dateLabel =
-    item.type === "subscription"
-      ? "Renewal Date"
-      : item.type === "bill"
-      ? "Due Date"
-      : "Purchase Date";
-
-  const timeLabel =
-    item.type === "subscription"
-      ? "Renewal Time"
-      : item.type === "bill"
-      ? "Due Time"
-      : "Purchase Time";
-
-  const { topText, bottomText } = getItemDualPrice(
-    item.price,
-    item.currency,
-    displayCurrency,
-    exchangeRateUsdToUzs
-  );
+  const run = (action: () => void) => {
+    setMenuOpen(false);
+    onClose();
+    action();
+  };
 
   return (
-    <div 
-      onClick={onClose} 
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-900/40 backdrop-blur-xs select-none"
-    >
-      <div 
-        className="w-full max-w-lg bg-white rounded-lg shadow-md border border-neutral-200 overflow-hidden animate-in fade-in zoom-in-95 duration-150"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className="px-5 py-4 border-b border-neutral-100 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div
-              className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0 text-white shadow-2xs"
-              style={{ backgroundColor: item.iconBgColor || "#3B82F6" }}
-            >
-              <ServiceIcon icon={item.icon} size={20} />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="text-base font-medium text-neutral-900">{item.name}</h3>
-                <span className="capitalize px-2 py-0.5 rounded text-[11px] font-medium bg-neutral-100 text-neutral-600">
-                  {item.type === "subscription" ? "Subscription" : item.type === "bill" ? "Recurring Bill" : "One-Time Purchase"}
-                </span>
-              </div>
-            </div>
+    <div onClick={onClose} className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-900/45 p-3 backdrop-blur-xs select-none">
+      <div onClick={(event) => event.stopPropagation()} className="w-full max-w-md overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-xl animate-in fade-in zoom-in-95 duration-150">
+        <div className="flex items-center gap-3 border-b border-neutral-100 px-4 py-3">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-white" style={{ backgroundColor: item.iconBgColor || "#2563EB" }}><ServiceIcon icon={item.icon} size={18} /></span>
+          <div className="min-w-0 flex-1"><div className="flex min-w-0 items-center gap-2"><h3 className="truncate text-sm font-semibold text-neutral-900">{item.name}</h3><span className="shrink-0 rounded-md bg-neutral-100 px-1.5 py-0.5 text-[9px] font-medium text-neutral-600">{typeLabel}</span></div><span className={`mt-1 inline-flex rounded-md px-1.5 py-0.5 text-[9px] font-semibold ${statusTone}`}>{statusLabel}</span></div>
+          <div className="relative" ref={menuRef}>
+            <button type="button" onClick={() => setMenuOpen((open) => !open)} className="rounded-lg p-2 text-neutral-500 hover:bg-neutral-100" aria-label="Item actions"><MoreVertical size={18} /></button>
+            {menuOpen ? <div className="absolute right-0 top-10 z-10 w-48 rounded-xl border border-neutral-200 bg-white p-1.5 shadow-xl">
+              {status !== "paid" ? <button type="button" onClick={() => { setMenuOpen(false); onUpdateStatus(item, "paid"); }} className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-xs text-neutral-700 hover:bg-neutral-100"><CheckCircle2 size={14} />Mark as paid</button> : null}
+              {status !== "skipped" ? <button type="button" onClick={() => { setMenuOpen(false); onUpdateStatus(item, "skipped"); }} className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-xs text-neutral-700 hover:bg-neutral-100"><SkipForward size={14} />Mark as skipped</button> : null}
+              {status === "paid" || status === "skipped" ? <button type="button" onClick={() => { setMenuOpen(false); onUpdateStatus(item, "upcoming"); }} className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-xs text-neutral-700 hover:bg-neutral-100"><RotateCcw size={14} />Reset status</button> : null}
+              <div className="my-1 border-t border-neutral-100" />
+              <button type="button" onClick={() => run(() => onViewStatistics(item))} className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-xs text-neutral-700 hover:bg-neutral-100"><BarChart2 size={14} />Statistics</button>
+              <button type="button" onClick={() => run(() => onViewHistory(item))} className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-xs text-neutral-700 hover:bg-neutral-100"><History size={14} />Payment history</button>
+              <button type="button" onClick={() => run(() => onEdit(item))} className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-xs text-neutral-700 hover:bg-neutral-100"><Edit2 size={14} />Edit item</button>
+              <button type="button" onClick={() => run(() => onDelete(item))} className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-xs text-rose-700 hover:bg-rose-50"><Trash2 size={14} />Delete item</button>
+            </div> : null}
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-1.5 rounded-md text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 transition-colors"
-          >
-            <X size={18} />
+          <button type="button" onClick={onClose} className="rounded-lg p-2 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700" aria-label="Close"><X size={18} /></button>
+        </div>
+
+        <div className="max-h-[68dvh] space-y-2.5 overflow-y-auto p-4 text-xs">
+          <div className="grid grid-cols-3 gap-2 rounded-xl border border-neutral-200 bg-neutral-50 p-3">
+            <div><span className="block text-[10px] text-neutral-500">Amount</span><strong className="mt-0.5 block truncate text-sm text-neutral-900">{topText}</strong></div>
+            <div><span className="block text-[10px] text-neutral-500">Equivalent</span><strong className="mt-0.5 block truncate text-xs text-neutral-700">{bottomText}</strong></div>
+            <div><span className="block text-[10px] text-neutral-500">Frequency</span><strong className="mt-0.5 block truncate text-xs text-neutral-700">{item.frequency ? formatFrequency(item.frequency) : "One time"}</strong></div>
+          </div>
+
+          <button type="button" onClick={() => run(onOpenCalendar)} className="flex w-full items-center justify-between rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-left hover:bg-neutral-50">
+            <span className="flex items-center gap-2 text-neutral-500"><Calendar size={14} />{dateLabel} date</span><span className="font-semibold tabular-nums text-neutral-900">{formatDateDDMMYYYY(item.date)}</span>
           </button>
-        </div>
 
-        {/* Minimal Item Details */}
-        <div className="p-5 space-y-4 max-h-[70vh] overflow-y-auto text-xs">
-          {/* Price & Converted Price (both USD and UZS) */}
-          <div className="p-3.5 rounded-lg bg-neutral-50 border border-neutral-200 flex items-center justify-between">
-            <div>
-              <span className="text-[11px] text-neutral-500 block">Amount</span>
-              <span className="text-base font-medium text-neutral-900">
-                {topText}
-              </span>
-            </div>
-            <div className="text-right">
-              <span className="text-[11px] text-neutral-500 block">
-                Equivalent
-              </span>
-              <span className="text-sm font-medium text-neutral-700">
-                {bottomText}
-              </span>
-            </div>
-            {item.frequency && (
-              <div className="text-right">
-                <span className="text-[11px] text-neutral-500 block">Frequency</span>
-                <span className="font-medium text-neutral-800">
-                  {formatFrequency(item.frequency)}
-                </span>
-              </div>
-            )}
-          </div>
-
-          {/* Date */}
-          <div className="p-3 rounded-lg border border-neutral-200 bg-white">
-            <span className="text-[11px] text-neutral-500 flex items-center gap-1.5 mb-1">
-              <Calendar size={13} className="text-neutral-400" />
-              <span>{dateLabel}</span>
-            </span>
-            <span className="text-sm font-medium text-neutral-900">{item.date}</span>
-          </div>
-
-          {/* Status & Manual Action Buttons */}
-          <div className="p-3.5 rounded-lg border border-neutral-200 bg-white space-y-2.5">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-neutral-700">Current Status</span>
-              {isOverdue && (
-                <span className="px-2 py-0.5 rounded text-xs font-medium bg-rose-100 text-rose-700">
-                  Overdue
-                </span>
-              )}
-              {isDueToday && (
-                <span className="px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800">
-                  Due Today
-                </span>
-              )}
-              {isPaid && (
-                <span className="px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-700">
-                  Paid
-                </span>
-              )}
-              {isSkipped && (
-                <span className="px-2 py-0.5 rounded text-xs font-medium bg-neutral-200 text-neutral-700">
-                  Skipped
-                </span>
-              )}
-              {status === "upcoming" && (
-                <span className="px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700">
-                  Upcoming
-                </span>
-              )}
-            </div>
-
-            {/* Manual Status Buttons: Paid, Skipped, Reset */}
-            <div className="pt-1 flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => onUpdateStatus(item, isPaid ? "upcoming" : "paid")}
-                className={`flex-1 py-1.5 px-2.5 rounded-md border flex items-center justify-center gap-1.5 font-medium transition-colors ${
-                  isPaid
-                    ? "bg-emerald-50 border-emerald-300 text-emerald-700"
-                    : "border-neutral-200 hover:border-emerald-500 hover:bg-emerald-50/40 text-neutral-700"
-                }`}
-              >
-                <CheckCircle2 size={14} className={isPaid ? "text-emerald-600" : "text-neutral-400"} />
-                <span>{isPaid ? "Marked as Paid" : "Mark as Paid"}</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => onUpdateStatus(item, isSkipped ? "upcoming" : "skipped")}
-                className={`flex-1 py-1.5 px-2.5 rounded-md border flex items-center justify-center gap-1.5 font-medium transition-colors ${
-                  isSkipped
-                    ? "bg-neutral-100 border-neutral-300 text-neutral-800"
-                    : "border-neutral-200 hover:border-neutral-400 hover:bg-neutral-50 text-neutral-700"
-                }`}
-              >
-                <SkipForward size={14} className={isSkipped ? "text-neutral-700" : "text-neutral-400"} />
-                <span>{isSkipped ? "Marked as Skipped" : "Mark as Skipped"}</span>
-              </button>
-
-              {(isPaid || isSkipped) && (
-                <button
-                  type="button"
-                  onClick={() => onUpdateStatus(item, "upcoming")}
-                  className="p-1.5 rounded-md border border-neutral-200 text-neutral-500 hover:text-neutral-800 hover:bg-neutral-100 transition-colors"
-                  title="Reset status to upcoming"
-                >
-                  <RotateCcw size={14} />
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* Reminder Information */}
-          <div className="p-3.5 rounded-lg border border-neutral-200 bg-white space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-neutral-700 flex items-center gap-1.5">
-                <Bell size={13} className="text-neutral-500" />
-                <span>Reminders ({item.reminders?.length || 0})</span>
-              </span>
-              <button
-                type="button"
-                onClick={() => {
-                  onClose();
-                  onManageReminders(item);
-                }}
-                className="text-xs text-blue-600 hover:text-blue-700 font-medium"
-              >
-                Configure
-              </button>
-            </div>
-
-            {(!item.reminders || item.reminders.length === 0) ? (
-              <p className="text-neutral-400 py-1">No reminders scheduled for this item.</p>
-            ) : (
-              <div className="space-y-1.5 pt-0.5">
-                {item.reminders.map((rem, idx) => (
-                  <div
-                    key={rem.id || idx}
-                    className={`flex items-center justify-between py-1.5 px-2.5 rounded bg-neutral-50 border border-neutral-100 ${
-                      !rem.enabled ? "opacity-50" : ""
-                    }`}
-                  >
-                    <span className="text-neutral-700">
-                      {rem.timing === "on_date"
-                        ? "On due date"
-                        : `${rem.duration} ${rem.unit} ${rem.timing}`}
-                      {" at "}
-                      <span className="font-medium">{rem.exactTime}</span>
-                    </span>
-                    <span className="text-[10px] text-neutral-500 uppercase px-1.5 py-0.5 rounded bg-white border border-neutral-200 font-medium">
-                      {rem.channel === "both"
-                        ? "In-App & TG"
-                        : rem.channel === "telegram"
-                        ? "Telegram"
-                        : "In-App"}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Footer Actions (Edit, Manage Reminders, Statistics, History, Delete) */}
-        <div className="px-5 py-3 border-t border-neutral-100 bg-neutral-50/50 flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => {
-                onClose();
-                onViewStatistics(item);
-              }}
-              className="px-2.5 py-1.5 rounded-md border border-neutral-200 bg-white hover:bg-neutral-100 text-neutral-700 flex items-center gap-1.5 font-medium transition-colors text-xs"
-            >
-              <BarChart2 size={13} />
-              <span>Statistics</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                onClose();
-                onViewHistory(item);
-              }}
-              className="px-2.5 py-1.5 rounded-md border border-neutral-200 bg-white hover:bg-neutral-100 text-neutral-700 flex items-center gap-1.5 font-medium transition-colors text-xs"
-            >
-              <History size={13} />
-              <span>History</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                downloadPhoneCalendarEvent(item);
-                setPhoneExported(true);
-                setTimeout(() => setPhoneExported(false), 3000);
-              }}
-              className="px-2.5 py-1.5 rounded-md border border-neutral-200 bg-white hover:bg-neutral-100 text-neutral-700 flex items-center gap-1.5 font-medium transition-colors text-xs cursor-pointer"
-              title="Add reminder to iPhone / Android Phone Calendar (.ics)"
-            >
-              {phoneExported ? (
-                <>
-                  <CheckCircle2 size={13} className="text-emerald-600" />
-                  <span className="text-emerald-700 font-medium">Added!</span>
-                </>
-              ) : (
-                <>
-                  <Smartphone size={13} />
-                  <span>Phone Cal</span>
-                </>
-              )}
-            </button>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => {
-                onClose();
-                onEdit(item);
-              }}
-              className="px-3 py-1.5 rounded-md border border-neutral-200 bg-white hover:bg-neutral-100 text-neutral-800 flex items-center gap-1.5 font-medium transition-colors text-xs"
-            >
-              <Edit2 size={13} />
-              <span>Edit</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                onClose();
-                onDelete(item);
-              }}
-              className="px-2.5 py-1.5 rounded-md border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100 flex items-center gap-1.5 font-medium transition-colors text-xs"
-            >
-              <Trash2 size={13} />
-              <span>Delete</span>
-            </button>
+          <div className="rounded-xl border border-neutral-200 bg-white p-3">
+            <div className="flex items-center justify-between"><span className="flex items-center gap-1.5 font-medium text-neutral-800"><Bell size={14} />Reminders</span><button type="button" onClick={() => run(() => onManageReminders(item))} className="text-[11px] font-medium text-emerald-700">Edit · {activeReminders.length}</button></div>
+            {activeReminders.length ? <div className="mt-2 space-y-1.5">{activeReminders.slice(0, 5).map((reminder) => <div key={reminder.id} className="flex items-center justify-between gap-2 rounded-lg bg-neutral-50 px-2.5 py-2"><span className="truncate text-[11px] text-neutral-700">{describePaymentReminder(reminder)}</span><span className="shrink-0 font-medium tabular-nums text-neutral-900">{reminder.exactTime}</span></div>)}</div> : <p className="mt-2 text-[11px] text-neutral-500">No reminder is active.</p>}
           </div>
         </div>
       </div>

@@ -28,6 +28,8 @@ import { PaymentItemRow } from "../components/PaymentItemRow";
 import { ServiceIcon } from "../components/ServiceIcon";
 import { useI18n } from "../i18n";
 import { tashkentDateKey } from "../utils/timezone";
+import { formatDateDDMMYYYY } from "../utils/dateFormat";
+import type { ReportSection } from "./ReportsView";
 
 interface HomeViewProps {
   items: PaymentItem[];
@@ -44,6 +46,7 @@ interface HomeViewProps {
   onTogglePaid: (item: PaymentItem) => void;
   onOpenAddModal: () => void;
   onNavigateToCalendar: () => void;
+  onNavigateToReports: (section: ReportSection) => void;
   onNavigateToGoals?: () => void;
   onOpenAddGoal?: () => void;
   onOpenCalendarSync?: () => void;
@@ -64,15 +67,12 @@ export const HomeView: React.FC<HomeViewProps> = ({
   onTogglePaid,
   onOpenAddModal,
   onNavigateToCalendar,
+  onNavigateToReports,
   onNavigateToGoals,
   onOpenAddGoal,
   onOpenCalendarSync,
 }) => {
   const { t, locale } = useI18n();
-  const [selectedDate, setSelectedDate] = useState<string>(
-    tashkentDateKey()
-  );
-
   // Month navigation for compact home calendar
   const [calendarDate, setCalendarDate] = useState<Date>(new Date());
 
@@ -159,9 +159,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
     });
   }
 
-  // Items on selected date
-  const itemsOnSelectedDate = items.filter((i) => i.date === selectedDate);
-
   const monthNames = Array.from({ length: 12 }, (_, monthIndex) =>
     new Intl.DateTimeFormat(locale, { month: "long" }).format(new Date(2026, monthIndex, 1))
   );
@@ -176,7 +173,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
       {/* TOTAL SPENDING & 30-DAY CASH FLOW FORECAST CARDS */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 min-w-0">
         {/* This Month Spending */}
-        <div className="p-3.5 rounded-lg border border-neutral-200 bg-white">
+        <button type="button" onClick={() => onNavigateToReports("monthly")} className="p-3.5 rounded-lg border border-neutral-200 bg-white text-left hover:border-neutral-400 transition-colors">
           <div className="flex items-center justify-between mb-1">
             <span className="text-[11px] font-medium text-neutral-500 uppercase tracking-wider">
               {t("thisMonthSpending")}
@@ -194,10 +191,10 @@ export const HomeView: React.FC<HomeViewProps> = ({
               ≈ {formatCurrency(spending.thisMonth.uzs, "UZS")}
             </div>
           </div>
-        </div>
+        </button>
 
         {/* This Year Spending */}
-        <div className="p-3.5 rounded-lg border border-neutral-200 bg-white">
+        <button type="button" onClick={() => onNavigateToReports("yearly")} className="p-3.5 rounded-lg border border-neutral-200 bg-white text-left hover:border-neutral-400 transition-colors">
           <div className="flex items-center justify-between mb-1">
             <span className="text-[11px] font-medium text-neutral-500 uppercase tracking-wider">
               {t("thisYearSpending")}
@@ -215,7 +212,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
               ≈ {formatCurrency(spending.thisYear.uzs, "UZS")}
             </div>
           </div>
-        </div>
+        </button>
 
         {/* 30-Day Outflow Forecast Card */}
         <div 
@@ -361,12 +358,12 @@ export const HomeView: React.FC<HomeViewProps> = ({
           {/* Upcoming Payments */}
           <div className="space-y-2.5">
             <div className="flex items-center justify-between">
-              <h3 className="text-sm font-medium text-neutral-900">
+              <button type="button" onClick={() => onNavigateToReports("upcoming")} className="text-sm font-medium text-neutral-900 hover:text-emerald-700">
                 {t("upcomingPayments")}
-              </h3>
-              <span className="text-xs text-neutral-500">
+              </button>
+              <button type="button" onClick={() => onNavigateToReports("upcoming")} className="text-xs text-neutral-500 hover:text-neutral-900">
                 {upcomingPayments.length} upcoming
-              </span>
+              </button>
             </div>
 
             {upcomingPayments.length === 0 ? (
@@ -401,9 +398,9 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
           {/* 4.2 RECENT PAYMENTS */}
           <div className="pt-4 space-y-3">
-            <h3 className="text-sm font-medium text-neutral-900">
+            <button type="button" onClick={() => onNavigateToReports("history")} className="text-sm font-medium text-neutral-900 hover:text-emerald-700">
               {t("recentPayments")}
-            </h3>
+            </button>
 
             {recentPayments.length === 0 ? (
               <div className="py-3 text-xs text-neutral-500">
@@ -423,7 +420,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                           {record.itemName}
                         </span>
                         <span className="text-[11px] text-neutral-400">
-                          {record.date}
+                          {formatDateDDMMYYYY(record.date)}
                         </span>
                       </div>
                     </div>
@@ -459,7 +456,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
             {/* Header: arrows between month and year */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5">
-                <CalendarIcon size={15} className="text-neutral-700" />
+                <button type="button" onClick={onNavigateToCalendar} className="rounded p-1 text-neutral-700 hover:bg-neutral-100" aria-label={t("openFullCalendar")}><CalendarIcon size={15} /></button>
                 <button
                   type="button"
                   onClick={handlePrevMonth}
@@ -468,9 +465,9 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 >
                   <ChevronLeft size={15} />
                 </button>
-                <h3 className="text-xs font-medium text-neutral-900 px-1">
+                <button type="button" onClick={onNavigateToCalendar} className="text-xs font-medium text-neutral-900 px-1 hover:text-emerald-700">
                   {monthNames[month]} {year}
-                </h3>
+                </button>
                 <button
                   type="button"
                   onClick={handleNextMonth}
@@ -496,7 +493,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
             {/* Grid of square days */}
             <div className="grid grid-cols-7 gap-1 text-center">
               {calendarDays.map((cd, idx) => {
-                const isSelected = cd.dateStr === selectedDate;
                 const isToday = cd.dateStr === tashkentDateKey();
 
                 // Items on this day
@@ -509,11 +505,9 @@ export const HomeView: React.FC<HomeViewProps> = ({
                   <button
                     key={`${cd.dateStr}-${idx}`}
                     type="button"
-                    onClick={() => setSelectedDate(cd.dateStr)}
+                    onClick={onNavigateToCalendar}
                     className={`aspect-square rounded-md flex flex-col items-center justify-center relative transition-colors ${
-                      isSelected
-                        ? "bg-neutral-900 text-white font-medium shadow-2xs"
-                        : isToday
+                      isToday
                         ? "bg-neutral-100 text-neutral-900 font-medium"
                         : cd.isCurrentMonth
                         ? "text-neutral-800 hover:bg-neutral-50"
@@ -527,21 +521,21 @@ export const HomeView: React.FC<HomeViewProps> = ({
                       {hasSub && (
                         <span
                           className={`w-1 h-1 rounded-full ${
-                            isSelected ? "bg-blue-300" : "bg-blue-500"
+                            "bg-blue-500"
                           }`}
                         />
                       )}
                       {hasBill && (
                         <span
                           className={`w-1 h-1 rounded-full ${
-                            isSelected ? "bg-emerald-300" : "bg-emerald-500"
+                            "bg-emerald-500"
                           }`}
                         />
                       )}
                       {hasPur && (
                         <span
                           className={`w-1 h-1 rounded-full ${
-                            isSelected ? "bg-purple-300" : "bg-purple-500"
+                            "bg-purple-500"
                           }`}
                         />
                       )}
@@ -568,60 +562,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
             </div>
           </div>
 
-          {/* Payments on Selected Date Panel */}
-          <div className="p-4 rounded-lg border border-neutral-200 bg-white space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-neutral-700">
-                Scheduled on {selectedDate}
-              </span>
-              <span className="text-[11px] text-neutral-400">
-                {itemsOnSelectedDate.length} item{itemsOnSelectedDate.length !== 1 ? "s" : ""}
-              </span>
-            </div>
-
-            {itemsOnSelectedDate.length === 0 ? (
-              <p className="text-xs text-neutral-400 py-3 text-center">
-                No payments or reminders on this date.
-              </p>
-            ) : (
-              <div className="space-y-2">
-                {itemsOnSelectedDate.map((item) => (
-                  <div
-                    key={item.id}
-                    onClick={() => onViewDetail?.(item)}
-                    className="p-2.5 rounded-lg border border-neutral-200 bg-neutral-50/50 hover:bg-neutral-100/60 cursor-pointer transition-colors flex items-center justify-between text-xs"
-                  >
-                    <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-md bg-neutral-200 flex items-center justify-center text-neutral-800">
-                        <ServiceIcon icon={item.icon} size={13} />
-                      </div>
-                      <div>
-                        <span className="font-medium text-neutral-900 block">{item.name}</span>
-                        <span className="text-[10px] text-neutral-500">
-                          {item.time || "09:00"}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="text-right">
-                      <span className="font-medium text-neutral-900">
-                        {formatCurrency(item.price, item.currency)}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <button
-              type="button"
-              onClick={onNavigateToCalendar}
-              className="w-full pt-2 flex items-center justify-center gap-1 text-xs text-blue-600 hover:text-blue-700 font-medium"
-            >
-              <span>{t("openFullCalendar")}</span>
-              <ArrowRight size={13} />
-            </button>
-          </div>
         </div>
       </div>
     </motion.div>

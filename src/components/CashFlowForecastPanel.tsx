@@ -13,6 +13,7 @@ import { PaymentItem, CurrencyCode } from "../types";
 import { calculateCashFlowForecast } from "../utils/forecasting";
 import { formatCurrency, convertCurrency } from "../utils/calculations";
 import { ServiceIcon } from "./ServiceIcon";
+import { formatDateDDMMYYYY } from "../utils/dateFormat";
 
 interface CashFlowForecastPanelProps {
   items: PaymentItem[];
@@ -181,7 +182,7 @@ export const CashFlowForecastPanel: React.FC<CashFlowForecastPanelProps> = ({
                 {formatCurrency(peakDayDisplay, displayCurrency)}
               </div>
               <div className="text-[11px] font-medium text-amber-700 mt-0.5 flex items-center gap-1">
-                <span>{forecast.peakDay.date}</span>
+                <span>{formatDateDDMMYYYY(forecast.peakDay.date)}</span>
                 <span>•</span>
                 <span>{forecast.peakDay.itemsCount} charge{forecast.peakDay.itemsCount > 1 ? "s" : ""}</span>
               </div>
@@ -262,7 +263,7 @@ export const CashFlowForecastPanel: React.FC<CashFlowForecastPanelProps> = ({
             <div className="flex items-center gap-2">
               <Calendar size={13} className="text-neutral-500" />
               <span className="text-xs font-medium text-neutral-900">
-                Scheduled Charges for {activeDay.date} ({activeDay.dayOfWeek})
+                Scheduled Charges for {formatDateDDMMYYYY(activeDay.date)} ({activeDay.dayOfWeek})
               </span>
             </div>
             <div className="text-xs font-medium text-neutral-900 tabular-nums">

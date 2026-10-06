@@ -8,6 +8,7 @@ export interface ItemReminder {
   exactTime?: string;
   channel: "in_app" | "telegram" | "both";
   enabled: boolean;
+  onlyIfUnpaid?: boolean;
 }
 
 export interface PaymentItem {

@@ -1,5 +1,5 @@
 import React from "react";
-import { CalendarDays, CheckCircle2, Grid2X2, Home, Plus } from "lucide-react";
+import { CalendarDays, CreditCard, Grid2X2, Home, Plus } from "lucide-react";
 import { AppPage } from "../../types";
 import { useI18n } from "../../i18n";
 
@@ -19,7 +19,7 @@ export const NativeBottomNavigation: React.FC<NativeBottomNavigationProps> = ({
   const { t } = useI18n();
   const items = [
     { page: "home" as const, label: t("today"), icon: Home },
-    { page: "habits" as const, label: t("habits"), icon: CheckCircle2 },
+    { page: "subscriptions" as const, label: t("subscriptions"), icon: CreditCard },
     { page: "calendar" as const, label: t("calendar"), icon: CalendarDays },
   ];
 

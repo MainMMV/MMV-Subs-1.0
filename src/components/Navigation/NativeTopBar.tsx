@@ -19,7 +19,7 @@ export const NativeTopBar: React.FC<NativeTopBarProps> = ({
   const pageTitles: Record<AppPage, string> = {
     home: t("today"), habits: t("habits"), subscriptions: t("subscriptions"),
     bills: t("recurringBills"), purchases: t("oneTimePurchases"), calendar: t("calendar"),
-    goals: t("goals"), settings: t("settings"), more: t("more"),
+    goals: t("goals"), reports: t("reports"), settings: t("settings"), more: t("more"),
   };
 
   return (

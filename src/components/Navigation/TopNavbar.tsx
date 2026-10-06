@@ -38,6 +38,7 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
     bills: t("recurringBills"),
     purchases: t("oneTimePurchases"),
     calendar: t("calendar"),
+    reports: t("reports"),
     goals: t("goalsBudgets"),
     settings: t("settings"),
     more: t("more"),

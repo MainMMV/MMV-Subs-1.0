@@ -47,6 +47,7 @@ import { tashkentDateKey } from "./utils/timezone";
 import { NativeMoreView } from "./views/NativeMoreView";
 import { PastModuleView } from "./views/PastModuleView";
 import type { PastModuleId } from "./config/pastModules";
+import { ReportsView, type ReportSection } from "./views/ReportsView";
 
 const STORAGE_KEYS = {
   ITEMS: "mmv_subs_items_v3",
@@ -88,6 +89,7 @@ export default function App() {
 
   // Navigation State
   const [currentPage, setCurrentPage] = useState<AppPage>("home");
+  const [reportSection, setReportSection] = useState<ReportSection>("overview");
   const [selectedPastModule, setSelectedPastModule] = useState<PastModuleId | null>(null);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
     try {
@@ -873,6 +875,10 @@ export default function App() {
               onTogglePaid={handleTogglePaid}
               onOpenAddModal={() => handleOpenAddModal()}
               onNavigateToCalendar={() => setCurrentPage("calendar")}
+              onNavigateToReports={(section) => {
+                setReportSection(section);
+                setCurrentPage("reports");
+              }}
               onNavigateToGoals={() => setCurrentPage("goals")}
               onOpenAddGoal={handleOpenAddGoal}
               onOpenCalendarSync={() => setIsCalendarSyncModalOpen(true)}
@@ -988,6 +994,18 @@ export default function App() {
               onChangeTheme={setTheme}
             />
           )}
+
+          {currentPage === "reports" && (
+            <ReportsView
+              items={displayItems}
+              records={records}
+              displayCurrency={displayCurrency}
+              exchangeRateUsdToUzs={exchangeRateUsdToUzs}
+              section={reportSection}
+              onSectionChange={setReportSection}
+              onViewDetail={handleViewDetail}
+            />
+          )}
         </main>
 
         {nativeApp ? (
@@ -1042,6 +1060,7 @@ export default function App() {
         onDelete={(item) => {
           handleDeleteRequest(item);
         }}
+        onOpenCalendar={() => setCurrentPage("calendar")}
         onUpdateStatus={handleUpdateStatus}
       />
 

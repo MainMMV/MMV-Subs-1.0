@@ -11,6 +11,7 @@ import {
   CheckCircle2,
   ChevronDown,
   Grid2X2,
+  BarChart3,
 } from "lucide-react";
 import { AppPage, PaymentItem } from "../../types";
 import { MMVLogo } from "../MMVLogo";
@@ -60,17 +61,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
       icon: Home,
     },
     {
-      id: "habits" as AppPage,
-      label: t("habits"),
-      icon: CheckCircle2,
-      count: habitsCount > 0 ? habitsCount : undefined,
-      counterColor: "mmv-count-badge border",
-    },
-    {
       id: "subscriptions" as AppPage,
       label: t("subscriptions"),
       icon: CreditCard,
       count: subscriptionsCount,
+      counterColor: "mmv-count-badge border",
+    },
+    {
+      id: "habits" as AppPage,
+      label: t("habits"),
+      icon: CheckCircle2,
+      count: habitsCount > 0 ? habitsCount : undefined,
       counterColor: "mmv-count-badge border",
     },
     {
@@ -96,6 +97,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
       id: "goals" as AppPage,
       label: t("goals"),
       icon: Target,
+    },
+    {
+      id: "reports" as AppPage,
+      label: t("reports"),
+      icon: BarChart3,
     },
     {
       id: "settings" as AppPage,

@@ -9,6 +9,7 @@ import {
   Settings,
   ShoppingBag,
   Target,
+  BarChart3,
   type LucideIcon,
 } from "lucide-react";
 import type { AppPage } from "../types";
@@ -34,6 +35,7 @@ const MODULES: readonly ModuleDefinition[] = [
   { id: "bills", labelKey: "recurringBills", icon: ReceiptText, page: "bills", countKey: "bills", tone: "bg-indigo-50 text-indigo-700" },
   { id: "purchases", labelKey: "oneTimePurchases", icon: ShoppingBag, page: "purchases", countKey: "purchases", tone: "bg-violet-50 text-violet-700" },
   { id: "calendar", labelKey: "calendar", icon: CalendarDays, page: "calendar", tone: "bg-cyan-50 text-cyan-700" },
+  { id: "reports", labelKey: "reports", icon: BarChart3, page: "reports", tone: "bg-orange-50 text-orange-700" },
   { id: "goals", labelKey: "goals", icon: Target, page: "goals", countKey: "goals", tone: "bg-amber-50 text-amber-700" },
   { id: "notifications", labelKey: "notifications", icon: Bell, action: "notifications", countKey: "notifications", tone: "bg-rose-50 text-rose-700" },
   { id: "settings", labelKey: "settings", icon: Settings, page: "settings", tone: "bg-neutral-100 text-neutral-700" },

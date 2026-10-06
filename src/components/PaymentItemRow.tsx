@@ -4,6 +4,7 @@ import { PaymentItem, CurrencyCode, CurrencyDisplayMode } from "../types";
 import { getItemStatus, formatFrequency, getItemDualPrice } from "../utils/calculations";
 import { ServiceIcon } from "./ServiceIcon";
 import { ItemActionMenu } from "./ItemActionMenu";
+import { formatDateDDMMYYYY } from "../utils/dateFormat";
 
 interface PaymentItemRowProps {
   item: PaymentItem;
@@ -100,7 +101,7 @@ export const PaymentItemRow: React.FC<PaymentItemRowProps> = ({
             <div className="flex items-center gap-1.5 text-[11px] text-neutral-500 mt-0.5 whitespace-nowrap overflow-hidden text-ellipsis">
               <span className="flex items-center gap-1 shrink-0 font-medium">
                 <Calendar size={11} className="text-neutral-400 shrink-0" />
-                <span>{item.date}</span>
+                <span>{formatDateDDMMYYYY(item.date)}</span>
               </span>
 
               {item.frequency && (

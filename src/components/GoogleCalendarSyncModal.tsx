@@ -28,6 +28,7 @@ import {
   downloadAllItemsPhoneCalendar, 
   getGoogleCalendarWebLink 
 } from "../utils/phoneCalendar";
+import { formatDateDDMMYYYY } from "../utils/dateFormat";
 import { formatCurrency } from "../utils/calculations";
 import { addToDeviceCalendar, isNativeApp, requestDeviceCalendars, type DeviceCalendar } from "../services/deviceCalendar";
 
@@ -470,7 +471,7 @@ export const GoogleCalendarSyncModal: React.FC<GoogleCalendarSyncModalProps> = (
                           <div className="flex items-center gap-2 text-[10px] text-neutral-500 mt-0.5">
                             <span className="flex items-center gap-1">
                               <CalendarIcon size={11} className="text-neutral-400" />
-                              <span>Due: {item.date}</span>
+                              <span>Due: {formatDateDDMMYYYY(item.date)}</span>
                             </span>
                             <span>•</span>
                             <span className="flex items-center gap-1">
@@ -573,7 +574,7 @@ export const GoogleCalendarSyncModal: React.FC<GoogleCalendarSyncModalProps> = (
                     <div className="flex items-center gap-1.5 truncate">
                       <span className="w-1.5 h-1.5 rounded-full bg-neutral-900 shrink-0" />
                       <span className="font-medium text-neutral-900 truncate">{item.name}</span>
-                      <span className="text-[10px] text-neutral-400">({item.date})</span>
+                      <span className="text-[10px] text-neutral-400">({formatDateDDMMYYYY(item.date)})</span>
                     </div>
                     <span className="text-[11px] font-medium text-neutral-700 shrink-0">
                       {formatCurrency(item.price, item.currency)}

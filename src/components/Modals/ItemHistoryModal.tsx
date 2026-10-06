@@ -4,6 +4,7 @@ import { X, Calendar, Plus, CheckCircle2, History, Trash2 } from "lucide-react";
 import { PaymentItem, PaymentHistoryRecord, CurrencyCode } from "../../types";
 import { convertCurrency, formatCurrency } from "../../utils/calculations";
 import { ServiceIcon } from "../ServiceIcon";
+import { formatDateDDMMYYYY, parseDateDDMMYYYY } from "../../utils/dateFormat";
 
 interface ItemHistoryModalProps {
   isOpen: boolean;
@@ -27,7 +28,7 @@ export const ItemHistoryModal: React.FC<ItemHistoryModalProps> = ({
   onDeleteRecord,
 }) => {
   const [isAdding, setIsAdding] = useState(false);
-  const [newDate, setNewDate] = useState(tashkentDateKey());
+  const [newDateText, setNewDateText] = useState(formatDateDDMMYYYY(tashkentDateKey()));
   const [newAmount, setNewAmount] = useState<string>("");
   const [newNotes, setNewNotes] = useState("");
 
@@ -39,13 +40,15 @@ export const ItemHistoryModal: React.FC<ItemHistoryModalProps> = ({
 
   const handleCreateRecord = (e: React.FormEvent) => {
     e.preventDefault();
+    const parsedDate = parseDateDDMMYYYY(newDateText);
+    if (!parsedDate) return;
     const amountNum = parseFloat(newAmount) || item.price;
     const record: PaymentHistoryRecord = {
       id: `hist-${Date.now()}`,
       itemId: item.id,
       itemName: item.name,
       itemType: item.type,
-      date: newDate,
+      date: parsedDate,
       amount: amountNum,
       originalCurrency: item.currency,
       status: "paid",
@@ -112,9 +115,12 @@ export const ItemHistoryModal: React.FC<ItemHistoryModalProps> = ({
                 <div>
                   <label className="block text-[11px] text-neutral-500 mb-1">Date</label>
                   <input
-                    type="date"
-                    value={newDate}
-                    onChange={(e) => setNewDate(e.target.value)}
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={10}
+                    placeholder="DD.MM.YYYY"
+                    value={newDateText}
+                    onChange={(e) => setNewDateText(e.target.value)}
                     required
                     className="w-full px-2.5 py-1.5 rounded-md border border-neutral-300 bg-white"
                   />
@@ -180,7 +186,7 @@ export const ItemHistoryModal: React.FC<ItemHistoryModalProps> = ({
                   >
                     <div className="space-y-0.5">
                       <div className="flex items-center gap-2">
-                        <span className="font-medium text-neutral-900">{rec.date}</span>
+                        <span className="font-medium text-neutral-900">{formatDateDDMMYYYY(rec.date)}</span>
                         <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-100 text-emerald-700">
                           {rec.status.toUpperCase()}
                         </span>

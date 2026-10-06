@@ -3,8 +3,8 @@ import { isNativeApp } from "./deviceCalendar";
 import type { ItemReminder, PaymentItem } from "../types";
 import type { Habit, HabitLog } from "../types/habit";
 import { formatCurrency } from "../utils/calculations";
-import { tashkentDateTime } from "../utils/timezone";
 import { planHabitReminders } from "./habitReminderSchedule";
+import { getPaymentReminderDate } from "./paymentReminderSchedule";
 
 const STORAGE_KEY = "mmv_subs_scheduled_device_ids_v1";
 const HABITS_STORAGE_KEY = "mmv_subs_habits_v2";
@@ -26,21 +26,6 @@ function notificationId(value: string): number {
     hash = Math.imul(hash, 16777619);
   }
   return hash >>> 1;
-}
-
-function reminderDate(item: PaymentItem, reminder: ItemReminder): Date {
-  const date = tashkentDateTime(item.date, reminder.exactTime || item.time || "09:00");
-  if (reminder.timing === "on_date") return date;
-  const direction = reminder.timing === "before" ? -1 : 1;
-  const amount = Math.max(0, reminder.duration) * direction;
-  const unitMilliseconds = reminder.unit === "weeks"
-    ? 7 * 86_400_000
-    : reminder.unit === "days"
-      ? 86_400_000
-      : reminder.unit === "hours"
-        ? 3_600_000
-        : 60_000;
-  return new Date(date.getTime() + amount * unitMilliseconds);
 }
 
 export async function enableDeviceReminders(): Promise<boolean> {
@@ -74,7 +59,7 @@ export async function syncDeviceReminders(
       exactTime: item.time || "09:00", channel: "in_app", enabled: true,
     }];
     for (const reminder of reminders) {
-      const at = reminderDate(item, reminder);
+      const at = getPaymentReminderDate(item, reminder);
       if (Number.isNaN(at.getTime()) || at.getTime() <= now) continue;
       notifications.push({
         id: notificationId(`${item.id}:${item.date}:${reminder.id}`),

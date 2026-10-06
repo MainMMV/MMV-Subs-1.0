@@ -4,6 +4,7 @@ import { PaymentItem, ItemReminder } from "../../types";
 import { ServiceIcon } from "../ServiceIcon";
 import { downloadPhoneCalendarEvent } from "../../utils/phoneCalendar";
 import { isNativeApp } from "../../services/deviceCalendar";
+import { normalizeTimeHHMM } from "../../utils/dateFormat";
 
 interface ManageRemindersModalProps {
   isOpen: boolean;
@@ -159,9 +160,13 @@ export const ManageRemindersModal: React.FC<ManageRemindersModalProps> = ({
                     <div>
                       <span className="text-[10px] text-neutral-400 block mb-0.5">Exact Time</span>
                       <input
-                        type="time"
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={5}
+                        placeholder="HH:MM"
                         value={rem.exactTime}
                         onChange={(e) => handleUpdate(rem.id, { exactTime: e.target.value })}
+                        onBlur={(e) => handleUpdate(rem.id, { exactTime: normalizeTimeHHMM(e.target.value) || e.target.value })}
                         className="w-full px-2 py-1 text-xs rounded border border-neutral-200 bg-neutral-50 font-medium"
                       />
                     </div>
@@ -215,6 +220,12 @@ export const ManageRemindersModal: React.FC<ManageRemindersModalProps> = ({
                       <option value="telegram">Telegram only</option>
                     </select>
                   </div>
+                  {rem.timing === "after" && (
+                    <label className="flex items-center gap-2 pt-0.5 text-[11px] text-neutral-600">
+                      <input type="checkbox" checked={rem.onlyIfUnpaid !== false} onChange={(e) => handleUpdate(rem.id, { onlyIfUnpaid: e.target.checked })} />
+                      Only remind if not marked paid
+                    </label>
+                  )}
                 </div>
               ))}
             </div>
