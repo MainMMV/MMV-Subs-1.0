@@ -42,12 +42,12 @@ import { Habit, HabitLog } from "./types";
 import { isNativeApp } from "./services/deviceCalendar";
 import { NativeTopBar } from "./components/Navigation/NativeTopBar";
 import { NativeBottomNavigation } from "./components/Navigation/NativeBottomNavigation";
-import { NativeQuickSetup } from "./components/NativeQuickSetup";
 import { tashkentDateKey } from "./utils/timezone";
 import { NativeMoreView } from "./views/NativeMoreView";
 import { PastModuleView } from "./views/PastModuleView";
 import type { PastModuleId } from "./config/pastModules";
 import { ReportsView, type ReportSection } from "./views/ReportsView";
+import { CursorBeam } from "./components/CursorBeam";
 
 const STORAGE_KEYS = {
   ITEMS: "mmv_subs_items_v3",
@@ -755,6 +755,7 @@ export default function App() {
 
   return (
     <div className={`flex h-dvh min-h-0 w-full overflow-hidden bg-neutral-50 text-neutral-900 select-none ${nativeApp ? "native-shell" : "web-shell"}`}>
+      {!nativeApp ? <CursorBeam /> : null}
       {/* 1. FIXED MAIN NAVIGATION SIDEBAR */}
       {!nativeApp && <div className="hidden md:block h-full">
         <Sidebar
@@ -831,9 +832,6 @@ export default function App() {
 
         {/* View Router */}
         <main className={`flex-1 min-h-0 overflow-y-auto overscroll-contain ${nativeApp ? "native-scroll px-4 pb-5 pt-4 sm:px-6" : "p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] md:p-6 lg:p-8"}`}>
-          {nativeApp && currentPage === "home" ? (
-            <NativeQuickSetup items={items} onOpenCalendar={() => setIsCalendarSyncModalOpen(true)} />
-          ) : null}
           {nativeApp && currentPage === "more" ? (
             <NativeMoreView
               subscriptionsCount={items.filter((item) => item.type === "subscription").length}

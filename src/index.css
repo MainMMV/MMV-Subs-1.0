@@ -42,6 +42,34 @@
   box-shadow: 0 1px 2px rgb(15 23 42 / 0.04);
 }
 
+.cursor-beam {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.62;
+  background:
+    radial-gradient(circle 92px at var(--cursor-beam-x, 50vw) var(--cursor-beam-y, 50vh), rgba(168, 201, 153, 0.18), transparent 72%),
+    linear-gradient(90deg, transparent max(0px, calc(var(--cursor-beam-x, 50vw) - 0.5px)), rgba(168, 201, 153, 0.16) var(--cursor-beam-x, 50vw), transparent calc(var(--cursor-beam-x, 50vw) + 0.5px)),
+    linear-gradient(0deg, transparent max(0px, calc(var(--cursor-beam-y, 50vh) - 0.5px)), rgba(168, 201, 153, 0.1) var(--cursor-beam-y, 50vh), transparent calc(var(--cursor-beam-y, 50vh) + 0.5px));
+  mix-blend-mode: screen;
+}
+
+html[data-theme="light"] .cursor-beam {
+  opacity: 0.42;
+  background:
+    radial-gradient(circle 86px at var(--cursor-beam-x, 50vw) var(--cursor-beam-y, 50vh), rgba(49, 116, 89, 0.12), transparent 72%),
+    linear-gradient(90deg, transparent max(0px, calc(var(--cursor-beam-x, 50vw) - 0.5px)), rgba(49, 116, 89, 0.1) var(--cursor-beam-x, 50vw), transparent calc(var(--cursor-beam-x, 50vw) + 0.5px)),
+    linear-gradient(0deg, transparent max(0px, calc(var(--cursor-beam-y, 50vh) - 0.5px)), rgba(49, 116, 89, 0.08) var(--cursor-beam-y, 50vh), transparent calc(var(--cursor-beam-y, 50vh) + 0.5px));
+  mix-blend-mode: multiply;
+}
+
+@media (pointer: coarse), (prefers-reduced-motion: reduce) {
+  .cursor-beam {
+    display: none;
+  }
+}
+
 .mmv-count-badge {
   border: 1px solid #a7f3d0;
   background: var(--mmv-accent-soft);

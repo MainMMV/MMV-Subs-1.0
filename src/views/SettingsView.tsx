@@ -1,5 +1,5 @@
 import React, { useCallback, useState, useEffect } from "react";
-import { Send, Check, Download, RotateCcw, CalendarSync, Bell, ShieldCheck, Palette, Terminal, Languages } from "lucide-react";
+import { Send, Check, Download, RotateCcw, CalendarSync, Bell, ShieldCheck, Palette, Terminal, Languages, UserRound, Coffee, Copy, MessageSquare, Sparkles, X, Heart, Trophy } from "lucide-react";
 import { motion } from "motion/react";
 import { CurrencyDisplayMode, TelegramConfig, PaymentItem, GoogleCalendarSyncState, AppTheme } from "../types";
 import { isBrowserPushEnabled, requestBrowserPushPermission } from "../services/notificationService";
@@ -7,6 +7,7 @@ import { isNativeApp } from "../services/deviceCalendar";
 import { areDeviceRemindersEnabled, enableDeviceReminders, syncDeviceReminders } from "../services/deviceReminders";
 import { requestTelegramTest } from "../firebase";
 import { TelegramConnectButton, type TelegramIdentity } from "../components/TelegramConnectButton";
+import { NativeQuickSetup } from "../components/NativeQuickSetup";
 import { useI18n, type AppLanguage } from "../i18n";
 import { formatTashkentDateTime, tashkentDateKey } from "../utils/timezone";
 
@@ -23,6 +24,48 @@ interface SettingsViewProps {
   calendarSyncState?: GoogleCalendarSyncState;
   theme?: AppTheme;
   onChangeTheme?: (theme: AppTheme) => void;
+}
+
+interface LocalProfile {
+  name: string;
+  email: string;
+  telegram: string;
+  createdAt: string;
+}
+
+interface CoffeeSupportRecord {
+  id: string;
+  name: string;
+  amount: string;
+  note: string;
+  createdAt: string;
+}
+
+interface FeedbackRecord {
+  id: string;
+  type: "feedback" | "improvement" | "bug";
+  message: string;
+  contact: string;
+  createdAt: string;
+}
+
+const SETTINGS_STORAGE_KEYS = {
+  PROFILE: "mmv_hub_local_profile_v1",
+  COFFEE: "mmv_hub_coffee_support_v1",
+  FEEDBACK: "mmv_hub_feedback_v1",
+  COFFEE_POPUP_DISMISSED: "mmv_hub_coffee_popup_dismissed_v1",
+};
+
+const SUPPORT_CARD_NUMBER = "8600 4929 3050 8490";
+const SUPPORT_CARD_OWNER = "M. F.";
+
+function loadJsonValue<T>(key: string, fallback: T): T {
+  try {
+    const saved = localStorage.getItem(key);
+    return saved ? JSON.parse(saved) as T : fallback;
+  } catch {
+    return fallback;
+  }
 }
 
 export const SettingsView: React.FC<SettingsViewProps> = ({
@@ -44,11 +87,37 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const [browserPushActive, setBrowserPushActive] = useState<boolean>(() => isBrowserPushEnabled());
   const [pushStatus, setPushStatus] = useState<string | null>(null);
   const [rateSavedMessage, setRateSavedMessage] = useState(false);
+  const [profile, setProfile] = useState<LocalProfile | null>(() => loadJsonValue<LocalProfile | null>(SETTINGS_STORAGE_KEYS.PROFILE, null));
+  const [profileForm, setProfileForm] = useState(() => ({
+    name: profile?.name || "",
+    email: profile?.email || "",
+    telegram: profile?.telegram || "",
+  }));
+  const [profileSavedMessage, setProfileSavedMessage] = useState<string | null>(null);
+  const [coffeeRecords, setCoffeeRecords] = useState<CoffeeSupportRecord[]>(() => loadJsonValue<CoffeeSupportRecord[]>(SETTINGS_STORAGE_KEYS.COFFEE, []));
+  const [coffeeForm, setCoffeeForm] = useState({ name: profile?.name || "", amount: "", note: "" });
+  const [coffeeStatus, setCoffeeStatus] = useState<string | null>(null);
+  const [feedbackRecords, setFeedbackRecords] = useState<FeedbackRecord[]>(() => loadJsonValue<FeedbackRecord[]>(SETTINGS_STORAGE_KEYS.FEEDBACK, []));
+  const [feedbackForm, setFeedbackForm] = useState<Pick<FeedbackRecord, "type" | "message" | "contact">>({
+    type: "improvement",
+    message: "",
+    contact: profile?.email || profile?.telegram || "",
+  });
+  const [feedbackStatus, setFeedbackStatus] = useState<string | null>(null);
+  const [showCoffeePopup, setShowCoffeePopup] = useState(false);
   const nativeApp = isNativeApp();
 
   useEffect(() => {
     if (nativeApp) areDeviceRemindersEnabled().then(setBrowserPushActive).catch(() => setBrowserPushActive(false));
   }, [nativeApp]);
+
+  useEffect(() => {
+    const dismissed = localStorage.getItem(SETTINGS_STORAGE_KEYS.COFFEE_POPUP_DISMISSED) === "true";
+    if (!dismissed) {
+      const timer = window.setTimeout(() => setShowCoffeePopup(true), 650);
+      return () => window.clearTimeout(timer);
+    }
+  }, []);
 
   // Telegram state
   const [tgChatId, setTgChatId] = useState(telegramConfig.chatId || "");
@@ -120,6 +189,75 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     URL.revokeObjectURL(url);
   };
 
+  const handleSaveProfile = (e: React.FormEvent) => {
+    e.preventDefault();
+    const nextProfile: LocalProfile = {
+      name: profileForm.name.trim(),
+      email: profileForm.email.trim(),
+      telegram: profileForm.telegram.trim(),
+      createdAt: profile?.createdAt || new Date().toISOString(),
+    };
+    localStorage.setItem(SETTINGS_STORAGE_KEYS.PROFILE, JSON.stringify(nextProfile));
+    setProfile(nextProfile);
+    setCoffeeForm((prev) => ({ ...prev, name: prev.name || nextProfile.name }));
+    setFeedbackForm((prev) => ({ ...prev, contact: prev.contact || nextProfile.email || nextProfile.telegram }));
+    setProfileSavedMessage("Local profile saved on this device.");
+    window.setTimeout(() => setProfileSavedMessage(null), 2500);
+  };
+
+  const handleCopySupportCard = async () => {
+    try {
+      await navigator.clipboard.writeText(SUPPORT_CARD_NUMBER.replaceAll(" ", ""));
+      setCoffeeStatus("Card number copied.");
+    } catch {
+      setCoffeeStatus("Copy failed. You can select the card number manually.");
+    }
+    window.setTimeout(() => setCoffeeStatus(null), 2500);
+  };
+
+  const handleCloseCoffeePopup = () => {
+    setShowCoffeePopup(false);
+    localStorage.setItem(SETTINGS_STORAGE_KEYS.COFFEE_POPUP_DISMISSED, "true");
+  };
+
+  const handleRecordCoffee = (e: React.FormEvent) => {
+    e.preventDefault();
+    const record: CoffeeSupportRecord = {
+      id: `coffee-${Date.now()}`,
+      name: coffeeForm.name.trim() || "Kind supporter",
+      amount: coffeeForm.amount.trim() || "Any amount",
+      note: coffeeForm.note.trim(),
+      createdAt: new Date().toISOString(),
+    };
+    const nextRecords = [record, ...coffeeRecords].slice(0, 20);
+    localStorage.setItem(SETTINGS_STORAGE_KEYS.COFFEE, JSON.stringify(nextRecords));
+    setCoffeeRecords(nextRecords);
+    setCoffeeForm({ name: profile?.name || "", amount: "", note: "" });
+    setCoffeeStatus("Thank you. Saved locally for the future Coffee module.");
+    window.setTimeout(() => setCoffeeStatus(null), 3000);
+  };
+
+  const handleSaveFeedback = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!feedbackForm.message.trim()) {
+      setFeedbackStatus("Write a short message first.");
+      return;
+    }
+    const record: FeedbackRecord = {
+      id: `feedback-${Date.now()}`,
+      type: feedbackForm.type,
+      message: feedbackForm.message.trim(),
+      contact: feedbackForm.contact.trim(),
+      createdAt: new Date().toISOString(),
+    };
+    const nextRecords = [record, ...feedbackRecords].slice(0, 30);
+    localStorage.setItem(SETTINGS_STORAGE_KEYS.FEEDBACK, JSON.stringify(nextRecords));
+    setFeedbackRecords(nextRecords);
+    setFeedbackForm((prev) => ({ ...prev, message: "" }));
+    setFeedbackStatus("Saved locally. It will be ready to sync when backend feedback storage is connected.");
+    window.setTimeout(() => setFeedbackStatus(null), 3500);
+  };
+
   return (
     <motion.div 
       initial={{ opacity: 0, y: 4 }}
@@ -129,6 +267,240 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     >
       <div className="border-b border-neutral-200 pb-4">
         <h2 className="text-base font-medium text-neutral-900">{t("settings")}</h2>
+      </div>
+
+      {showCoffeePopup ? (
+        <motion.div
+          initial={{ opacity: 0, y: -10, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: -8, scale: 0.98 }}
+          transition={{ duration: 0.28, ease: "easeOut" }}
+          className="relative overflow-hidden rounded-lg border border-emerald-200 bg-white p-4 shadow-lg"
+        >
+          <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-700 via-lime-300 to-emerald-700" />
+          <button
+            type="button"
+            onClick={handleCloseCoffeePopup}
+            className="absolute right-3 top-3 rounded-lg border border-neutral-200 bg-white p-1.5 text-neutral-500 hover:bg-neutral-50"
+            aria-label="Close coffee support"
+          >
+            <X size={14} />
+          </button>
+          <div className="flex items-start gap-3 pr-8">
+            <div className="rounded-lg bg-emerald-100 p-2 text-emerald-800">
+              <Sparkles size={18} />
+            </div>
+            <div className="min-w-0">
+              <h3 className="text-sm font-medium text-neutral-900">Fuel MMV Hub with a coffee</h3>
+              <p className="mt-1 text-xs leading-5 text-neutral-600">
+                If this app saves you time, a small coffee keeps the work moving. Any amount is welcome, and every supporter will have a place in the future Coffee module.
+              </p>
+              <button
+                type="button"
+                onClick={handleCopySupportCard}
+                className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-neutral-900 px-3 py-1.5 text-xs font-medium text-white"
+              >
+                <Copy size={13} />
+                <span>Copy card</span>
+              </button>
+            </div>
+          </div>
+        </motion.div>
+      ) : null}
+
+      {nativeApp ? (
+        <NativeQuickSetup
+          items={items}
+          onOpenCalendar={() => onOpenCalendarSync?.()}
+          autoHideWhenReady
+          className="mb-0"
+        />
+      ) : null}
+
+      <div className="p-5 rounded-lg border border-neutral-200 bg-white space-y-4">
+        <div className="flex items-start gap-2">
+          <UserRound size={16} className="mt-0.5 text-neutral-700" />
+          <div>
+            <h3 className="text-sm font-medium text-neutral-900">Local registration</h3>
+            <p className="mt-0.5 text-[11px] text-neutral-500">Stores your profile on this device so new records, feedback, and future sync can remember who created them.</p>
+          </div>
+        </div>
+        <form onSubmit={handleSaveProfile} className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <input
+            type="text"
+            value={profileForm.name}
+            onChange={(e) => setProfileForm((prev) => ({ ...prev, name: e.target.value }))}
+            placeholder="Name"
+            className="min-w-0 rounded-lg border border-neutral-300 px-3 py-2 text-xs focus:outline-none focus:border-neutral-900"
+          />
+          <input
+            type="email"
+            value={profileForm.email}
+            onChange={(e) => setProfileForm((prev) => ({ ...prev, email: e.target.value }))}
+            placeholder="Email"
+            className="min-w-0 rounded-lg border border-neutral-300 px-3 py-2 text-xs focus:outline-none focus:border-neutral-900"
+          />
+          <input
+            type="text"
+            value={profileForm.telegram}
+            onChange={(e) => setProfileForm((prev) => ({ ...prev, telegram: e.target.value }))}
+            placeholder="Telegram username"
+            className="min-w-0 rounded-lg border border-neutral-300 px-3 py-2 text-xs focus:outline-none focus:border-neutral-900"
+          />
+          <div className="sm:col-span-3 flex flex-wrap items-center gap-2">
+            <button type="submit" className="inline-flex items-center gap-1.5 rounded-lg bg-neutral-900 px-3.5 py-1.5 text-xs font-medium text-white">
+              <Check size={13} />
+              <span>{profile ? "Update profile" : "Register locally"}</span>
+            </button>
+            {profileSavedMessage ? <span className="text-xs text-emerald-600">{profileSavedMessage}</span> : null}
+          </div>
+        </form>
+      </div>
+
+      <div className="overflow-hidden rounded-lg border border-neutral-200 bg-white">
+        <div className="relative p-5">
+          <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-700 via-lime-300 to-emerald-700" />
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(16rem,0.75fr)]">
+            <div className="space-y-4">
+              <div className="flex items-start gap-2">
+                <Coffee size={16} className="mt-0.5 text-neutral-700" />
+                <div>
+                  <h3 className="text-sm font-medium text-neutral-900">Buy me a coffee</h3>
+                  <p className="mt-1 text-xs leading-5 text-neutral-600">
+                    MMV Hub is growing one careful feature at a time. If it helped you organize your payments, habits, or reminders, your support turns into more late-night fixes, cleaner APK builds, and better tools.
+                  </p>
+                </div>
+              </div>
+
+              <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <p className="text-[10px] uppercase tracking-[0.16em] text-neutral-500">Card</p>
+                    <p className="mt-1 font-mono text-sm font-medium text-neutral-900">{SUPPORT_CARD_NUMBER}</p>
+                    <p className="mt-0.5 text-xs text-neutral-500">Owner: {SUPPORT_CARD_OWNER}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleCopySupportCard}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs font-medium text-neutral-800 hover:bg-neutral-50"
+                  >
+                    <Copy size={13} />
+                    <span>Copy</span>
+                  </button>
+                </div>
+              </div>
+
+              <form onSubmit={handleRecordCoffee} className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_7rem]">
+                <input
+                  type="text"
+                  value={coffeeForm.name}
+                  onChange={(e) => setCoffeeForm((prev) => ({ ...prev, name: e.target.value }))}
+                  placeholder="Your name for future top supporters"
+                  className="min-w-0 rounded-lg border border-neutral-300 px-3 py-2 text-xs focus:outline-none focus:border-neutral-900"
+                />
+                <input
+                  type="text"
+                  value={coffeeForm.amount}
+                  onChange={(e) => setCoffeeForm((prev) => ({ ...prev, amount: e.target.value }))}
+                  placeholder="Amount"
+                  className="min-w-0 rounded-lg border border-neutral-300 px-3 py-2 text-xs focus:outline-none focus:border-neutral-900"
+                />
+                <input
+                  type="text"
+                  value={coffeeForm.note}
+                  onChange={(e) => setCoffeeForm((prev) => ({ ...prev, note: e.target.value }))}
+                  placeholder="Optional note"
+                  className="min-w-0 rounded-lg border border-neutral-300 px-3 py-2 text-xs focus:outline-none focus:border-neutral-900 sm:col-span-2"
+                />
+                <button type="submit" className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-neutral-900 px-3.5 py-2 text-xs font-medium text-white sm:col-span-2">
+                  <Heart size={13} />
+                  <span>I sent support</span>
+                </button>
+              </form>
+              {coffeeStatus ? <p className="text-xs text-emerald-600">{coffeeStatus}</p> : null}
+            </div>
+
+            <div className="rounded-lg border border-neutral-200 bg-neutral-50 p-3">
+              <div className="mb-2 flex items-center gap-1.5 text-xs font-medium text-neutral-900">
+                <Trophy size={14} />
+                <span>Coffee module preview</span>
+              </div>
+              <p className="mb-3 text-[11px] leading-5 text-neutral-500">Future plan: gamified supporter levels, top donators, thank-you badges, and visible supporter history after backend sync is added.</p>
+              <div className="space-y-2">
+                {coffeeRecords.length ? coffeeRecords.slice(0, 3).map((record) => (
+                  <div key={record.id} className="rounded-lg border border-neutral-200 bg-white p-2 text-xs">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="truncate font-medium text-neutral-900">{record.name}</span>
+                      <span className="shrink-0 text-neutral-500">{record.amount}</span>
+                    </div>
+                    {record.note ? <p className="mt-1 line-clamp-2 text-[11px] text-neutral-500">{record.note}</p> : null}
+                  </div>
+                )) : (
+                  <div className="rounded-lg border border-dashed border-neutral-300 bg-white p-3 text-[11px] text-neutral-500">
+                    Support records you add will appear here locally.
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="p-5 rounded-lg border border-neutral-200 bg-white space-y-4">
+        <div className="flex items-start gap-2">
+          <MessageSquare size={16} className="mt-0.5 text-neutral-700" />
+          <div>
+            <h3 className="text-sm font-medium text-neutral-900">Feedback & improvements</h3>
+            <p className="mt-0.5 text-[11px] text-neutral-500">Save ideas, bug notes, and improvement requests locally until backend feedback sync is enabled.</p>
+          </div>
+        </div>
+        <form onSubmit={handleSaveFeedback} className="space-y-3">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-[10rem_minmax(0,1fr)]">
+            <select
+              value={feedbackForm.type}
+              onChange={(e) => setFeedbackForm((prev) => ({ ...prev, type: e.target.value as FeedbackRecord["type"] }))}
+              className="rounded-lg border border-neutral-300 px-3 py-2 text-xs focus:outline-none focus:border-neutral-900"
+            >
+              <option value="improvement">Improvement</option>
+              <option value="feedback">Feedback</option>
+              <option value="bug">Bug</option>
+            </select>
+            <input
+              type="text"
+              value={feedbackForm.contact}
+              onChange={(e) => setFeedbackForm((prev) => ({ ...prev, contact: e.target.value }))}
+              placeholder="Contact, optional"
+              className="min-w-0 rounded-lg border border-neutral-300 px-3 py-2 text-xs focus:outline-none focus:border-neutral-900"
+            />
+          </div>
+          <textarea
+            value={feedbackForm.message}
+            onChange={(e) => setFeedbackForm((prev) => ({ ...prev, message: e.target.value }))}
+            placeholder="Write what should be improved..."
+            rows={3}
+            className="w-full resize-none rounded-lg border border-neutral-300 px-3 py-2 text-xs focus:outline-none focus:border-neutral-900"
+          />
+          <div className="flex flex-wrap items-center gap-2">
+            <button type="submit" className="inline-flex items-center gap-1.5 rounded-lg bg-neutral-900 px-3.5 py-1.5 text-xs font-medium text-white">
+              <Send size={13} />
+              <span>Save feedback</span>
+            </button>
+            {feedbackStatus ? <span className="text-xs text-emerald-600">{feedbackStatus}</span> : null}
+          </div>
+        </form>
+        {feedbackRecords.length ? (
+          <div className="space-y-2 border-t border-neutral-100 pt-3">
+            {feedbackRecords.slice(0, 3).map((record) => (
+              <div key={record.id} className="rounded-lg border border-neutral-200 bg-neutral-50 p-2 text-xs">
+                <div className="mb-1 flex items-center justify-between gap-2">
+                  <span className="font-medium capitalize text-neutral-900">{record.type}</span>
+                  <span className="text-[10px] text-neutral-400">{formatTashkentDateTime(record.createdAt)}</span>
+                </div>
+                <p className="line-clamp-2 text-neutral-600">{record.message}</p>
+              </div>
+            ))}
+          </div>
+        ) : null}
       </div>
 
       <div className="p-5 rounded-lg border border-neutral-200 bg-white space-y-3">

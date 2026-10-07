@@ -15,6 +15,7 @@ MMV Hub is a responsive personal dashboard for subscriptions, recurring bills, o
 - Connect Google Calendar from the web or export standards-compliant `.ics` calendar files.
 - Track habits, completion history, goals, budgets, payment history, and cash-flow forecasts.
 - Use light and dark themes with responsive layouts for phones, tablets, and desktops.
+- Register a local profile, save feedback and improvement notes locally, and track coffee-support records for the future supporter module.
 - Switch the interface between Uzbek, Russian, and English; the choice persists on web and Android.
 - Use Asia/Tashkent time (GMT+5) consistently for payment dates, reminders, calendar events, and published change times.
 - Sync app data to Firebase for Telegram reminder delivery.
@@ -95,6 +96,19 @@ For Telegram Login on the web, open `@BotFather`, run `/setdomain`, select the M
 Each published update is recorded newest first using `HH:mm DD.MM.YYYY GMT+5 (Tashkent)`.
 
 <details open>
+<summary><strong>22:37 07.10.2026 GMT+5 (Tashkent) — Settings registration, coffee support, and web polish</strong></summary>
+
+- Added a web-only cursor-following beam effect that respects pointer type and reduced-motion preferences.
+- Moved the native device setup panel from Today into Settings, with a fade/collapse behavior after reminder access is granted.
+- Added local registration in Settings for name, email, and Telegram username so future sync flows can identify locally created records.
+- Added an animated Buy Me a Coffee prompt, copyable support card, supporter record form, and Coffee module preview for future gamified top supporters.
+- Added a Feedback and Improvements section that stores bug notes, ideas, and contact details locally until backend feedback sync is connected.
+
+Modified areas: app shell, cursor effect styling, native setup panel, Settings registration/support/feedback sections, and README.
+
+</details>
+
+<details>
 <summary><strong>22:15 06.10.2026 GMT+5 (Tashkent) — Reminder-first mobile workflow and reports</strong></summary>
 
 - Rebuilt payment creation as a compact, type-specific flow and removed the duplicate category selector.
