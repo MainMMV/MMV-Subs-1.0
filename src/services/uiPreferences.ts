@@ -2,9 +2,19 @@ import { useSyncExternalStore } from "react";
 
 export type ViewKind = "list" | "card";
 export type ViewSection = "subscriptions" | "bills" | "purchases" | "goals";
+export const FONT_OPTIONS = [
+  { id: "google", label: "Google Sans" },
+  { id: "inter", label: "Inter" },
+  { id: "poppins", label: "Poppins" },
+  { id: "manrope", label: "Manrope" },
+  { id: "space", label: "Space Grotesk" },
+  { id: "mono", label: "JetBrains Mono" },
+  { id: "system", label: "System" },
+] as const;
+export type FontChoice = (typeof FONT_OPTIONS)[number]["id"];
 
 export interface UiPreferences {
-  font: "google" | "system" | "mono";
+  font: FontChoice;
   textSize: "small" | "normal" | "large";
   radius: "square" | "soft" | "round";
   density: "compact" | "comfortable";
@@ -38,7 +48,7 @@ function readPreferences(): UiPreferences {
     const filters = saved.rememberViews === false ? DEFAULT_UI_PREFERENCES.filters : saved.filters || {};
     return {
       ...DEFAULT_UI_PREFERENCES,
-      font: choose(saved.font, ["google", "system", "mono"], "google"),
+      font: choose(saved.font, FONT_OPTIONS.map((option) => option.id), "google"),
       textSize: choose(saved.textSize, ["small", "normal", "large"], "normal"),
       radius: choose(saved.radius, ["square", "soft", "round"], "soft"),
       density: choose(saved.density, ["compact", "comfortable"], "comfortable"),

@@ -11,7 +11,7 @@ import { TelegramConnectButton, type TelegramIdentity } from "../components/Tele
 import { NativeQuickSetup } from "../components/NativeQuickSetup";
 import { useI18n, type AppLanguage, type TranslationKey } from "../i18n";
 import { formatTashkentDateTime, tashkentDateKey } from "../utils/timezone";
-import { DEFAULT_UI_PREFERENCES, updateUiPreferences, useUiPreferences, type ViewSection } from "../services/uiPreferences";
+import { DEFAULT_UI_PREFERENCES, FONT_OPTIONS, updateUiPreferences, useUiPreferences, type ViewSection } from "../services/uiPreferences";
 
 type SettingsGroup = "appearance" | "views" | "finance" | "connections" | "account" | "data";
 const SETTINGS_GROUPS: Array<{ id: SettingsGroup; labelKey: TranslationKey }> = [
@@ -689,7 +689,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
       <div className="settings-block space-y-2">
         <h3 className="text-sm font-medium text-neutral-900">{t("typographyLayout")}</h3>
-        <div className="settings-control-row"><label htmlFor="settings-font">{t("fontLabel")}</label><select id="settings-font" value={uiPreferences.font} onChange={(event) => updateUiPreferences({ font: event.target.value as typeof uiPreferences.font })}><option value="google">Google Sans</option><option value="system">System</option><option value="mono">Monospace</option></select></div>
+        <div className="settings-control-row"><label htmlFor="settings-font">{t("fontLabel")}</label><select id="settings-font" value={uiPreferences.font} onChange={(event) => updateUiPreferences({ font: event.target.value as typeof uiPreferences.font })}>{FONT_OPTIONS.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}</select></div>
+        <p className="settings-font-preview" aria-live="polite">MMV Hub · Aa Бб Ўў · 12345</p>
         <div className="settings-control-row"><span>{t("textSizeLabel")}</span><div className="settings-choice" role="group" aria-label={t("textSizeLabel")}>{(["small", "normal", "large"] as const).map((size) => <button key={size} type="button" aria-pressed={uiPreferences.textSize === size} onClick={() => updateUiPreferences({ textSize: size })}>{t(size)}</button>)}</div></div>
         <div className="settings-control-row"><span>{t("cornerRadius")}</span><div className="settings-choice" role="group" aria-label={t("cornerRadius")}>{(["square", "soft", "round"] as const).map((radius) => <button key={radius} type="button" aria-pressed={uiPreferences.radius === radius} onClick={() => updateUiPreferences({ radius })}>{t(radius)}</button>)}</div></div>
         <div className="settings-control-row"><span>{t("spacingLabel")}</span><div className="settings-choice" role="group" aria-label={t("spacingLabel")}>{(["compact", "comfortable"] as const).map((density) => <button key={density} type="button" aria-pressed={uiPreferences.density === density} onClick={() => updateUiPreferences({ density })}>{t(density)}</button>)}</div></div>

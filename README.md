@@ -15,7 +15,7 @@ MMV Hub is a responsive personal dashboard for subscriptions, recurring bills, o
 - Connect Google Calendar from the web or export standards-compliant `.ics` calendar files.
 - Track habits, completion history, goals, budgets, payment history, and cash-flow forecasts.
 - Choose from five themes (Dark, Light, Graphite, Mint, and Rose) with responsive layouts for phones, tablets, and desktops.
-- Adjust typography, text size, corner radius, spacing, and motion in Settings. View modes and filters can be remembered on each device.
+- Choose Google Sans, Inter, Poppins, Manrope, Space Grotesk, JetBrains Mono, or the system font in Settings. Also adjust text size, corner radius, spacing, and motion; view modes and filters can be remembered on each device.
 - Hear distinct in-app action and reminder sounds, with separate sound switches in Settings.
 - Register a local profile, save feedback and improvement notes locally, and track coffee-support records for the future supporter module.
 - Switch the interface between Uzbek, Russian, and English; the choice persists on web and Android.
@@ -98,6 +98,18 @@ For Telegram Login on the web, open `@BotFather`, run `/setdomain`, select the M
 Each published update is recorded newest first using `HH:mm DD.MM.YYYY GMT+5 (Tashkent)`.
 
 <details open>
+<summary><strong>19:20 08.10.2026 GMT+5 (Tashkent) — Expanded typography choices</strong></summary>
+
+- Added Inter, Poppins, Manrope, Space Grotesk, and JetBrains Mono beside Google Sans and the system font.
+- Bundled the new fonts locally in regular and medium weights, with Latin and Cyrillic support where available.
+- Added a live type sample in Settings. The choice persists per device across web and Android source.
+- Published the web app only; no Android APK was built.
+
+Modified areas: Settings, font preference storage, shared styles, bundled fonts, dependency metadata, and README.
+
+</details>
+
+<details>
 <summary><strong>14:15 08.10.2026 GMT+5 (Tashkent) — Compact settings and goals, web update</strong></summary>
 
 - Reorganized Settings into compact Appearance, Views, Finance, Connections, Account, and Data sections on web and Android.

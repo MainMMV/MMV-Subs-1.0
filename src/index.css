@@ -1,7 +1,9 @@
 @import "tailwindcss";
+@import "./fonts.css";
 
 @layer base {
   :root {
+    --app-font: "Google Sans", Inter, -apple-system, BlinkMacSystemFont, sans-serif;
     --bg-main: #29312e;
     --bg-sidebar: #202825;
     --bg-surface: #35403a;
@@ -15,11 +17,11 @@
   }
 
   *, ::before, ::after {
-    font-family: "Google Sans", "Google Sans Flex", -apple-system, BlinkMacSystemFont, sans-serif !important;
+    font-family: var(--app-font) !important;
   }
 
   body {
-    font-family: "Google Sans", "Google Sans Flex", -apple-system, BlinkMacSystemFont, sans-serif !important;
+    font-family: var(--app-font) !important;
     font-weight: 400;
   }
 }
@@ -937,12 +939,12 @@ html[data-theme="rose"] .native-bottom-nav {
 }
 
 /* Personal interface controls, shared by web and Android. */
-html[data-font="system"] *, html[data-font="system"] *::before, html[data-font="system"] *::after {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif !important;
-}
-html[data-font="mono"] *, html[data-font="mono"] *::before, html[data-font="mono"] *::after {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace !important;
-}
+html[data-font="inter"] { --app-font: Inter, system-ui, sans-serif; }
+html[data-font="poppins"] { --app-font: Poppins, Inter, system-ui, sans-serif; }
+html[data-font="manrope"] { --app-font: Manrope, Inter, system-ui, sans-serif; }
+html[data-font="space"] { --app-font: "Space Grotesk", Inter, system-ui, sans-serif; }
+html[data-font="mono"] { --app-font: "JetBrains Mono", ui-monospace, monospace; }
+html[data-font="system"] { --app-font: system-ui, -apple-system, BlinkMacSystemFont, sans-serif; }
 html[data-text-size="small"] { font-size: 14px; }
 html[data-text-size="normal"] { font-size: 16px; }
 html[data-text-size="large"] { font-size: 17px; }
@@ -985,6 +987,7 @@ html .mmv-count-badge, html .nav-item-border-active { border-color: var(--app-di
 .settings-control-row { display: flex; min-height: 2.8rem; align-items: center; justify-content: space-between; gap: 0.75rem; border-top: 1px solid var(--app-divider); font-size: 0.75rem; color: inherit; }
 .settings-control-row > :first-child { flex: 0 1 12rem; }
 .settings-control-row select { min-width: 6.5rem; max-width: 100%; padding: 0.4rem 0.55rem; border: 1px solid var(--app-divider); border-radius: var(--ui-radius, 8px); background: transparent; color: inherit; }
+.settings-font-preview { margin: 0.2rem 0 0; overflow: hidden; padding: 0.35rem 0.55rem; border-radius: var(--ui-radius, 8px); background: rgb(127 127 127 / 0.08); font-size: 0.875rem; letter-spacing: 0.01em; text-overflow: ellipsis; white-space: nowrap; }
 .settings-control-row input[type="checkbox"] { width: 1rem; height: 1rem; accent-color: #317459; }
 .settings-choice { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 2px; }
 .settings-choice button { padding: 0.4rem 0.55rem; border-radius: var(--ui-radius, 8px); color: #7a8680; font-size: 0.72rem; text-transform: capitalize; }
