@@ -97,7 +97,7 @@ For Telegram Login on the web, open `@BotFather`, run `/setdomain`, select the M
 Each published update is recorded newest first using `HH:mm DD.MM.YYYY GMT+5 (Tashkent)`.
 
 <details open>
-<summary><strong>12:41 08.10.2026 GMT+5 (Tashkent) — Five themes and improved reminder sounds</strong></summary>
+<summary><strong>12:45 08.10.2026 GMT+5 (Tashkent) — Five themes and improved reminder sounds</strong></summary>
 
 - Added Graphite, Mint, and Rose themes alongside Dark and Light.
 - Added separate Settings switches for action sounds and in-app notification sounds.
