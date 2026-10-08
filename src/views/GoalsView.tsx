@@ -1,20 +1,12 @@
 import React, { useState } from "react";
-import { 
-  Target, 
-  CheckCircle2, 
-  Clock, 
-  Calendar, 
-  Edit3, 
-  Trash2, 
-  Filter, 
-  LayoutGrid, 
-  List,
-  Plus
-} from "lucide-react";
+import { CalendarDays, Check, CheckCircle2, LayoutGrid, List, Pencil, Plus, Target, Trash2, X } from "lucide-react";
 import { motion } from "motion/react";
-import { useI18n } from "../i18n";
-import { SpendingGoal, CurrencyCode, CurrencyDisplayMode, PaymentItem, PaymentHistoryRecord } from "../types";
-import { formatCurrency, convertCurrency } from "../utils/calculations";
+import { useI18n, type TranslationKey } from "../i18n";
+import type { SpendingGoal, CurrencyDisplayMode, PaymentItem, PaymentHistoryRecord } from "../types";
+import { formatCurrency } from "../utils/calculations";
+import { formatDateDDMMYYYY } from "../utils/dateFormat";
+import { tashkentDateKey } from "../utils/timezone";
+import { setSectionFilter, setSectionView, updateUiPreferences, useUiPreferences } from "../services/uiPreferences";
 
 interface GoalsViewProps {
   goals: SpendingGoal[];
@@ -29,363 +21,97 @@ interface GoalsViewProps {
   onToggleComplete: (goalId: string) => void;
 }
 
-export const GoalsView: React.FC<GoalsViewProps> = ({
-  goals,
-  displayCurrency,
-  exchangeRateUsdToUzs,
-  onOpenAddGoal,
-  onEditGoal,
-  onDeleteGoal,
-  onUpdateProgress,
-  onToggleComplete,
-}) => {
+const GOAL_TYPES: Record<SpendingGoal["type"], TranslationKey> = {
+  budget_limit: "budgetLimit",
+  savings_target: "savingsTarget",
+  category_cap: "categoryCap",
+  bill_reserve: "billReserve",
+};
+
+function goalProgress(goal: SpendingGoal) {
+  if (goal.isCompleted) return 100;
+  return goal.targetAmount > 0 ? Math.min(100, Math.round(goal.currentAmount / goal.targetAmount * 100)) : 0;
+}
+
+export const GoalsView: React.FC<GoalsViewProps> = ({ goals, exchangeRateUsdToUzs, onOpenAddGoal, onEditGoal, onDeleteGoal, onUpdateProgress, onToggleComplete }) => {
   const { t } = useI18n();
-  const [viewMode, setViewMode] = useState<"card" | "list">("card");
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [filter, setFilter] = useState<"all" | "active" | "completed">("all");
-  const [quickAdjustId, setQuickAdjustId] = useState<string | null>(null);
-  const [adjustAmount, setAdjustAmount] = useState<string>("");
+  const preferences = useUiPreferences();
+  const viewMode = preferences.views.goals;
+  const filter = preferences.filters.goals;
+  const [adjustingId, setAdjustingId] = useState<string | null>(null);
+  const [adjustAmount, setAdjustAmount] = useState("");
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const today = tashkentDateKey();
+  const activeCount = goals.filter((goal) => !goal.isCompleted).length;
+  const completedCount = goals.length - activeCount;
+  const nextWeek = tashkentDateKey(new Date(Date.now() + 7 * 86_400_000));
+  const dueSoonCount = goals.filter((goal) => !goal.isCompleted && goal.deadline && goal.deadline >= today && goal.deadline <= nextWeek).length;
+  const visibleGoals = goals
+    .filter((goal) => filter === "all" || (filter === "active" ? !goal.isCompleted : goal.isCompleted))
+    .sort((left, right) => {
+      if (preferences.goalSort === "name") return left.title.localeCompare(right.title);
+      if (preferences.goalSort === "progress") return goalProgress(right) - goalProgress(left);
+      return (left.deadline || "9999-12-31").localeCompare(right.deadline || "9999-12-31") || left.title.localeCompare(right.title);
+    });
 
-  const activeGoals = goals.filter((g) => !g.isCompleted);
-  const completedGoals = goals.filter((g) => g.isCompleted);
-
-  const filteredGoals = goals.filter((g) => {
-    if (filter === "active") return !g.isCompleted;
-    if (filter === "completed") return g.isCompleted;
-    return true;
-  });
-
-  const handleQuickAdd = (goalId: string) => {
-    const val = parseFloat(adjustAmount);
-    if (!isNaN(val)) {
-      onUpdateProgress(goalId, val);
-    }
-    setQuickAdjustId(null);
+  const saveProgress = (goalId: string) => {
+    const amount = Number(adjustAmount);
+    if (!Number.isFinite(amount) || amount === 0) return;
+    onUpdateProgress(goalId, amount);
+    setAdjustingId(null);
     setAdjustAmount("");
   };
 
-  const hasActiveFilters = filter !== "all";
-
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: 4 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.18, ease: "easeOut" }}
-      className="mmv-page space-y-4 w-full pb-12 select-none min-w-0 overflow-hidden"
-    >
-      {/* Header: Title and counter badge with View Toggle & Hopper Filter Icon */}
-      <div className="flex items-center justify-between border-b border-neutral-200 pb-3">
-        <div className="flex items-center gap-2.5">
-          <h2 className="text-base font-medium text-neutral-900">{t("goals")}</h2>
-          <span className="mmv-count-badge px-2 py-0.5 rounded-md text-xs font-medium">
-            {activeGoals.length} {t("active")}
-          </span>
-        </div>
-
-        {/* Header Controls: Add Goal button, View Toggle, and Hopper Filter */}
-        <div className="flex items-center gap-1.5">
-          <button
-            type="button"
-            onClick={onOpenAddGoal}
-            className="h-8 px-2.5 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-medium flex items-center gap-1.5 transition-colors shadow-2xs"
-            title="Create new goal"
-          >
-            <Plus size={14} />
-            <span>{t("createGoal")}</span>
-          </button>
-
-          {/* View Toggle: toggles icon between LayoutGrid and List */}
-          <button
-            type="button"
-            onClick={() => setViewMode(viewMode === "card" ? "list" : "card")}
-            className="p-1.5 rounded-lg border border-neutral-200 bg-white hover:bg-neutral-50 text-neutral-700 transition-colors"
-            title={viewMode === "card" ? "Switch to list view" : "Switch to card view"}
-          >
-            {viewMode === "card" ? <List size={15} /> : <LayoutGrid size={15} />}
-          </button>
-
-          {/* Hopper Filter Icon */}
-          <button
-            type="button"
-            onClick={() => setIsFilterOpen(!isFilterOpen)}
-            className={`p-1.5 rounded-lg border transition-colors relative ${
-              isFilterOpen || hasActiveFilters
-                ? "border-neutral-900 bg-neutral-900 text-white"
-                : "border-neutral-200 bg-white hover:bg-neutral-50 text-neutral-700"
-            }`}
-            title="Filter goals"
-          >
-            <Filter size={15} />
-            {hasActiveFilters && !isFilterOpen && (
-              <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-amber-600" />
-            )}
-          </button>
-        </div>
+    <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.16 }} className="mmv-page goals-page w-full min-w-0 space-y-4 pb-12">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-neutral-200 pb-3">
+        <h2 className="text-base font-medium text-neutral-900">{t("goals")}</h2>
+        <button type="button" onClick={onOpenAddGoal} className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-neutral-900 px-3 text-xs font-medium text-white"><Plus size={15} />{t("createGoal")}</button>
       </div>
-
-      {/* Grouped Filtration below header toggled by Hopper icon */}
-      {isFilterOpen && (
-        <div className="p-3 rounded-lg border border-neutral-200 bg-white flex flex-col sm:flex-row items-center justify-between gap-2.5 animate-in fade-in duration-100">
-          <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0">
-            {(["all", "active", "completed"] as const).map((f) => {
-              const labels = {
-                all: "All Goals",
-                active: `Active (${activeGoals.length})`,
-                completed: `Completed (${completedGoals.length})`,
-              };
-              return (
-                <button
-                  key={f}
-                  type="button"
-                  onClick={() => setFilter(f)}
-                  className={`px-2.5 py-1 rounded-md text-xs font-medium capitalize transition-colors ${
-                    filter === f
-                      ? "bg-neutral-900 text-white shadow-2xs"
-                      : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
-                  }`}
-                >
-                  {labels[f]}
-                </button>
-              );
-            })}
+      <div className="grid grid-cols-3 gap-2 border-b border-neutral-200 pb-4 text-xs">
+        <div><span className="block text-neutral-500">{t("active")}</span><span className="text-lg font-medium text-neutral-900">{activeCount}</span></div>
+        <div><span className="block text-neutral-500">{t("completed")}</span><span className="text-lg font-medium text-neutral-900">{completedCount}</span></div>
+        <div><span className="block text-neutral-500">{t("dueInWeek")}</span><span className="text-lg font-medium text-neutral-900">{dueSoonCount}</span></div>
+      </div>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-1" role="group" aria-label="Goal status">
+          {(["all", "active", "completed"] as const).map((status) => <button key={status} type="button" onClick={() => setSectionFilter("goals", status)} aria-pressed={filter === status} className={`rounded-lg px-2.5 py-1.5 text-xs font-medium ${filter === status ? "bg-neutral-900 text-white" : "text-neutral-600 hover:bg-neutral-100"}`}>{t(status)}</button>)}
+        </div>
+        <div className="flex items-center gap-1.5">
+          <select aria-label={t("goalOrder")} value={preferences.goalSort} onChange={(event) => updateUiPreferences({ goalSort: event.target.value as typeof preferences.goalSort })} className="h-9 rounded-lg border border-neutral-200 bg-white px-2 text-xs text-neutral-700"><option value="deadline">{t("deadlineSort")}</option><option value="progress">{t("progressSort")}</option><option value="name">{t("nameSort")}</option></select>
+          <div className="flex rounded-lg bg-neutral-100 p-0.5" role="group" aria-label="Goal view">
+            <button type="button" onClick={() => setSectionView("goals", "list")} aria-label={t("listView")} aria-pressed={viewMode === "list"} title={t("listView")} className={`rounded-md p-1.5 ${viewMode === "list" ? "bg-white text-neutral-900" : "text-neutral-500"}`}><List size={15} /></button>
+            <button type="button" onClick={() => setSectionView("goals", "card")} aria-label={t("cardView")} aria-pressed={viewMode === "card"} title={t("cardView")} className={`rounded-md p-1.5 ${viewMode === "card" ? "bg-white text-neutral-900" : "text-neutral-500"}`}><LayoutGrid size={15} /></button>
           </div>
         </div>
-      )}
-
-      {/* Goals Content: Card or List */}
-      {filteredGoals.length === 0 ? (
-        <div className="p-10 text-center border border-neutral-200 rounded-lg bg-white text-xs text-neutral-400">
-          <p>{t("noItems")}</p>
-        </div>
-      ) : viewMode === "card" ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {filteredGoals.map((goal) => {
-            const pct = goal.isCompleted
-              ? 100
-              : goal.targetAmount > 0 
-              ? Math.min(100, Math.round((goal.currentAmount / goal.targetAmount) * 100))
-              : 0;
-            const isOver = goal.type === "budget_limit" && goal.currentAmount > goal.targetAmount;
-
-            return (
-              <div 
-                key={goal.id} 
-                className={`p-3.5 rounded-lg border bg-white flex h-full min-h-52 flex-col justify-between text-xs space-y-3 transition-colors ${
-                  goal.isCompleted ? "border-emerald-200 bg-emerald-50/20" : "border-neutral-200"
-                }`}
-              >
-                <div>
-                  {/* Goal Image from URL if provided (Fast load) */}
-                  {goal.imageUrl && (
-                    <div className="w-full h-28 rounded-md overflow-hidden mb-2.5 border border-neutral-100 bg-neutral-100">
-                      <img
-                        src={goal.imageUrl}
-                        alt={goal.title}
-                        loading="lazy"
-                        className="w-full h-full object-cover"
-                        style={{ objectPosition: `center ${goal.imagePositionY ?? 50}%` }}
-                        onError={(e) => {
-                          (e.currentTarget as HTMLImageElement).style.display = "none";
-                        }}
-                      />
-                    </div>
-                  )}
-
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    <div className="min-w-0">
-                      <span className="font-medium text-sm text-neutral-900 block truncate">
-                        {goal.title}
-                      </span>
-                      <span className="text-[11px] text-neutral-400 block capitalize">
-                        {goal.type === "budget_limit" ? "Spending Limit" : "Savings Target"} • {goal.period}
-                      </span>
-                    </div>
-
-                    <span className={`px-2 py-0.5 rounded text-[11px] font-medium shrink-0 ${
-                      goal.isCompleted 
-                        ? "bg-emerald-100 text-emerald-800" 
-                        : isOver 
-                        ? "bg-rose-100 text-rose-800" 
-                        : "bg-neutral-100 text-neutral-700"
-                    }`}>
-                      {pct}%
-                    </span>
-                  </div>
-
-                  {/* Progress Bar */}
-                  <div className="w-full bg-neutral-100 h-1.5 rounded-full overflow-hidden mb-2">
-                    <div 
-                      className={`h-full rounded-full transition-all duration-300 ${
-                        goal.isCompleted 
-                          ? "bg-emerald-600" 
-                          : isOver 
-                          ? "bg-rose-600" 
-                          : "bg-neutral-900"
-                      }`}
-                      style={{ width: `${pct}%` }}
-                    />
-                  </div>
-
-                  {/* Amounts with dual currencies */}
-                  <div className="flex items-center justify-between text-neutral-700 font-medium">
-                    <div>
-                      <span className="text-[10px] text-neutral-400 block font-normal">Accumulated</span>
-                      <span>{formatCurrency(goal.currentAmount, goal.currency)}</span>
-                      <span className="text-[10px] text-neutral-400 block font-normal">
-                        ≈ {goal.currency === "UZS"
-                          ? formatCurrency(goal.currentAmount / (exchangeRateUsdToUzs || 1), "USD")
-                          : formatCurrency(goal.currentAmount * (exchangeRateUsdToUzs || 12800), "UZS")}
-                      </span>
-                    </div>
-
-                    <div className="text-right">
-                      <span className="text-[10px] text-neutral-400 block font-normal">Target</span>
-                      <span>{formatCurrency(goal.targetAmount, goal.currency)}</span>
-                      <span className="text-[10px] text-neutral-400 block font-normal">
-                        ≈ {goal.currency === "UZS"
-                          ? formatCurrency(goal.targetAmount / (exchangeRateUsdToUzs || 1), "USD")
-                          : formatCurrency(goal.targetAmount * (exchangeRateUsdToUzs || 12800), "UZS")}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Footer Controls */}
-                <div className="border-t border-neutral-100 pt-2 flex items-center justify-between">
-                  <div className="flex items-center gap-1">
-                    {quickAdjustId === goal.id ? (
-                      <div className="flex items-center gap-1">
-                        <input
-                          type="number"
-                          value={adjustAmount}
-                          onChange={(e) => setAdjustAmount(e.target.value)}
-                          placeholder="+Amount"
-                          className="w-16 px-1.5 py-0.5 text-xs rounded border border-neutral-300"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => handleQuickAdd(goal.id)}
-                          className="px-2 py-0.5 rounded bg-neutral-900 text-white text-[11px] font-medium"
-                        >
-                          Add
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => setQuickAdjustId(goal.id)}
-                        className="text-[11px] text-neutral-600 hover:text-neutral-900 font-medium"
-                      >
-                        + Progress
-                      </button>
-                    )}
-                  </div>
-
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => onToggleComplete(goal.id)}
-                      className="p-1 rounded text-neutral-400 hover:text-emerald-700"
-                      title={goal.isCompleted ? "Mark incomplete" : "Mark completed"}
-                    >
-                      <CheckCircle2 size={14} className={goal.isCompleted ? "text-emerald-600" : ""} />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => onEditGoal(goal)}
-                      className="p-1 rounded text-neutral-400 hover:text-neutral-700"
-                      title="Edit goal"
-                    >
-                      <Edit3 size={14} />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => onDeleteGoal(goal.id)}
-                      className="p-1 rounded text-neutral-400 hover:text-rose-600"
-                      title="Delete goal"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                </div>
+      </div>
+      {visibleGoals.length === 0 ? <div className="py-12 text-center text-sm text-neutral-500"><Target size={22} className="mx-auto mb-3" />{goals.length ? t("noGoalsInFilter") : t("noGoalsYet")}</div> : (
+        <div className={viewMode === "card" ? "grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3" : "space-y-2"}>
+          {visibleGoals.map((goal) => {
+            const progress = goalProgress(goal);
+            const isLimit = goal.type === "budget_limit" || goal.type === "category_cap";
+            const remaining = Math.max(0, goal.targetAmount - goal.currentAmount);
+            const overdue = !goal.isCompleted && !!goal.deadline && goal.deadline < today;
+            const equivalent = goal.currency === "USD"
+              ? formatCurrency(goal.currentAmount * exchangeRateUsdToUzs, "UZS")
+              : formatCurrency(goal.currentAmount / (exchangeRateUsdToUzs || 1), "USD");
+            return <article key={goal.id} className={`min-w-0 rounded-lg border border-neutral-200 bg-white p-3.5 ${viewMode === "card" ? "flex h-full flex-col" : ""}`}>
+              <div className="flex min-w-0 items-start gap-3">
+                {goal.imageUrl ? <img src={goal.imageUrl} alt="" loading="lazy" className="h-10 w-10 shrink-0 rounded-md object-cover" style={{ objectPosition: `center ${goal.imagePositionY ?? 50}%` }} onError={(event) => { event.currentTarget.style.display = "none"; }} /> : <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-neutral-100 text-neutral-600"><Target size={17} /></span>}
+                <div className="min-w-0 flex-1"><h3 className="truncate text-sm font-medium text-neutral-900" title={goal.title}>{goal.title}</h3><p className="text-[11px] text-neutral-500">{t(GOAL_TYPES[goal.type])}{goal.period ? ` · ${goal.period}` : ""}</p></div>
+                <span className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium ${goal.isCompleted ? "bg-emerald-100 text-emerald-800" : overdue ? "bg-rose-100 text-rose-800" : "bg-neutral-100 text-neutral-700"}`}>{goal.isCompleted ? t("done") : overdue ? t("late") : `${progress}%`}</span>
               </div>
-            );
-          })}
-        </div>
-      ) : (
-        /* List Mode */
-        <div className="space-y-2">
-          {filteredGoals.map((goal) => {
-            const pct = goal.isCompleted
-              ? 100
-              : goal.targetAmount > 0 
-              ? Math.min(100, Math.round((goal.currentAmount / goal.targetAmount) * 100))
-              : 0;
-            const isOver = goal.type === "budget_limit" && goal.currentAmount > goal.targetAmount;
-
-            return (
-              <div
-                key={goal.id}
-                className={`p-3 rounded-lg border bg-white flex items-center justify-between gap-3 text-xs ${
-                  goal.isCompleted ? "border-emerald-200 bg-emerald-50/20" : "border-neutral-200"
-                }`}
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  {goal.imageUrl && (
-                    <img
-                      src={goal.imageUrl}
-                      alt={goal.title}
-                      loading="lazy"
-                      className="w-10 h-10 rounded-md object-cover shrink-0 bg-neutral-100"
-                      style={{ objectPosition: `center ${goal.imagePositionY ?? 50}%` }}
-                      onError={(e) => {
-                        (e.currentTarget as HTMLImageElement).style.display = "none";
-                      }}
-                    />
-                  )}
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium text-sm text-neutral-900 truncate">{goal.title}</span>
-                      <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
-                        goal.isCompleted ? "bg-emerald-100 text-emerald-800" : isOver ? "bg-rose-100 text-rose-800" : "bg-neutral-100 text-neutral-700"
-                      }`}>
-                        {pct}%
-                      </span>
-                    </div>
-                    <span className="text-[11px] text-neutral-400 block capitalize">
-                      {goal.type === "budget_limit" ? "Limit" : "Target"} • {formatCurrency(goal.currentAmount, goal.currency)} of {formatCurrency(goal.targetAmount, goal.currency)}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2 shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => onToggleComplete(goal.id)}
-                    className="p-1 rounded text-neutral-400 hover:text-emerald-700"
-                    title={goal.isCompleted ? "Mark incomplete" : "Mark completed"}
-                  >
-                    <CheckCircle2 size={15} className={goal.isCompleted ? "text-emerald-600" : ""} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => onEditGoal(goal)}
-                    className="p-1 rounded text-neutral-400 hover:text-neutral-700"
-                    title="Edit goal"
-                  >
-                    <Edit3 size={15} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => onDeleteGoal(goal.id)}
-                    className="p-1 rounded text-neutral-400 hover:text-rose-600"
-                    title="Delete goal"
-                  >
-                    <Trash2 size={15} />
-                  </button>
-                </div>
+              <div className="mt-3">
+                <div className="h-1.5 overflow-hidden rounded-full bg-neutral-100" role="progressbar" aria-label={`${goal.title} progress`} aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}><div className={`h-full transition-[width] duration-300 ${overdue ? "bg-rose-600" : "bg-neutral-900"}`} style={{ width: `${progress}%` }} /></div>
+                <div className="mt-2 flex flex-wrap items-baseline justify-between gap-x-2 gap-y-1 text-xs"><span className="font-medium text-neutral-900">{formatCurrency(goal.currentAmount, goal.currency)} <span className="font-normal text-neutral-500">/ {formatCurrency(goal.targetAmount, goal.currency)}</span></span><span className="text-neutral-500">{goal.isCompleted ? t("completed") : `${formatCurrency(remaining, goal.currency)} ${t(isLimit ? "left" : "toGo")}`}</span></div>
+                <p className="mt-0.5 text-[11px] text-neutral-500">≈ {equivalent}</p>
+                {goal.deadline ? <div className={`mt-2 flex items-center gap-1 text-[11px] ${overdue ? "text-rose-700" : "text-neutral-500"}`}><CalendarDays size={12} />{formatDateDDMMYYYY(goal.deadline)}</div> : null}
               </div>
-            );
+              <div className="mt-auto flex flex-wrap items-center justify-between gap-2 pt-3">
+                {adjustingId === goal.id ? <form onSubmit={(event) => { event.preventDefault(); saveProgress(goal.id); }} className="flex min-w-0 items-center gap-1"><input type="number" step="any" inputMode="decimal" value={adjustAmount} onChange={(event) => setAdjustAmount(event.target.value)} placeholder={t("amount")} aria-label={t("amount")} className="h-8 w-24 rounded-md border border-neutral-200 px-2 text-xs" autoFocus /><button type="submit" disabled={!Number.isFinite(Number(adjustAmount)) || Number(adjustAmount) === 0} aria-label={t("saveChanges")} title={t("saveChanges")} className="rounded-md p-1.5 text-neutral-800 disabled:opacity-40"><Check size={15} /></button><button type="button" onClick={() => setAdjustingId(null)} aria-label={t("cancel")} title={t("cancel")} className="rounded-md p-1.5 text-neutral-500"><X size={15} /></button></form> : goal.isCompleted ? <span /> : <button type="button" onClick={() => { setAdjustingId(goal.id); setAdjustAmount(""); }} className="text-xs font-medium text-neutral-700 hover:text-neutral-900">{t("adjustProgress")}</button>}
+                <div className="flex items-center gap-0.5">{deleteId === goal.id ? <><span className="mr-1 text-[11px] text-neutral-500">{t("deleteQuestion")}</span><button type="button" onClick={() => { onDeleteGoal(goal.id); setDeleteId(null); }} className="rounded-md px-2 py-1 text-xs text-rose-700">{t("yes")}</button><button type="button" onClick={() => setDeleteId(null)} className="rounded-md px-2 py-1 text-xs text-neutral-600">{t("no")}</button></> : <><button type="button" onClick={() => onToggleComplete(goal.id)} title={goal.isCompleted ? t("active") : t("completed")} aria-label={goal.isCompleted ? t("active") : t("completed")} className="rounded-md p-1.5 text-neutral-600 hover:bg-neutral-100"><CheckCircle2 size={16} /></button><button type="button" onClick={() => onEditGoal(goal)} title={t("edit")} aria-label={t("edit")} className="rounded-md p-1.5 text-neutral-600 hover:bg-neutral-100"><Pencil size={15} /></button><button type="button" onClick={() => setDeleteId(goal.id)} title={t("delete")} aria-label={t("delete")} className="rounded-md p-1.5 text-neutral-600 hover:bg-neutral-100"><Trash2 size={15} /></button></>}</div>
+              </div>
+            </article>;
           })}
         </div>
       )}

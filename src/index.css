@@ -42,34 +42,6 @@
   box-shadow: 0 1px 2px rgb(15 23 42 / 0.04);
 }
 
-.cursor-beam {
-  position: fixed;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  opacity: 0.62;
-  background:
-    radial-gradient(circle 92px at var(--cursor-beam-x, 50vw) var(--cursor-beam-y, 50vh), rgba(168, 201, 153, 0.18), transparent 72%),
-    linear-gradient(90deg, transparent max(0px, calc(var(--cursor-beam-x, 50vw) - 0.5px)), rgba(168, 201, 153, 0.16) var(--cursor-beam-x, 50vw), transparent calc(var(--cursor-beam-x, 50vw) + 0.5px)),
-    linear-gradient(0deg, transparent max(0px, calc(var(--cursor-beam-y, 50vh) - 0.5px)), rgba(168, 201, 153, 0.1) var(--cursor-beam-y, 50vh), transparent calc(var(--cursor-beam-y, 50vh) + 0.5px));
-  mix-blend-mode: screen;
-}
-
-html[data-theme="light"] .cursor-beam {
-  opacity: 0.42;
-  background:
-    radial-gradient(circle 86px at var(--cursor-beam-x, 50vw) var(--cursor-beam-y, 50vh), rgba(49, 116, 89, 0.12), transparent 72%),
-    linear-gradient(90deg, transparent max(0px, calc(var(--cursor-beam-x, 50vw) - 0.5px)), rgba(49, 116, 89, 0.1) var(--cursor-beam-x, 50vw), transparent calc(var(--cursor-beam-x, 50vw) + 0.5px)),
-    linear-gradient(0deg, transparent max(0px, calc(var(--cursor-beam-y, 50vh) - 0.5px)), rgba(49, 116, 89, 0.08) var(--cursor-beam-y, 50vh), transparent calc(var(--cursor-beam-y, 50vh) + 0.5px));
-  mix-blend-mode: multiply;
-}
-
-@media (pointer: coarse), (prefers-reduced-motion: reduce) {
-  .cursor-beam {
-    display: none;
-  }
-}
-
 .mmv-count-badge {
   border: 1px solid #a7f3d0;
   background: var(--mmv-accent-soft);
@@ -962,4 +934,69 @@ html[data-theme="rose"] .native-top-bar,
 html[data-theme="rose"] .native-bottom-nav {
   background-color: #fff7f8 !important;
   border-color: #ecd2d8 !important;
+}
+
+/* Personal interface controls, shared by web and Android. */
+html[data-font="system"] *, html[data-font="system"] *::before, html[data-font="system"] *::after {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif !important;
+}
+html[data-font="mono"] *, html[data-font="mono"] *::before, html[data-font="mono"] *::after {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace !important;
+}
+html[data-text-size="small"] { font-size: 14px; }
+html[data-text-size="normal"] { font-size: 16px; }
+html[data-text-size="large"] { font-size: 17px; }
+html[data-radius="square"] :is(.rounded-sm, .rounded, .rounded-md, .rounded-lg, .rounded-xl, .rounded-2xl, .mmv-card) { border-radius: 2px !important; }
+html[data-radius="square"] { --ui-radius: 2px; }
+html[data-radius="soft"] { --ui-radius: 8px; }
+html[data-radius="soft"] .mmv-page { --mmv-card-radius: 8px; }
+html[data-radius="round"] { --ui-radius: 12px; }
+html[data-radius="round"] :is(.rounded-md, .rounded-lg, .rounded-xl, .rounded-2xl, .mmv-card) { border-radius: 12px !important; }
+html[data-density="compact"] .mmv-page :is(.p-5, .p-4) { padding: 0.75rem !important; }
+html[data-density="compact"] .mmv-page :is(.gap-3, .gap-4) { gap: 0.5rem !important; }
+html[data-motion="reduced"] *, html[data-motion="reduced"] *::before, html[data-motion="reduced"] *::after {
+  scroll-behavior: auto !important;
+  animation-duration: 0.01ms !important;
+  transition-duration: 0.01ms !important;
+}
+
+/* Keep dividers neutral across themes; status is conveyed by fill and text. */
+html { --app-divider: #dfe4e2; }
+html[data-theme="warm-dark"] { --app-divider: #4b5750; }
+html[data-theme="graphite"] { --app-divider: #40464d; }
+html[data-theme="mint"] { --app-divider: #c8e5d6; }
+html[data-theme="rose"] { --app-divider: #eadde0; }
+html :is([class*="border-emerald-"], [class*="border-rose-"], [class*="border-amber-"], [class*="border-blue-"], [class*="border-purple-"]) {
+  border-color: var(--app-divider) !important;
+}
+html .mmv-count-badge, html .nav-item-border-active { border-color: var(--app-divider) !important; }
+
+.settings-page { max-width: 70rem; margin-inline: auto; }
+.settings-layout { display: grid; grid-template-columns: 10rem minmax(0, 1fr); gap: clamp(1rem, 3vw, 2rem); margin-top: 1rem; }
+.settings-nav { display: flex; flex-direction: column; align-self: start; gap: 2px; position: sticky; top: 0.5rem; }
+.settings-nav button { min-height: 2.3rem; width: 100%; padding: 0.45rem 0.65rem; text-align: left; color: #7a8680; font-size: 0.75rem; font-weight: 500; border-radius: var(--ui-radius, 8px); }
+.settings-nav button:hover { background: rgb(127 127 127 / 0.08); }
+.settings-nav button.is-active { background: rgb(127 127 127 / 0.12); color: inherit; }
+.settings-content { min-width: 0; }
+.settings-page .settings-content > div { margin-bottom: 1rem; padding: 0 0 1rem !important; border: 0 !important; border-bottom: 1px solid var(--app-divider) !important; border-radius: 0 !important; background: transparent !important; box-shadow: none !important; }
+.settings-content > div:last-child { border-bottom: 0 !important; }
+.settings-content > div > :first-child { margin-top: 0; }
+.settings-content input, .settings-content select, .settings-content textarea { max-width: 100%; }
+.settings-control-row { display: flex; min-height: 2.8rem; align-items: center; justify-content: space-between; gap: 0.75rem; border-top: 1px solid var(--app-divider); font-size: 0.75rem; color: inherit; }
+.settings-control-row > :first-child { flex: 0 1 12rem; }
+.settings-control-row select { min-width: 6.5rem; max-width: 100%; padding: 0.4rem 0.55rem; border: 1px solid var(--app-divider); border-radius: var(--ui-radius, 8px); background: transparent; color: inherit; }
+.settings-control-row input[type="checkbox"] { width: 1rem; height: 1rem; accent-color: #317459; }
+.settings-choice { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 2px; }
+.settings-choice button { padding: 0.4rem 0.55rem; border-radius: var(--ui-radius, 8px); color: #7a8680; font-size: 0.72rem; text-transform: capitalize; }
+.settings-choice button[aria-pressed="true"] { background: rgb(127 127 127 / 0.14); color: inherit; }
+.settings-view-row > div { justify-content: flex-end; }
+
+@media (max-width: 700px) {
+  .settings-layout { display: block; }
+  .settings-nav { position: sticky; top: 0; z-index: 5; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2px; margin-bottom: 1rem; padding: 0.3rem; background: var(--mmv-card-bg); border-bottom: 1px solid var(--app-divider); }
+  .settings-nav button { min-width: 0; text-align: center; padding-inline: 0.2rem; }
+  .settings-control-row { align-items: flex-start; padding-block: 0.6rem; }
+  .settings-control-row > :first-child { flex-basis: 7rem; }
+  .settings-view-row { flex-wrap: wrap; }
+  .settings-view-row > div { width: 100%; justify-content: flex-start; }
 }

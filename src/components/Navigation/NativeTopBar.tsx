@@ -1,5 +1,5 @@
 import React from "react";
-import { Bell } from "lucide-react";
+import { Bell, Menu } from "lucide-react";
 import { AppPage } from "../../types";
 import { MMVLogo } from "../MMVLogo";
 import { useI18n } from "../../i18n";
@@ -8,23 +8,26 @@ interface NativeTopBarProps {
   currentPage: AppPage;
   notificationCount: number;
   onOpenNotifications: () => void;
+  onOpenMenu: () => void;
 }
 
 export const NativeTopBar: React.FC<NativeTopBarProps> = ({
   currentPage,
   notificationCount,
   onOpenNotifications,
+  onOpenMenu,
 }) => {
   const { t } = useI18n();
   const pageTitles: Record<AppPage, string> = {
     home: t("today"), habits: t("habits"), subscriptions: t("subscriptions"),
     bills: t("recurringBills"), purchases: t("oneTimePurchases"), calendar: t("calendar"),
-    goals: t("goals"), reports: t("reports"), settings: t("settings"), more: t("more"),
+    goals: t("goals"), reports: t("reports"), settings: t("settings"),
   };
 
   return (
   <header className="native-top-bar flex min-h-16 shrink-0 items-center justify-between border-b border-neutral-200 bg-white px-4 pb-2 pt-[max(0.5rem,env(safe-area-inset-top))]">
     <div className="flex min-w-0 items-center gap-2.5">
+      <button type="button" onClick={onOpenMenu} aria-label={t("appNavigation")} title={t("appNavigation")} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-neutral-700"><Menu size={20} /></button>
       <MMVLogo size={30} />
       <div className="min-w-0">
         <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-neutral-500">MMV Hub</p>

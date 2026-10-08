@@ -6,6 +6,7 @@ import { PaymentItemRow } from "../components/PaymentItemRow";
 import { PaymentItemCard } from "../components/PaymentItemCard";
 import { getItemStatus } from "../utils/calculations";
 import { useI18n } from "../i18n";
+import { setSectionFilter, setSectionView, useUiPreferences } from "../services/uiPreferences";
 
 interface RecurringBillsViewProps {
   items: PaymentItem[];
@@ -34,9 +35,10 @@ export const RecurringBillsView: React.FC<RecurringBillsViewProps> = ({
   onTogglePaid,
 }) => {
   const { t } = useI18n();
-  const [viewMode, setViewMode] = useState<"list" | "card">("list");
+  const uiPreferences = useUiPreferences();
+  const viewMode = uiPreferences.views.bills;
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [filter, setFilter] = useState<"all" | "active" | "overdue" | "due_today" | "upcoming" | "paid">("all");
+  const filter = uiPreferences.filters.bills;
 
   const bills = items.filter((i) => i.type === "bill");
 
@@ -70,7 +72,7 @@ export const RecurringBillsView: React.FC<RecurringBillsViewProps> = ({
           {/* View Toggle: toggles icon between LayoutGrid and List */}
           <button
             type="button"
-            onClick={() => setViewMode(viewMode === "list" ? "card" : "list")}
+            onClick={() => setSectionView("bills", viewMode === "list" ? "card" : "list")}
             className="p-1.5 rounded-lg border border-neutral-200 bg-white hover:bg-neutral-50 text-neutral-700 transition-colors"
             title={viewMode === "list" ? "Switch to card view" : "Switch to list view"}
           >
@@ -113,7 +115,7 @@ export const RecurringBillsView: React.FC<RecurringBillsViewProps> = ({
                 <button
                   key={f}
                   type="button"
-                  onClick={() => setFilter(f)}
+                  onClick={() => setSectionFilter("bills", f)}
                   className={`px-2.5 py-1 rounded-md text-xs font-medium capitalize transition-colors ${
                     filter === f
                       ? "bg-neutral-900 text-white shadow-2xs"

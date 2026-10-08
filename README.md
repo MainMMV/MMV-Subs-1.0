@@ -15,6 +15,7 @@ MMV Hub is a responsive personal dashboard for subscriptions, recurring bills, o
 - Connect Google Calendar from the web or export standards-compliant `.ics` calendar files.
 - Track habits, completion history, goals, budgets, payment history, and cash-flow forecasts.
 - Choose from five themes (Dark, Light, Graphite, Mint, and Rose) with responsive layouts for phones, tablets, and desktops.
+- Adjust typography, text size, corner radius, spacing, and motion in Settings. View modes and filters can be remembered on each device.
 - Hear distinct in-app action and reminder sounds, with separate sound switches in Settings.
 - Register a local profile, save feedback and improvement notes locally, and track coffee-support records for the future supporter module.
 - Switch the interface between Uzbek, Russian, and English; the choice persists on web and Android.
@@ -97,6 +98,20 @@ For Telegram Login on the web, open `@BotFather`, run `/setdomain`, select the M
 Each published update is recorded newest first using `HH:mm DD.MM.YYYY GMT+5 (Tashkent)`.
 
 <details open>
+<summary><strong>14:15 08.10.2026 GMT+5 (Tashkent) — Compact settings and goals, web update</strong></summary>
+
+- Reorganized Settings into compact Appearance, Views, Finance, Connections, Account, and Data sections on web and Android.
+- Added saved typography, text size, corner radius, spacing, motion, view, filter, and goal sorting choices on each device.
+- Removed the cursor ambient effect and the More page and its retired module code; Android now opens all core pages from its top navigation menu.
+- Reworked Goals with active/completed/due counts, sorting, compact progress and remaining amounts, and a delete confirmation.
+- Neutralized colored borders while keeping status colors in text and fills.
+- Published the web app only; the Android APK remains v1.6.0.
+
+Modified areas: Settings, Goals, finance views, navigation, UI preference storage, translations, shared styles, web-only build guard, dependency metadata, and README.
+
+</details>
+
+<details>
 <summary><strong>12:45 08.10.2026 GMT+5 (Tashkent) — Five themes and improved reminder sounds</strong></summary>
 
 - Added Graphite, Mint, and Rose themes alongside Dark and Light.

@@ -73,8 +73,7 @@ export type AppPage =
   | "calendar"
   | "goals"
   | "reports"
-  | "settings"
-  | "more";
+  | "settings";
 
 export * from "./types/habit";
 

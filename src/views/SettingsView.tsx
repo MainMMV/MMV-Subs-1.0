@@ -9,8 +9,19 @@ import { areDeviceRemindersEnabled, enableDeviceReminders, syncDeviceReminders }
 import { requestTelegramTest } from "../firebase";
 import { TelegramConnectButton, type TelegramIdentity } from "../components/TelegramConnectButton";
 import { NativeQuickSetup } from "../components/NativeQuickSetup";
-import { useI18n, type AppLanguage } from "../i18n";
+import { useI18n, type AppLanguage, type TranslationKey } from "../i18n";
 import { formatTashkentDateTime, tashkentDateKey } from "../utils/timezone";
+import { DEFAULT_UI_PREFERENCES, updateUiPreferences, useUiPreferences, type ViewSection } from "../services/uiPreferences";
+
+type SettingsGroup = "appearance" | "views" | "finance" | "connections" | "account" | "data";
+const SETTINGS_GROUPS: Array<{ id: SettingsGroup; labelKey: TranslationKey }> = [
+  { id: "appearance", labelKey: "settingsAppearance" },
+  { id: "views", labelKey: "settingsViews" },
+  { id: "finance", labelKey: "settingsFinance" },
+  { id: "connections", labelKey: "settingsConnections" },
+  { id: "account", labelKey: "settingsAccount" },
+  { id: "data", labelKey: "settingsData" },
+];
 
 interface SettingsViewProps {
   displayCurrency: CurrencyDisplayMode;
@@ -142,6 +153,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   onChangeTheme,
 }) => {
   const { language, setLanguage, t } = useI18n();
+  const uiPreferences = useUiPreferences();
+  const [activeGroup, setActiveGroup] = useState<SettingsGroup>("appearance");
   const [rateInput, setRateInput] = useState(exchangeRateUsdToUzs.toString());
   const [browserPushActive, setBrowserPushActive] = useState<boolean>(() => isBrowserPushEnabled());
   const [pushStatus, setPushStatus] = useState<string | null>(null);
@@ -342,11 +355,20 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       initial={{ opacity: 0, y: 4 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.16, ease: "easeOut" }}
-      className="mmv-page space-y-4 w-full pb-16 select-none min-w-0 overflow-hidden"
+      className="mmv-page settings-page w-full min-w-0 pb-16"
     >
-      <div className="border-b border-neutral-200 pb-4">
+      <div className="border-b border-neutral-200 pb-3">
         <h2 className="text-base font-medium text-neutral-900">{t("settings")}</h2>
       </div>
+
+      <div className="settings-layout">
+        <nav className="settings-nav" aria-label="Settings categories">
+          {SETTINGS_GROUPS.map((group) => (
+            <button key={group.id} type="button" onClick={(event) => { setActiveGroup(group.id); event.currentTarget.closest("main")?.scrollTo({ top: 0, behavior: "auto" }); }} aria-current={activeGroup === group.id ? "page" : undefined} className={activeGroup === group.id ? "is-active" : ""}>{t(group.labelKey)}</button>
+          ))}
+        </nav>
+        <div className="settings-content">
+      {activeGroup === "account" ? <>
 
       {showCoffeePopup ? (
         <motion.div
@@ -385,15 +407,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             </div>
           </div>
         </motion.div>
-      ) : null}
-
-      {nativeApp ? (
-        <NativeQuickSetup
-          items={items}
-          onOpenCalendar={() => onOpenCalendarSync?.()}
-          autoHideWhenReady
-          className="mb-0"
-        />
       ) : null}
 
       <div className="p-5 rounded-lg border border-neutral-200 bg-white space-y-4">
@@ -582,6 +595,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         ) : null}
       </div>
 
+      </> : null}
+
+      {activeGroup === "appearance" ? <>
       <div className="p-5 rounded-lg border border-neutral-200 bg-white space-y-3">
         <div className="flex items-center gap-2">
           <Languages size={16} className="text-neutral-700" />
@@ -619,7 +635,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           </h3>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 gap-2 md:grid-cols-3">
           {THEME_OPTIONS.map((option) => {
             const selected = theme === option.id;
             return (
@@ -634,10 +650,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                 style={{
                   backgroundColor: option.cardBg,
                   color: option.textColor,
-                  borderColor: selected ? option.selectedBorder : `${option.selectedBorder}55`,
-                  boxShadow: selected ? `0 0 0 1px ${option.selectedBorder}` : undefined,
+                  borderColor: selected ? "currentColor" : "transparent",
                 }}
-                className="p-3.5 rounded-lg border text-left transition-all relative hover:opacity-95"
+                className="min-h-20 rounded-lg border p-2.5 text-left transition-colors hover:opacity-95"
               >
                 <div className="flex items-center justify-between gap-2 mb-2">
                   <div className="min-w-0">
@@ -646,7 +661,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       {option.badge ? (
                         <span
                           className="rounded border px-1.5 py-0.5 text-[10px] font-medium"
-                          style={{ borderColor: `${option.selectedBorder}88`, color: option.selectedBorder, backgroundColor: `${option.selectedBorder}22` }}
+                          style={{ borderColor: "currentColor", color: option.selectedBorder, backgroundColor: `${option.selectedBorder}22` }}
                         >
                           {option.badge}
                         </span>
@@ -661,8 +676,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   {option.swatches.map((swatch) => (
                     <span
                       key={swatch}
-                      className="h-5 w-5 rounded border"
-                      style={{ backgroundColor: swatch, borderColor: `${option.selectedBorder}66` }}
+                      className="h-3.5 w-3.5 rounded-sm"
+                      style={{ backgroundColor: swatch }}
                     />
                   ))}
                 </div>
@@ -670,6 +685,15 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             );
           })}
         </div>
+      </div>
+
+      <div className="settings-block space-y-2">
+        <h3 className="text-sm font-medium text-neutral-900">{t("typographyLayout")}</h3>
+        <div className="settings-control-row"><label htmlFor="settings-font">{t("fontLabel")}</label><select id="settings-font" value={uiPreferences.font} onChange={(event) => updateUiPreferences({ font: event.target.value as typeof uiPreferences.font })}><option value="google">Google Sans</option><option value="system">System</option><option value="mono">Monospace</option></select></div>
+        <div className="settings-control-row"><span>{t("textSizeLabel")}</span><div className="settings-choice" role="group" aria-label={t("textSizeLabel")}>{(["small", "normal", "large"] as const).map((size) => <button key={size} type="button" aria-pressed={uiPreferences.textSize === size} onClick={() => updateUiPreferences({ textSize: size })}>{t(size)}</button>)}</div></div>
+        <div className="settings-control-row"><span>{t("cornerRadius")}</span><div className="settings-choice" role="group" aria-label={t("cornerRadius")}>{(["square", "soft", "round"] as const).map((radius) => <button key={radius} type="button" aria-pressed={uiPreferences.radius === radius} onClick={() => updateUiPreferences({ radius })}>{t(radius)}</button>)}</div></div>
+        <div className="settings-control-row"><span>{t("spacingLabel")}</span><div className="settings-choice" role="group" aria-label={t("spacingLabel")}>{(["compact", "comfortable"] as const).map((density) => <button key={density} type="button" aria-pressed={uiPreferences.density === density} onClick={() => updateUiPreferences({ density })}>{t(density)}</button>)}</div></div>
+        <label className="settings-control-row"><span>{t("reduceMotion")}</span><input type="checkbox" checked={uiPreferences.reducedMotion} onChange={(event) => updateUiPreferences({ reducedMotion: event.target.checked })} /></label>
       </div>
 
       <div className="p-5 rounded-lg border border-neutral-200 bg-white space-y-3">
@@ -697,7 +721,22 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         {nativeApp ? <p className="text-[11px] text-neutral-500">Scheduled Android alerts use their own sounds. Manage them in your device notification settings.</p> : null}
       </div>
 
+      </> : null}
+
+      {activeGroup === "views" ? <div className="settings-block space-y-3">
+        <h3 className="text-sm font-medium text-neutral-900">{t("savedViewsFilters")}</h3>
+        <label className="settings-control-row"><span>{t("rememberViews")}</span><input type="checkbox" checked={uiPreferences.rememberViews} onChange={(event) => updateUiPreferences({ rememberViews: event.target.checked })} /></label>
+        {(["subscriptions", "bills", "purchases", "goals"] as ViewSection[]).map((section) => {
+          const filters = section === "goals" ? ["all", "active", "completed"] : section === "purchases" ? ["all", "upcoming", "paid"] : ["all", "active", "overdue", "due_today", "upcoming", "paid"];
+          const sectionLabel = section === "bills" ? t("recurringBills") : section === "purchases" ? t("oneTimePurchases") : t(section);
+          return <div key={section} className="settings-control-row settings-view-row"><span>{sectionLabel}</span><div className="flex min-w-0 flex-wrap gap-2"><select aria-label={`${section} view`} value={uiPreferences.views[section]} onChange={(event) => updateUiPreferences({ views: { ...uiPreferences.views, [section]: event.target.value as "list" | "card" } })}><option value="list">{t("listView")}</option><option value="card">{t("cardView")}</option></select><select aria-label={`${section} filter`} value={uiPreferences.filters[section]} onChange={(event) => updateUiPreferences({ filters: { ...uiPreferences.filters, [section]: event.target.value } })}>{filters.map((filterOption) => <option key={filterOption} value={filterOption}>{filterOption === "due_today" ? t("dueSoon") : filterOption === "active" ? t("active") : filterOption === "completed" ? t("completed") : filterOption === "overdue" ? t("overdue") : filterOption === "upcoming" ? t("upcoming") : filterOption.charAt(0).toUpperCase() + filterOption.slice(1)}</option>)}</select></div></div>;
+        })}
+        <div className="settings-control-row"><label htmlFor="settings-goal-sort">{t("goalOrder")}</label><select id="settings-goal-sort" value={uiPreferences.goalSort} onChange={(event) => updateUiPreferences({ goalSort: event.target.value as typeof uiPreferences.goalSort })}><option value="deadline">{t("deadlineSort")}</option><option value="progress">{t("progressSort")}</option><option value="name">{t("nameSort")}</option></select></div>
+        <button type="button" onClick={() => updateUiPreferences({ views: DEFAULT_UI_PREFERENCES.views, filters: DEFAULT_UI_PREFERENCES.filters, goalSort: DEFAULT_UI_PREFERENCES.goalSort })} className="text-xs font-medium text-neutral-600 underline">{t("resetViewsFilters")}</button>
+      </div> : null}
+
       {/* 2. Currency & Manual Exchange Rate Configuration */}
+      {activeGroup === "finance" ? <>
       <div className="p-5 rounded-lg border border-neutral-200 bg-white space-y-4">
         <div>
           <h3 className="text-sm font-medium text-neutral-900">{t("currencyConversion")}</h3>
@@ -788,6 +827,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       </div>
 
       {/* 2. Telegram Notifications Configuration */}
+      </> : null}
+      {activeGroup === "connections" ? <>
+      {nativeApp ? <NativeQuickSetup items={items} onOpenCalendar={() => onOpenCalendarSync?.()} autoHideWhenReady className="mb-0" /> : null}
       <div className="p-5 rounded-lg border border-neutral-200 bg-white space-y-4">
         <div>
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -1008,6 +1050,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       </div>
 
       {/* 5. Data Backup & Reset */}
+      </> : null}
+      {activeGroup === "data" ? <>
       <div className="p-5 rounded-lg border border-neutral-200 bg-white space-y-4">
         <div>
           <h3 className="text-sm font-medium text-neutral-900">{t("dataManagement")}</h3>
@@ -1035,6 +1079,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             <RotateCcw size={14} />
             <span>{t("clearData")}</span>
           </button>
+        </div>
+      </div>
+      </> : null}
         </div>
       </div>
     </motion.div>

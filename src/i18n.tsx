@@ -8,6 +8,11 @@ export type TranslationKey = keyof typeof en;
 const en = {
   language: "Language",
   languageDescription: "Choose the language used across MMV Hub.",
+  settingsAppearance: "Appearance", settingsViews: "Views", settingsFinance: "Finance", settingsConnections: "Connections", settingsAccount: "Account", settingsData: "Data",
+  typographyLayout: "Typography and layout", fontLabel: "Font", textSizeLabel: "Text size", cornerRadius: "Corner radius", spacingLabel: "Spacing", reduceMotion: "Reduce motion",
+  all: "All", small: "Small", normal: "Default", large: "Large", square: "Square", soft: "Soft", round: "Round", compact: "Compact", comfortable: "Comfortable",
+  savedViewsFilters: "Saved views and filters", rememberViews: "Remember view and filter choices", goalOrder: "Goal order", resetViewsFilters: "Reset views and filters", listView: "List", cardView: "Cards", deadlineSort: "Deadline", progressSort: "Progress", nameSort: "Name", completed: "Completed", dueInWeek: "Due in 7 days", adjustProgress: "Adjust progress", noGoalsInFilter: "No goals in this filter.", noGoalsYet: "No goals yet.",
+  budgetLimit: "Budget limit", savingsTarget: "Savings target", categoryCap: "Category cap", billReserve: "Bill reserve", toGo: "to go", left: "left", late: "Late", done: "Done", deleteQuestion: "Delete?", yes: "Yes", no: "No",
   timeZone: "Time zone",
   english: "English",
   uzbek: "O‘zbekcha",
@@ -160,6 +165,11 @@ const en = {
 } as const;
 
 const uz: Record<TranslationKey, string> = {
+  settingsAppearance: "Ko‘rinish", settingsViews: "Ko‘rish", settingsFinance: "Moliya", settingsConnections: "Ulanishlar", settingsAccount: "Hisob", settingsData: "Ma’lumotlar",
+  typographyLayout: "Shrift va joylashuv", fontLabel: "Shrift", textSizeLabel: "Matn o‘lchami", cornerRadius: "Burchak yumaloqligi", spacingLabel: "Oraliq", reduceMotion: "Harakatni kamaytirish",
+  all: "Barchasi", small: "Kichik", normal: "Standart", large: "Katta", square: "To‘g‘ri", soft: "Yumshoq", round: "Yumaloq", compact: "Ixcham", comfortable: "Qulay",
+  savedViewsFilters: "Saqlangan ko‘rinish va filtrlar", rememberViews: "Ko‘rinish va filtrlarni eslab qolish", goalOrder: "Maqsadlar tartibi", resetViewsFilters: "Ko‘rinish va filtrlarni tiklash", listView: "Ro‘yxat", cardView: "Kartalar", deadlineSort: "Muddat", progressSort: "Jarayon", nameSort: "Nom", completed: "Bajarilgan", dueInWeek: "7 kunda muddati", adjustProgress: "Jarayonni o‘zgartirish", noGoalsInFilter: "Bu filtrda maqsad yo‘q.", noGoalsYet: "Hozircha maqsad yo‘q.",
+  budgetLimit: "Budjet chegarasi", savingsTarget: "Jamg‘arma maqsadi", categoryCap: "Turkum chegarasi", billReserve: "To‘lov zaxirasi", toGo: "qoldi", left: "qoldi", late: "Kechikdi", done: "Tayyor", deleteQuestion: "O‘chirasizmi?", yes: "Ha", no: "Yo‘q",
   language: "Til", languageDescription: "MMV Hub interfeysi tilini tanlang.", timeZone: "Vaqt mintaqasi", english: "English", uzbek: "O‘zbekcha", russian: "Русский",
   home: "Bosh sahifa", today: "Bugun", overview: "Umumiy", habits: "Odatlar", habitTracker: "Odatlar kuzatuvi", subscriptions: "Obunalar", recurringBills: "Doimiy to‘lovlar", oneTimePurchases: "Bir martalik xaridlar", calendar: "Taqvim", reports: "Hisobotlar", goals: "Maqsadlar", goalsBudgets: "Maqsadlar va budjet", settings: "Sozlamalar", more: "Boshqa",
   openMenu: "Menyuni ochish", openNotifications: "Bildirishnomalarni ochish", appNavigation: "Ilova navigatsiyasi", addNewItem: "Yangi element qo‘shish", openAllSections: "Barcha bo‘limlarni ochish", allModules: "Barcha bo‘limlar", allModulesDescription: "MMV Hub imkoniyatlarining barchasi bir joyda.", newItem: "Yangi element", notifications: "Bildirishnomalar", notificationCenter: "Bildirishnomalar markazi", dueSoon: "Yaqin muddat", overdue: "Kechikkan", upcoming: "Yaqin", connect: "Ulash", syncNow: "Hozir sinxronlash", exchangeRate: "Valyuta kursi: 1 USD dan UZS ga",
@@ -172,6 +182,11 @@ const uz: Record<TranslationKey, string> = {
 };
 
 const ru: Record<TranslationKey, string> = {
+  settingsAppearance: "Внешний вид", settingsViews: "Виды", settingsFinance: "Финансы", settingsConnections: "Подключения", settingsAccount: "Аккаунт", settingsData: "Данные",
+  typographyLayout: "Шрифт и компоновка", fontLabel: "Шрифт", textSizeLabel: "Размер текста", cornerRadius: "Скругление", spacingLabel: "Интервалы", reduceMotion: "Уменьшить анимацию",
+  all: "Все", small: "Мелкий", normal: "Обычный", large: "Крупный", square: "Прямые", soft: "Мягкие", round: "Круглые", compact: "Компактно", comfortable: "Свободно",
+  savedViewsFilters: "Сохранённые виды и фильтры", rememberViews: "Запоминать виды и фильтры", goalOrder: "Сортировка целей", resetViewsFilters: "Сбросить виды и фильтры", listView: "Список", cardView: "Карточки", deadlineSort: "Срок", progressSort: "Прогресс", nameSort: "Название", completed: "Завершено", dueInWeek: "Срок за 7 дней", adjustProgress: "Изменить прогресс", noGoalsInFilter: "В этом фильтре целей нет.", noGoalsYet: "Целей пока нет.",
+  budgetLimit: "Лимит бюджета", savingsTarget: "Цель накопления", categoryCap: "Лимит категории", billReserve: "Резерв на счета", toGo: "осталось", left: "осталось", late: "Просрочено", done: "Готово", deleteQuestion: "Удалить?", yes: "Да", no: "Нет",
   language: "Язык", languageDescription: "Выберите язык интерфейса MMV Hub.", timeZone: "Часовой пояс", english: "English", uzbek: "O‘zbekcha", russian: "Русский",
   home: "Главная", today: "Сегодня", overview: "Обзор", habits: "Привычки", habitTracker: "Трекер привычек", subscriptions: "Подписки", recurringBills: "Регулярные счета", oneTimePurchases: "Разовые покупки", calendar: "Календарь", reports: "Отчёты", goals: "Цели", goalsBudgets: "Цели и бюджет", settings: "Настройки", more: "Ещё",
   openMenu: "Открыть меню", openNotifications: "Открыть уведомления", appNavigation: "Навигация приложения", addNewItem: "Добавить новый элемент", openAllSections: "Открыть все разделы", allModules: "Все разделы", allModulesDescription: "Все возможности MMV Hub в одном месте.", newItem: "Новый элемент", notifications: "Уведомления", notificationCenter: "Центр уведомлений", dueSoon: "Скоро", overdue: "Просрочено", upcoming: "Предстоит", connect: "Подключить", syncNow: "Синхронизировать", exchangeRate: "Курс: 1 USD к UZS",

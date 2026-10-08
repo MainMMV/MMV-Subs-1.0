@@ -1,5 +1,5 @@
 import React from "react";
-import { CalendarDays, CreditCard, Grid2X2, Home, Plus } from "lucide-react";
+import { CalendarDays, CreditCard, Home, Plus, Settings } from "lucide-react";
 import { AppPage } from "../../types";
 import { useI18n } from "../../i18n";
 
@@ -7,14 +7,12 @@ interface NativeBottomNavigationProps {
   currentPage: AppPage;
   onSelectPage: (page: AppPage) => void;
   onAdd: () => void;
-  onMore: () => void;
 }
 
 export const NativeBottomNavigation: React.FC<NativeBottomNavigationProps> = ({
   currentPage,
   onSelectPage,
   onAdd,
-  onMore,
 }) => {
   const { t } = useI18n();
   const items = [
@@ -70,15 +68,9 @@ export const NativeBottomNavigation: React.FC<NativeBottomNavigationProps> = ({
         );
       })}
 
-      <button
-        type="button"
-        onClick={onMore}
-        className={`flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl text-[10px] font-medium transition-colors ${currentPage === "more" ? "text-emerald-700" : "text-neutral-500"}`}
-        aria-label={t("openAllSections")}
-        aria-current={currentPage === "more" ? "page" : undefined}
-      >
-        <Grid2X2 size={19} strokeWidth={currentPage === "more" ? 2.3 : 1.8} />
-        <span>{t("more")}</span>
+      <button type="button" onClick={() => onSelectPage("settings")} className={`flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl text-[10px] font-medium transition-colors ${currentPage === "settings" ? "text-emerald-700" : "text-neutral-500"}`} aria-current={currentPage === "settings" ? "page" : undefined}>
+        <Settings size={19} strokeWidth={currentPage === "settings" ? 2.3 : 1.8} />
+        <span>{t("settings")}</span>
       </button>
     </nav>
   );

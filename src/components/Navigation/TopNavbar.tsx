@@ -41,7 +41,6 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
     reports: t("reports"),
     goals: t("goalsBudgets"),
     settings: t("settings"),
-    more: t("more"),
   };
 
   return (
