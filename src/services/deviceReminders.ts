@@ -1,4 +1,5 @@
 import { LocalNotifications, type LocalNotificationSchema } from "@capacitor/local-notifications";
+import { Capacitor } from "@capacitor/core";
 import { isNativeApp } from "./deviceCalendar";
 import type { ItemReminder, PaymentItem } from "../types";
 import type { Habit, HabitLog } from "../types/habit";
@@ -9,6 +10,27 @@ import { getPaymentReminderDate } from "./paymentReminderSchedule";
 const STORAGE_KEY = "mmv_subs_scheduled_device_ids_v1";
 const HABITS_STORAGE_KEY = "mmv_subs_habits_v2";
 const HABIT_LOGS_STORAGE_KEY = "mmv_subs_habit_logs_v2";
+const PAYMENT_CHANNEL_ID = "mmv_payments_v1";
+const HABIT_CHANNEL_ID = "mmv_habits_v1";
+
+async function ensureReminderChannels() {
+  await Promise.all([
+    LocalNotifications.createChannel({
+      id: PAYMENT_CHANNEL_ID,
+      name: "Payment reminders",
+      description: "Upcoming and overdue payment alerts",
+      importance: 4,
+      sound: "mmv_payment_reminder.wav",
+    }),
+    LocalNotifications.createChannel({
+      id: HABIT_CHANNEL_ID,
+      name: "Habit reminders",
+      description: "Scheduled habit alerts",
+      importance: 4,
+      sound: "mmv_habit_reminder.wav",
+    }),
+  ]);
+}
 
 function storedJson<T>(key: string, fallback: T): T {
   try {
@@ -48,6 +70,7 @@ export async function syncDeviceReminders(
   if (!isNativeApp()) return 0;
   const { display } = await LocalNotifications.checkPermissions();
   if (display !== "granted") return 0;
+  if (Capacitor.getPlatform() === "android") await ensureReminderChannels();
   const previous: number[] = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
   const notifications: LocalNotificationSchema[] = [];
   const now = Date.now();
@@ -65,6 +88,7 @@ export async function syncDeviceReminders(
         id: notificationId(`${item.id}:${item.date}:${reminder.id}`),
         title: `${item.name} payment reminder`,
         body: `${formatCurrency(item.price, item.currency)} due ${item.date}`,
+        channelId: PAYMENT_CHANNEL_ID,
         schedule: { at, allowWhileIdle: true },
         extra: { itemId: item.id },
       });
@@ -77,6 +101,7 @@ export async function syncDeviceReminders(
       id: notificationId(`habit:${reminder.key}`),
       title: reminder.title,
       body: reminder.body,
+      channelId: HABIT_CHANNEL_ID,
       schedule: { at: reminder.at, allowWhileIdle: true },
       extra: { habitId: reminder.habitId, page: "habits" },
     });

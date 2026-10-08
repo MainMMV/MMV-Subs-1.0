@@ -32,6 +32,8 @@ import {
 
 interface NotificationsDrawerProps {
   isOpen: boolean;
+  refreshAt: Date;
+  onChangeNotifications: () => void;
   onClose: () => void;
   items: PaymentItem[];
   displayCurrency: CurrencyCode;
@@ -44,6 +46,8 @@ interface NotificationsDrawerProps {
 
 export const NotificationsDrawer: React.FC<NotificationsDrawerProps> = ({
   isOpen,
+  refreshAt,
+  onChangeNotifications,
   onClose,
   items,
   displayCurrency,
@@ -63,14 +67,14 @@ export const NotificationsDrawer: React.FC<NotificationsDrawerProps> = ({
   const [notifications, setNotifications] = useState<InAppNotification[]>([]);
 
   useEffect(() => {
-    const list = generateInAppNotifications(items);
+    const list = generateInAppNotifications(items, refreshAt);
     setNotifications(list);
     if (isNativeApp()) areDeviceRemindersEnabled().then(setBrowserPushActive).catch(() => setBrowserPushActive(false));
     else setBrowserPushActive(isBrowserPushEnabled());
 
     // Dispatches browser alert if permitted
     triggerBrowserDueAlerts(list);
-  }, [items, isOpen]);
+  }, [items, isOpen, refreshAt]);
 
   if (!isOpen) return null;
 
@@ -127,11 +131,13 @@ export const NotificationsDrawer: React.FC<NotificationsDrawerProps> = ({
   const handleMarkAllRead = () => {
     markAllNotificationsAsRead(notifications);
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    onChangeNotifications();
   };
 
   const handleDismiss = (id: string) => {
     dismissNotification(id);
     setNotifications((prev) => prev.filter((n) => n.id !== id));
+    onChangeNotifications();
   };
 
   const handleMarkSingleRead = (id: string) => {
@@ -139,6 +145,7 @@ export const NotificationsDrawer: React.FC<NotificationsDrawerProps> = ({
     setNotifications((prev) =>
       prev.map((n) => (n.id === id ? { ...n, read: true } : n))
     );
+    onChangeNotifications();
   };
 
   return (

@@ -56,7 +56,7 @@ export type CurrencyCode = "USD" | "UZS";
 
 export type CurrencyDisplayMode = "default" | "USD" | "UZS";
 
-export type AppTheme = "warm-dark" | "light";
+export type AppTheme = "warm-dark" | "light" | "graphite" | "mint" | "rose";
 
 export interface AppSettings {
   displayCurrency: CurrencyDisplayMode;

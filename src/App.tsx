@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { 
   AppPage, 
   PaymentItem, 
@@ -16,7 +16,8 @@ import { getItemStatus, getNextRecurrenceDate } from "./utils/calculations";
 import { syncToFirebase } from "./firebase";
 import { initGoogleCalendarAuth } from "./services/googleCalendar";
 import { syncDeviceReminders } from "./services/deviceReminders";
-import { generateInAppNotifications, triggerBrowserDueAlerts } from "./services/notificationService";
+import { generateInAppNotifications, getActiveInAppAlertKeys, triggerBrowserDueAlerts } from "./services/notificationService";
+import { initializeAppSounds, playAppSound } from "./services/soundService";
 import { Sidebar } from "./components/Navigation/Sidebar";
 import { TopNavbar } from "./components/Navigation/TopNavbar";
 import { ItemModal } from "./components/Modals/ItemModal";
@@ -62,14 +63,19 @@ const STORAGE_KEYS = {
 };
 
 const DEFAULT_EXCHANGE_RATE_USD_TO_UZS = 12800;
+const APP_THEMES: AppTheme[] = ["warm-dark", "light", "graphite", "mint", "rose"];
+const DARK_APP_THEMES: AppTheme[] = ["warm-dark", "graphite"];
 
 export default function App() {
   const nativeApp = isNativeApp();
+  const knownAlertKeysRef = useRef<Set<string>>(new Set());
+  const notificationsInitializedRef = useRef(false);
+  const [notificationNow, setNotificationNow] = useState(() => new Date());
   // Theme State: "warm-dark" is default
   const [theme, setTheme] = useState<AppTheme>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEYS.THEME);
-      return (saved === "light" || saved === "warm-dark") ? saved : "warm-dark";
+      return APP_THEMES.includes(saved as AppTheme) ? saved as AppTheme : "warm-dark";
     } catch {
       return "warm-dark";
     }
@@ -80,12 +86,26 @@ export default function App() {
       localStorage.setItem(STORAGE_KEYS.THEME, theme);
     } catch {}
     document.documentElement.setAttribute("data-theme", theme);
-    if (theme === "warm-dark") {
+    if (DARK_APP_THEMES.includes(theme)) {
       document.documentElement.classList.add("dark");
     } else {
       document.documentElement.classList.remove("dark");
     }
   }, [theme]);
+
+  useEffect(() => {
+    initializeAppSounds();
+  }, []);
+
+  useEffect(() => {
+    const refresh = () => setNotificationNow(new Date());
+    const timer = window.setInterval(refresh, 30_000);
+    document.addEventListener("visibilitychange", refresh);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", refresh);
+    };
+  }, []);
 
   // Navigation State
   const [currentPage, setCurrentPage] = useState<AppPage>("home");
@@ -264,8 +284,18 @@ export default function App() {
 
   // Trigger browser push alerts for due items on load/item changes
   useEffect(() => {
-    const notifs = generateInAppNotifications(items);
+    const notifs = generateInAppNotifications(items, notificationNow);
     triggerBrowserDueAlerts(notifs);
+    const alerts = getActiveInAppAlertKeys(items, notificationNow);
+    const newAlerts = alerts.filter((alert) => !knownAlertKeysRef.current.has(alert.key));
+    if (!document.hidden && notificationsInitializedRef.current && newAlerts.length) {
+      playAppSound(newAlerts.some((alert) => alert.sound === "reminder") ? "reminder" : "notification");
+    }
+    knownAlertKeysRef.current = new Set(alerts.map((alert) => alert.key));
+    notificationsInitializedRef.current = true;
+  }, [items, notificationNow]);
+
+  useEffect(() => {
     syncDeviceReminders(items, habits, habitLogs).catch((error) => console.warn("Device reminders could not be scheduled:", error));
   }, [items, habits, habitLogs]);
 
@@ -328,6 +358,7 @@ export default function App() {
 
   // Habit Handlers
   const handleSaveHabit = (habitData: Partial<Habit>) => {
+    playAppSound("save");
     if (habitData.id) {
       setHabits((prev) =>
         prev.map((h) =>
@@ -373,6 +404,7 @@ export default function App() {
   };
 
   const handleDeleteHabit = (habitId: string) => {
+    playAppSound("delete");
     setHabits((prev) => prev.filter((h) => h.id !== habitId));
     setHabitLogs((prev) => {
       const next = { ...prev };
@@ -382,6 +414,7 @@ export default function App() {
   };
 
   const handleUpdateHabitLog = (habitId: string, dateStr: string, updates: Partial<HabitLog>) => {
+    playAppSound(updates.completed ? "paid" : "tap");
     setHabitLogs((prev) => {
       const habitLogsForId = { ...(prev[habitId] || {}) };
       const currentLog = habitLogsForId[dateStr] || {
@@ -414,6 +447,7 @@ export default function App() {
 
   // Handler: Open Add Modal or New Item Chooser Modal
   const handleOpenAddModal = (presetType?: ItemType) => {
+    playAppSound("open");
     if (presetType) {
       setDefaultNewType(presetType);
       setEditingItem(null);
@@ -425,6 +459,7 @@ export default function App() {
   };
 
   const handleSelectNewItemType = (type: NewItemType) => {
+    playAppSound("open");
     setIsNewItemSelectOpen(false);
     if (type === "habit") {
       setCurrentPage("habits");
@@ -437,11 +472,13 @@ export default function App() {
   };
 
   const handleEditItem = (item: PaymentItem) => {
+    playAppSound("open");
     setEditingItem(item);
     setIsItemModalOpen(true);
   };
 
   const handleSaveItem = (itemData: Partial<PaymentItem>) => {
+    playAppSound("save");
     if (itemData.id) {
       // Edit existing
       setItems((prev) =>
@@ -480,6 +517,7 @@ export default function App() {
 
   // Handler: Toggle Paid status (Recurring items move to next month when completed)
   const handleTogglePaid = (item: PaymentItem) => {
+    playAppSound(item.manualStatus === "paid" ? "tap" : "paid");
     const isRecurring = item.type === "subscription" || item.type === "bill";
     const currentlyPaid = item.manualStatus === "paid";
 
@@ -549,6 +587,7 @@ export default function App() {
 
   // Handler: Manage Reminders
   const handleSaveReminders = (itemId: string, updatedReminders: ItemReminder[]) => {
+    playAppSound("reminder");
     setItems((prev) =>
       prev.map((i) => (i.id === itemId ? { ...i, reminders: updatedReminders } : i))
     );
@@ -556,6 +595,7 @@ export default function App() {
 
   // Handler: Update Item Status (from Detail modal)
   const handleUpdateStatus = (item: PaymentItem, status: "paid" | "skipped" | "upcoming") => {
+    playAppSound(status === "paid" ? "paid" : status === "skipped" ? "delete" : "tap");
     const isNowPaid = status === "paid";
     const isRecurring = item.type === "subscription" || item.type === "bill";
 
@@ -640,21 +680,25 @@ export default function App() {
 
   // Handler: Item Detail modal open
   const handleViewDetail = (item: PaymentItem) => {
+    playAppSound("open");
     setDetailItem(item);
   };
 
   // Handlers: Goals Management
   const handleOpenAddGoal = () => {
+    playAppSound("open");
     setEditingGoal(null);
     setIsGoalModalOpen(true);
   };
 
   const handleEditGoal = (goal: SpendingGoal) => {
+    playAppSound("open");
     setEditingGoal(goal);
     setIsGoalModalOpen(true);
   };
 
   const handleSaveGoal = (goalData: Partial<SpendingGoal>) => {
+    playAppSound("save");
     if (goalData.id) {
       setGoals((prev) =>
         prev.map((g) => (g.id === goalData.id ? { ...g, ...goalData } : g))
@@ -681,6 +725,7 @@ export default function App() {
   };
 
   const handleDeleteGoal = (goalId: string) => {
+    playAppSound("delete");
     setGoals((prev) => prev.filter((g) => g.id !== goalId));
   };
 
@@ -699,6 +744,7 @@ export default function App() {
   };
 
   const handleToggleCompleteGoal = (goalId: string) => {
+    playAppSound("paid");
     setGoals((prev) =>
       prev.map((g) => (g.id === goalId ? { ...g, isCompleted: !g.isCompleted } : g))
     );
@@ -715,6 +761,7 @@ export default function App() {
 
   const handleConfirmDelete = () => {
     if (!deleteCandidate) return;
+    playAppSound("delete");
     const itemToDelete = deleteCandidate;
     
     // Remove from active list
@@ -727,6 +774,7 @@ export default function App() {
 
   const handleUndoDelete = () => {
     if (!undoItem) return;
+    playAppSound("undo");
     // Restore item completely
     setItems((prev) => [undoItem, ...prev]);
     setUndoItem(null);
@@ -737,13 +785,14 @@ export default function App() {
   };
 
   // Count notifications (unread in-app notifications)
-  const inAppNotifications = generateInAppNotifications(items);
+  const inAppNotifications = generateInAppNotifications(items, notificationNow);
   const activeNotificationsCount = inAppNotifications.filter((n) => !n.read).length;
 
   const displayItems = items;
 
   // Reset data handler
   const handleResetData = () => {
+    playAppSound("delete");
     setItems([]);
     setRecords([]);
     setGoals([]);
@@ -1126,6 +1175,8 @@ export default function App() {
       {/* IN-APP NOTIFICATIONS DRAWER (Upcoming & Missed) */}
       <NotificationsDrawer
         isOpen={isNotificationsOpen}
+        refreshAt={notificationNow}
+        onChangeNotifications={() => setNotificationNow(new Date())}
         onClose={() => setIsNotificationsOpen(false)}
         items={items}
         displayCurrency={displayCurrency}

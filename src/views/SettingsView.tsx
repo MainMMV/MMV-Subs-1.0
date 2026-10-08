@@ -1,8 +1,9 @@
 import React, { useCallback, useState, useEffect } from "react";
-import { Send, Check, Download, RotateCcw, CalendarSync, Bell, ShieldCheck, Palette, Terminal, Languages, UserRound, Coffee, Copy, MessageSquare, Sparkles, X, Heart, Trophy } from "lucide-react";
+import { Send, Check, Download, RotateCcw, CalendarSync, Bell, ShieldCheck, Palette, Terminal, Languages, UserRound, Coffee, Copy, MessageSquare, Sparkles, X, Heart, Trophy, Volume2 } from "lucide-react";
 import { motion } from "motion/react";
 import { CurrencyDisplayMode, TelegramConfig, PaymentItem, GoogleCalendarSyncState, AppTheme } from "../types";
 import { isBrowserPushEnabled, requestBrowserPushPermission } from "../services/notificationService";
+import { isSoundEnabled, playAppSound, setSoundEnabled, type SoundPreference } from "../services/soundService";
 import { isNativeApp } from "../services/deviceCalendar";
 import { areDeviceRemindersEnabled, enableDeviceReminders, syncDeviceReminders } from "../services/deviceReminders";
 import { requestTelegramTest } from "../firebase";
@@ -59,6 +60,64 @@ const SETTINGS_STORAGE_KEYS = {
 const SUPPORT_CARD_NUMBER = "8600 4929 3050 8490";
 const SUPPORT_CARD_OWNER = "M. F.";
 
+const THEME_OPTIONS: Array<{
+  id: AppTheme;
+  label: string;
+  badge?: string;
+  previewText: string;
+  selectedBorder: string;
+  cardBg: string;
+  textColor: string;
+  swatches: string[];
+}> = [
+  {
+    id: "warm-dark",
+    label: "Dark",
+    badge: "Default",
+    previewText: "Soft dark workspace",
+    selectedBorder: "#a8c999",
+    cardBg: "#29312e",
+    textColor: "#f1f4f2",
+    swatches: ["#29312e", "#202825", "#35403a", "#455049", "#a8c999"],
+  },
+  {
+    id: "light",
+    label: "Light",
+    previewText: "Clean daylight",
+    selectedBorder: "#317459",
+    cardBg: "#ffffff",
+    textColor: "#1e2825",
+    swatches: ["#f5f7f6", "#ecf0ee", "#ffffff", "#edf2ef", "#317459"],
+  },
+  {
+    id: "graphite",
+    label: "Graphite",
+    previewText: "Deep neutral focus",
+    selectedBorder: "#7dd3fc",
+    cardBg: "#202124",
+    textColor: "#f4f7f8",
+    swatches: ["#202124", "#181a1d", "#2a2d31", "#3a3f45", "#7dd3fc"],
+  },
+  {
+    id: "mint",
+    label: "Mint",
+    previewText: "Fresh calm",
+    selectedBorder: "#0f8a6a",
+    cardBg: "#f1faf5",
+    textColor: "#14342b",
+    swatches: ["#f1faf5", "#e3f3eb", "#ffffff", "#d8eee3", "#0f8a6a"],
+  },
+  {
+    id: "rose",
+    label: "Rose",
+    previewText: "Warm polished",
+    selectedBorder: "#be3455",
+    cardBg: "#fff7f8",
+    textColor: "#331f25",
+    swatches: ["#fff7f8", "#f7ecef", "#ffffff", "#f1dce2", "#be3455"],
+  },
+];
+
 function loadJsonValue<T>(key: string, fallback: T): T {
   try {
     const saved = localStorage.getItem(key);
@@ -86,6 +145,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const [rateInput, setRateInput] = useState(exchangeRateUsdToUzs.toString());
   const [browserPushActive, setBrowserPushActive] = useState<boolean>(() => isBrowserPushEnabled());
   const [pushStatus, setPushStatus] = useState<string | null>(null);
+  const [soundPreferences, setSoundPreferences] = useState(() => ({ actions: isSoundEnabled("actions"), alerts: isSoundEnabled("alerts") }));
   const [rateSavedMessage, setRateSavedMessage] = useState(false);
   const [profile, setProfile] = useState<LocalProfile | null>(() => loadJsonValue<LocalProfile | null>(SETTINGS_STORAGE_KEYS.PROFILE, null));
   const [profileForm, setProfileForm] = useState(() => ({
@@ -106,6 +166,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const [feedbackStatus, setFeedbackStatus] = useState<string | null>(null);
   const [showCoffeePopup, setShowCoffeePopup] = useState(false);
   const nativeApp = isNativeApp();
+
+  const handleSoundPreference = (preference: SoundPreference, enabled: boolean) => {
+    setSoundEnabled(preference, enabled);
+    setSoundPreferences((previous) => ({ ...previous, [preference]: enabled }));
+    if (enabled) playAppSound(preference === "alerts" ? "reminder" : "save");
+  };
 
   useEffect(() => {
     if (nativeApp) areDeviceRemindersEnabled().then(setBrowserPushActive).catch(() => setBrowserPushActive(false));
@@ -129,6 +195,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     e.preventDefault();
     const num = parseFloat(rateInput);
     if (!isNaN(num) && num > 0) {
+      playAppSound("save");
       onUpdateExchangeRate(num);
       setRateSavedMessage(true);
       setTimeout(() => setRateSavedMessage(false), 2000);
@@ -137,6 +204,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
   const handleSaveTelegram = (e: React.FormEvent) => {
     e.preventDefault();
+    playAppSound("save");
     onUpdateTelegramConfig({
       ...telegramConfig,
       // The shared bot token stays in the Telegram worker environment only.
@@ -151,11 +219,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const handleTestTelegram = async () => {
     if (!tgChatId.trim() || !telegramConfig.isEnabled || telegramConfig.chatId !== tgChatId.trim()) {
       setTestStatus("Save an enabled Telegram Chat ID before testing.");
+      playAppSound("notification");
       return;
     }
     setIsTesting(true);
     try {
       await requestTelegramTest(tgChatId.trim());
+      playAppSound("notification");
       setTestStatus("Test queued. Check your Telegram chat after the next worker check (about a minute).");
     } catch (error) {
       setTestStatus(error instanceof Error ? error.message : "Could not queue Telegram test. Check Firebase access.");
@@ -165,6 +235,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   };
 
   const handleTelegramConnected = useCallback((identity: TelegramIdentity, botUsername: string) => {
+    playAppSound("save");
     const chatId = String(identity.id);
     setTgChatId(chatId);
     setTgEnabled(true);
@@ -179,6 +250,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   }, [onUpdateTelegramConfig, telegramConfig]);
 
   const handleExportData = () => {
+    playAppSound("save");
     const jsonStr = JSON.stringify(items, null, 2);
     const blob = new Blob([jsonStr], { type: "application/json" });
     const url = URL.createObjectURL(blob);
@@ -191,6 +263,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
+    playAppSound("save");
     const nextProfile: LocalProfile = {
       name: profileForm.name.trim(),
       email: profileForm.email.trim(),
@@ -208,20 +281,24 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const handleCopySupportCard = async () => {
     try {
       await navigator.clipboard.writeText(SUPPORT_CARD_NUMBER.replaceAll(" ", ""));
+      playAppSound("save");
       setCoffeeStatus("Card number copied.");
     } catch {
+      playAppSound("notification");
       setCoffeeStatus("Copy failed. You can select the card number manually.");
     }
     window.setTimeout(() => setCoffeeStatus(null), 2500);
   };
 
   const handleCloseCoffeePopup = () => {
+    playAppSound("tap");
     setShowCoffeePopup(false);
     localStorage.setItem(SETTINGS_STORAGE_KEYS.COFFEE_POPUP_DISMISSED, "true");
   };
 
   const handleRecordCoffee = (e: React.FormEvent) => {
     e.preventDefault();
+    playAppSound("paid");
     const record: CoffeeSupportRecord = {
       id: `coffee-${Date.now()}`,
       name: coffeeForm.name.trim() || "Kind supporter",
@@ -241,8 +318,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     e.preventDefault();
     if (!feedbackForm.message.trim()) {
       setFeedbackStatus("Write a short message first.");
+      playAppSound("notification");
       return;
     }
+    playAppSound("save");
     const record: FeedbackRecord = {
       id: `feedback-${Date.now()}`,
       type: feedbackForm.type,
@@ -540,67 +619,82 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           </h3>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {/* Dark */}
-          <button
-            type="button"
-            onClick={() => onChangeTheme?.("warm-dark")}
-            className={`p-3.5 rounded-lg border text-left transition-all relative ${
-              theme === "warm-dark"
-                ? "border-[#a8c999] ring-1 ring-[#a8c999] bg-[#29312e]"
-                : "border-neutral-200 hover:border-neutral-300 bg-[#29312e]/80"
-            }`}
-          >
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-medium text-[#f1f4f2]">{t("dark")}</span>
-                <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-[#ADC385]/20 text-[#ADC385] border border-[#ADC385]/40">
-                  {t("default")}
-                </span>
-              </div>
-              {theme === "warm-dark" && (
-                <Check size={14} className="text-[#a8c999]" />
-              )}
-            </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+          {THEME_OPTIONS.map((option) => {
+            const selected = theme === option.id;
+            return (
+              <button
+                key={option.id}
+                type="button"
+                onClick={() => {
+                  playAppSound("tap");
+                  onChangeTheme?.(option.id);
+                }}
+                aria-pressed={selected}
+                style={{
+                  backgroundColor: option.cardBg,
+                  color: option.textColor,
+                  borderColor: selected ? option.selectedBorder : `${option.selectedBorder}55`,
+                  boxShadow: selected ? `0 0 0 1px ${option.selectedBorder}` : undefined,
+                }}
+                className="p-3.5 rounded-lg border text-left transition-all relative hover:opacity-95"
+              >
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="truncate text-xs font-medium">{option.label}</span>
+                      {option.badge ? (
+                        <span
+                          className="rounded border px-1.5 py-0.5 text-[10px] font-medium"
+                          style={{ borderColor: `${option.selectedBorder}88`, color: option.selectedBorder, backgroundColor: `${option.selectedBorder}22` }}
+                        >
+                          {option.badge}
+                        </span>
+                      ) : null}
+                    </div>
+                    <span className="mt-0.5 block truncate text-[10px] opacity-70">{option.previewText}</span>
+                  </div>
+                  {selected ? <Check size={14} style={{ color: option.selectedBorder }} /> : null}
+                </div>
 
-            {/* Color swatches preview */}
-            <div className="flex items-center gap-1.5 pt-1">
-              <div className="w-5 h-5 rounded bg-[#29312e] border border-[#4b5750]" title="Main" />
-              <div className="w-5 h-5 rounded bg-[#202825] border border-[#4b5750]" title="Sidebar" />
-              <div className="w-5 h-5 rounded bg-[#35403a] border border-[#4b5750]" title="Surface" />
-              <div className="w-5 h-5 rounded bg-[#455049] border border-[#4b5750]" title="Input" />
-              <div className="w-5 h-5 rounded bg-[#a8c999] border border-[#a8c999]" title="Accent" />
-            </div>
-          </button>
-
-          {/* Light */}
-          <button
-            type="button"
-            onClick={() => onChangeTheme?.("light")}
-            style={{ backgroundColor: theme === "light" ? "#ffffff" : "#f5f7f6", color: "#1e2825" }}
-            className={`p-3.5 rounded-lg border text-left transition-all relative ${
-              theme === "light"
-                ? "border-[#317459] ring-1 ring-[#317459]"
-                : "border-[#dce4df] hover:border-[#b8d4c1]"
-            }`}
-          >
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-medium" style={{ color: "#1e2825" }}>{t("light")}</span>
-              {theme === "light" && (
-                <Check size={14} style={{ color: "#317459" }} />
-              )}
-            </div>
-
-            {/* Color swatches preview */}
-            <div className="flex items-center gap-1.5 pt-1">
-              <div className="w-5 h-5 rounded bg-[#f5f7f6] border border-[#dce4df]" title="Main" />
-              <div className="w-5 h-5 rounded bg-[#ecf0ee] border border-[#dce4df]" title="Sidebar" />
-              <div className="w-5 h-5 rounded bg-white border border-[#dce4df]" title="Surface" />
-              <div className="w-5 h-5 rounded bg-[#edf2ef] border border-[#dce4df]" title="Secondary" />
-              <div className="w-5 h-5 rounded bg-[#317459] border border-[#317459]" title="Accent" />
-            </div>
-          </button>
+                <div className="flex items-center gap-1.5 pt-1">
+                  {option.swatches.map((swatch) => (
+                    <span
+                      key={swatch}
+                      className="h-5 w-5 rounded border"
+                      style={{ backgroundColor: swatch, borderColor: `${option.selectedBorder}66` }}
+                    />
+                  ))}
+                </div>
+              </button>
+            );
+          })}
         </div>
+      </div>
+
+      <div className="p-5 rounded-lg border border-neutral-200 bg-white space-y-3">
+        <h3 className="flex items-center gap-2 text-sm font-medium text-neutral-900">
+          <Volume2 size={16} className="text-neutral-700" />
+          Sounds
+        </h3>
+        {([
+          { id: "actions" as const, label: "Action sounds", detail: "Saving, completing, and deleting" },
+          { id: "alerts" as const, label: "In-app alerts", detail: "Notifications and reminders while the app is open" },
+        ]).map((option) => (
+          <label key={option.id} className="flex min-h-11 items-center justify-between gap-3 border-t border-neutral-100 pt-3">
+            <span className="min-w-0">
+              <span className="block text-xs font-medium text-neutral-900">{option.label}</span>
+              <span className="block text-[11px] text-neutral-500">{option.detail}</span>
+            </span>
+            <input
+              type="checkbox"
+              checked={soundPreferences[option.id]}
+              onChange={(event) => handleSoundPreference(option.id, event.target.checked)}
+              className="h-4 w-4 shrink-0 accent-emerald-700"
+            />
+          </label>
+        ))}
+        {nativeApp ? <p className="text-[11px] text-neutral-500">Scheduled Android alerts use their own sounds. Manage them in your device notification settings.</p> : null}
       </div>
 
       {/* 2. Currency & Manual Exchange Rate Configuration */}
@@ -874,6 +968,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               if (nativeApp) {
                 try {
                   const granted = await enableDeviceReminders();
+                  playAppSound(granted ? "reminder" : "notification");
                   setBrowserPushActive(granted);
                   const count = granted ? await syncDeviceReminders(items) : 0;
                   setPushStatus(granted ? `${count} reminders scheduled on this device.` : "Notification access was not granted.");
@@ -888,9 +983,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
               }
               const perm = await requestBrowserPushPermission();
               if (perm === "granted") {
+                playAppSound("notification");
                 setBrowserPushActive(true);
                 setPushStatus("Browser push notifications are active!");
               } else {
+                playAppSound("tap");
                 setBrowserPushActive(false);
                 setPushStatus("Permission was not granted in browser settings.");
               }

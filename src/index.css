@@ -523,6 +523,349 @@ html[data-theme="light"] .nav-item-border-active {
   background-color: #e2eee6 !important;
 }
 
+/* ==========================================================================
+   GRAPHITE THEME
+   ========================================================================== */
+
+html[data-theme="graphite"],
+html[data-theme="graphite"] body {
+  background-color: #202124 !important;
+  color: #f4f7f8 !important;
+}
+
+html[data-theme="graphite"] ::selection {
+  background-color: #7dd3fc !important;
+  color: #101214 !important;
+}
+
+html[data-theme="graphite"] .mmv-page {
+  --mmv-card-border: #40464d;
+  --mmv-card-bg: #2a2d31;
+  --mmv-accent: #7dd3fc;
+  --mmv-accent-soft: #173447;
+}
+
+html[data-theme="graphite"] aside,
+html[data-theme="graphite"] .sidebar-container,
+html[data-theme="graphite"] [data-sidebar="true"],
+html[data-theme="graphite"] header {
+  background-color: #181a1d !important;
+  border-color: #40464d !important;
+}
+
+html[data-theme="graphite"] .bg-neutral-50,
+html[data-theme="graphite"] [class*="bg-neutral-50/"] {
+  background-color: #202124 !important;
+}
+
+html[data-theme="graphite"] .bg-white,
+html[data-theme="graphite"] [class*="bg-white/"] {
+  background-color: #2a2d31 !important;
+}
+
+html[data-theme="graphite"] .bg-neutral-100,
+html[data-theme="graphite"] [class*="bg-neutral-100/"] {
+  background-color: #34383d !important;
+}
+
+html[data-theme="graphite"] .bg-neutral-200,
+html[data-theme="graphite"] [class*="bg-neutral-200/"] {
+  background-color: #181a1d !important;
+}
+
+html[data-theme="graphite"] input,
+html[data-theme="graphite"] select,
+html[data-theme="graphite"] textarea {
+  background-color: #3a3f45 !important;
+  color: #f4f7f8 !important;
+  border-color: #4b535c !important;
+}
+
+html[data-theme="graphite"] input::placeholder,
+html[data-theme="graphite"] textarea::placeholder {
+  color: #99a5af !important;
+}
+
+html[data-theme="graphite"] input:focus,
+html[data-theme="graphite"] select:focus,
+html[data-theme="graphite"] textarea:focus {
+  border-color: #7dd3fc !important;
+  outline: none !important;
+}
+
+html[data-theme="graphite"] .border-neutral-200,
+html[data-theme="graphite"] .border-neutral-100,
+html[data-theme="graphite"] .border-neutral-300 {
+  border-color: #40464d !important;
+}
+
+html[data-theme="graphite"] .text-neutral-900,
+html[data-theme="graphite"] .text-neutral-800 {
+  color: #f4f7f8 !important;
+}
+
+html[data-theme="graphite"] .text-neutral-700,
+html[data-theme="graphite"] .text-neutral-600 {
+  color: #c8d1d8 !important;
+}
+
+html[data-theme="graphite"] .text-neutral-500,
+html[data-theme="graphite"] .text-neutral-400 {
+  color: #99a5af !important;
+}
+
+html[data-theme="graphite"] .bg-neutral-900 {
+  background-color: #7dd3fc !important;
+  color: #101214 !important;
+  font-weight: 500 !important;
+}
+
+html[data-theme="graphite"] .bg-neutral-900:hover {
+  background-color: #67c7f4 !important;
+}
+
+html[data-theme="graphite"] .bg-neutral-900 svg {
+  color: #101214 !important;
+  stroke: #101214 !important;
+}
+
+html[data-theme="graphite"] .hover\:bg-neutral-50:hover,
+html[data-theme="graphite"] .hover\:bg-neutral-100:hover,
+html[data-theme="graphite"] .hover\:bg-white:hover {
+  background-color: #41474e !important;
+}
+
+html[data-theme="graphite"] .nav-item-border {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+html[data-theme="graphite"] .nav-item-border:hover {
+  border-color: rgba(125, 211, 252, 0.36) !important;
+}
+html[data-theme="graphite"] .nav-item-border-active {
+  border-color: rgba(125, 211, 252, 0.55) !important;
+  background-color: #263746 !important;
+}
+
+/* ==========================================================================
+   MINT THEME
+   ========================================================================== */
+
+html[data-theme="mint"],
+html[data-theme="mint"] body {
+  background-color: #f1faf5 !important;
+  color: #14342b !important;
+}
+
+html[data-theme="mint"] ::selection {
+  background-color: #bcebd8 !important;
+  color: #14342b !important;
+}
+
+html[data-theme="mint"] .mmv-page {
+  --mmv-card-border: #c8e5d6;
+  --mmv-card-bg: #ffffff;
+  --mmv-accent: #0f8a6a;
+  --mmv-accent-soft: #d9f5ea;
+}
+
+html[data-theme="mint"] aside,
+html[data-theme="mint"] .sidebar-container,
+html[data-theme="mint"] [data-sidebar="true"],
+html[data-theme="mint"] header {
+  background-color: #e3f3eb !important;
+  border-color: #c8e5d6 !important;
+}
+
+html[data-theme="mint"] .bg-neutral-50 {
+  background-color: #f1faf5 !important;
+}
+
+html[data-theme="mint"] .bg-white {
+  background-color: #ffffff !important;
+  border-color: #c8e5d6 !important;
+}
+
+html[data-theme="mint"] .bg-neutral-100 {
+  background-color: #e6f5ee !important;
+}
+
+html[data-theme="mint"] .bg-neutral-200 {
+  background-color: #d3ecdf !important;
+}
+
+html[data-theme="mint"] input,
+html[data-theme="mint"] select,
+html[data-theme="mint"] textarea {
+  background-color: #ffffff !important;
+  color: #14342b !important;
+  border-color: #bbdccb !important;
+}
+
+html[data-theme="mint"] input:focus,
+html[data-theme="mint"] select:focus,
+html[data-theme="mint"] textarea:focus {
+  border-color: #0f8a6a !important;
+  outline: none !important;
+}
+
+html[data-theme="mint"] .border-neutral-200,
+html[data-theme="mint"] .border-neutral-100,
+html[data-theme="mint"] .border-neutral-300 {
+  border-color: #c8e5d6 !important;
+}
+
+html[data-theme="mint"] .text-neutral-900,
+html[data-theme="mint"] .text-neutral-800 {
+  color: #14342b !important;
+}
+
+html[data-theme="mint"] .text-neutral-700,
+html[data-theme="mint"] .text-neutral-600 {
+  color: #3f6256 !important;
+}
+
+html[data-theme="mint"] .text-neutral-500,
+html[data-theme="mint"] .text-neutral-400 {
+  color: #60796f !important;
+}
+
+html[data-theme="mint"] .bg-neutral-900 {
+  background-color: #0f8a6a !important;
+  color: #ffffff !important;
+}
+
+html[data-theme="mint"] .bg-neutral-900:hover {
+  background-color: #0b7157 !important;
+}
+
+html[data-theme="mint"] .hover\:bg-neutral-50:hover {
+  background-color: #e7f6ee !important;
+}
+html[data-theme="mint"] .hover\:bg-neutral-100:hover {
+  background-color: #d8eee3 !important;
+}
+
+html[data-theme="mint"] .nav-item-border {
+  border-color: rgba(15, 138, 106, 0.1) !important;
+}
+html[data-theme="mint"] .nav-item-border:hover {
+  border-color: rgba(15, 138, 106, 0.22) !important;
+}
+html[data-theme="mint"] .nav-item-border-active {
+  border-color: #98d9c0 !important;
+  background-color: #d9f5ea !important;
+}
+
+/* ==========================================================================
+   ROSE THEME
+   ========================================================================== */
+
+html[data-theme="rose"],
+html[data-theme="rose"] body {
+  background-color: #fff7f8 !important;
+  color: #331f25 !important;
+}
+
+html[data-theme="rose"] ::selection {
+  background-color: #f5bdca !important;
+  color: #331f25 !important;
+}
+
+html[data-theme="rose"] .mmv-page {
+  --mmv-card-border: #ecd2d8;
+  --mmv-card-bg: #ffffff;
+  --mmv-accent: #be3455;
+  --mmv-accent-soft: #f8dce4;
+}
+
+html[data-theme="rose"] aside,
+html[data-theme="rose"] .sidebar-container,
+html[data-theme="rose"] [data-sidebar="true"],
+html[data-theme="rose"] header {
+  background-color: #f7ecef !important;
+  border-color: #ecd2d8 !important;
+}
+
+html[data-theme="rose"] .bg-neutral-50 {
+  background-color: #fff7f8 !important;
+}
+
+html[data-theme="rose"] .bg-white {
+  background-color: #ffffff !important;
+  border-color: #ecd2d8 !important;
+}
+
+html[data-theme="rose"] .bg-neutral-100 {
+  background-color: #faeef1 !important;
+}
+
+html[data-theme="rose"] .bg-neutral-200 {
+  background-color: #f1dce2 !important;
+}
+
+html[data-theme="rose"] input,
+html[data-theme="rose"] select,
+html[data-theme="rose"] textarea {
+  background-color: #ffffff !important;
+  color: #331f25 !important;
+  border-color: #e3c3cb !important;
+}
+
+html[data-theme="rose"] input:focus,
+html[data-theme="rose"] select:focus,
+html[data-theme="rose"] textarea:focus {
+  border-color: #be3455 !important;
+  outline: none !important;
+}
+
+html[data-theme="rose"] .border-neutral-200,
+html[data-theme="rose"] .border-neutral-100,
+html[data-theme="rose"] .border-neutral-300 {
+  border-color: #ecd2d8 !important;
+}
+
+html[data-theme="rose"] .text-neutral-900,
+html[data-theme="rose"] .text-neutral-800 {
+  color: #331f25 !important;
+}
+
+html[data-theme="rose"] .text-neutral-700,
+html[data-theme="rose"] .text-neutral-600 {
+  color: #65434c !important;
+}
+
+html[data-theme="rose"] .text-neutral-500,
+html[data-theme="rose"] .text-neutral-400 {
+  color: #80636b !important;
+}
+
+html[data-theme="rose"] .bg-neutral-900 {
+  background-color: #be3455 !important;
+  color: #ffffff !important;
+}
+
+html[data-theme="rose"] .bg-neutral-900:hover {
+  background-color: #9f2946 !important;
+}
+
+html[data-theme="rose"] .hover\:bg-neutral-50:hover {
+  background-color: #faeef1 !important;
+}
+html[data-theme="rose"] .hover\:bg-neutral-100:hover {
+  background-color: #f1dce2 !important;
+}
+
+html[data-theme="rose"] .nav-item-border {
+  border-color: rgba(190, 52, 85, 0.1) !important;
+}
+html[data-theme="rose"] .nav-item-border:hover {
+  border-color: rgba(190, 52, 85, 0.22) !important;
+}
+html[data-theme="rose"] .nav-item-border-active {
+  border-color: #e8a8b7 !important;
+  background-color: #f8dce4 !important;
+}
+
 /* ==========================================================
    MOBILE APK & PWA STANDALONE NATIVE EXPERIENCES
    Makes the web app feel like an installed mobile Android/iOS APK
@@ -589,4 +932,34 @@ html[data-theme="warm-dark"] .native-top-bar,
 html[data-theme="warm-dark"] .native-bottom-nav {
   background-color: #29312e !important;
   border-color: #4b5750 !important;
+}
+
+html[data-theme="graphite"] .native-shell {
+  background-color: #181a1d !important;
+}
+
+html[data-theme="graphite"] .native-top-bar,
+html[data-theme="graphite"] .native-bottom-nav {
+  background-color: #202124 !important;
+  border-color: #40464d !important;
+}
+
+html[data-theme="mint"] .native-shell {
+  background-color: #e3f3eb !important;
+}
+
+html[data-theme="mint"] .native-top-bar,
+html[data-theme="mint"] .native-bottom-nav {
+  background-color: #f1faf5 !important;
+  border-color: #c8e5d6 !important;
+}
+
+html[data-theme="rose"] .native-shell {
+  background-color: #f7ecef !important;
+}
+
+html[data-theme="rose"] .native-top-bar,
+html[data-theme="rose"] .native-bottom-nav {
+  background-color: #fff7f8 !important;
+  border-color: #ecd2d8 !important;
 }

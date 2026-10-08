@@ -1,6 +1,7 @@
-import { PaymentItem, InAppNotification, CurrencyCode, ItemReminder } from "../types";
-import { getItemStatus, formatCurrency } from "../utils/calculations";
-import { tashkentDateKey, tashkentDateTime } from "../utils/timezone";
+import { PaymentItem, InAppNotification } from "../types";
+import { formatCurrency } from "../utils/calculations";
+import { tashkentDateKey } from "../utils/timezone";
+import { getPaymentReminderDate } from "./paymentReminderSchedule";
 
 const STORAGE_KEYS = {
   READ_IDS: "mmv_subs_read_notifications_v1",
@@ -33,7 +34,7 @@ export function generateInAppNotifications(
     const configured = item.reminders || [];
     if (configured.length) {
       const inAppReminders = configured.filter((reminder) => reminder.enabled && reminder.channel !== "telegram");
-      if (!inAppReminders.some((reminder) => reminderMoment(item.date, reminder) <= now)) return;
+      if (!inAppReminders.some((reminder) => getPaymentReminderDate(item, reminder) <= now)) return;
     } else if (daysUntilDue > 1) {
       return;
     }
@@ -79,17 +80,21 @@ export function generateInAppNotifications(
   });
 }
 
-function reminderMoment(date: string, reminder: ItemReminder): Date {
-  const moment = tashkentDateTime(date, reminder.exactTime || "09:00");
-  const amount = reminder.timing === "before" ? -reminder.duration : reminder.timing === "after" ? reminder.duration : 0;
-  const unitMilliseconds = reminder.unit === "weeks"
-    ? 7 * 86_400_000
-    : reminder.unit === "days"
-      ? 86_400_000
-      : reminder.unit === "hours"
-        ? 3_600_000
-        : 60_000;
-  return new Date(moment.getTime() + amount * unitMilliseconds);
+export function getActiveInAppAlertKeys(items: PaymentItem[], now: Date = new Date()): Array<{ key: string; sound: "notification" | "reminder" }> {
+  const itemsById = new Map(items.map((item) => [item.id, item]));
+  return generateInAppNotifications(items, now).flatMap((notification) => {
+    const item = itemsById.get(notification.itemId);
+    const configured = item?.reminders?.filter((reminder) => reminder.enabled && reminder.channel !== "telegram") || [];
+    if (configured.length && item) {
+      return configured
+        .filter((reminder) => getPaymentReminderDate(item, reminder).getTime() <= now.getTime())
+        .map((reminder) => ({ key: `${notification.id}:${reminder.id}`, sound: "reminder" as const }));
+    }
+    return [{
+      key: `${notification.id}:${notification.urgency}`,
+      sound: notification.urgency === "upcoming" ? "notification" as const : "reminder" as const,
+    }];
+  });
 }
 
 /**

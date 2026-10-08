@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import type { PaymentItem } from "../types";
-import { generateInAppNotifications } from "./notificationService";
+import { generateInAppNotifications, getActiveInAppAlertKeys } from "./notificationService";
 import { tashkentDateKey } from "../utils/timezone";
 
 const item: PaymentItem = {
@@ -51,4 +51,29 @@ test("items without custom reminders appear the day before", () => {
   const withoutReminders = { ...item, reminders: [] };
   assert.equal(generateInAppNotifications([withoutReminders], new Date(2026, 9, 13, 10)).length, 0);
   assert.equal(generateInAppNotifications([withoutReminders], new Date(2026, 9, 14, 10)).length, 1);
+});
+
+test("each configured reminder becomes a distinct in-app alert", () => {
+  const withTwoReminders = {
+    ...item,
+    reminders: [
+      item.reminders[0],
+      { ...item.reminders[0], id: "one-day", duration: 1 },
+    ],
+  };
+  const first = getActiveInAppAlertKeys([withTwoReminders], new Date("2026-10-12T05:00:00Z"));
+  assert.equal(first.length, 1);
+  assert.equal(first[0].sound, "reminder");
+  const second = getActiveInAppAlertKeys([withTwoReminders], new Date("2026-10-14T05:00:00Z"));
+  assert.equal(second.length, 2);
+  assert.equal(second.filter((alert) => !first.some((previous) => previous.key === alert.key)).length, 1);
+});
+
+test("default alerts get a separate due-day reminder sound", () => {
+  const withoutReminders = { ...item, reminders: [] };
+  const upcoming = getActiveInAppAlertKeys([withoutReminders], new Date("2026-10-14T05:00:00Z"));
+  const dueToday = getActiveInAppAlertKeys([withoutReminders], new Date("2026-10-15T05:00:00Z"));
+  assert.equal(upcoming[0].sound, "notification");
+  assert.equal(dueToday[0].sound, "reminder");
+  assert.notEqual(upcoming[0].key, dueToday[0].key);
 });

@@ -10,11 +10,12 @@ MMV Hub is a responsive personal dashboard for subscriptions, recurring bills, o
 - Track subscriptions, recurring bills, and one-time purchases in USD or UZS.
 - Add a five-step smart reminder plan (5 days, 1 day, and 1 hour before; 1 and 3 days after if unpaid) and edit every reminder individually.
 - Review payment history, upcoming commitments, and monthly or yearly totals in the Reports module.
-- Receive in-app and Android local notifications, including while the app is closed.
+- Receive in-app and Android local notifications, including while the app is closed. Payment and habit reminders use distinct Android sounds.
 - Add reminders directly to a calendar on Android after granting calendar access.
 - Connect Google Calendar from the web or export standards-compliant `.ics` calendar files.
 - Track habits, completion history, goals, budgets, payment history, and cash-flow forecasts.
-- Use light and dark themes with responsive layouts for phones, tablets, and desktops.
+- Choose from five themes (Dark, Light, Graphite, Mint, and Rose) with responsive layouts for phones, tablets, and desktops.
+- Hear distinct in-app action and reminder sounds, with separate sound switches in Settings.
 - Register a local profile, save feedback and improvement notes locally, and track coffee-support records for the future supporter module.
 - Switch the interface between Uzbek, Russian, and English; the choice persists on web and Android.
 - Use Asia/Tashkent time (GMT+5) consistently for payment dates, reminders, calendar events, and published change times.
@@ -96,6 +97,19 @@ For Telegram Login on the web, open `@BotFather`, run `/setdomain`, select the M
 Each published update is recorded newest first using `HH:mm DD.MM.YYYY GMT+5 (Tashkent)`.
 
 <details open>
+<summary><strong>12:41 08.10.2026 GMT+5 (Tashkent) — Five themes and improved reminder sounds</strong></summary>
+
+- Added Graphite, Mint, and Rose themes alongside Dark and Light.
+- Added separate Settings switches for action sounds and in-app notification sounds.
+- Added distinct Android tones for payment and habit reminders and fixed multi-note audio playback.
+- Refreshed the notification badge and drawer as time passes, and made each configured reminder stage eligible for its own in-app alert.
+- Advanced the web and Android app versions to 1.6.0 for the regenerated APK.
+
+Modified areas: `src/App.tsx`, `src/index.css`, `src/types.ts`, `src/views/SettingsView.tsx`, `src/components/NotificationsDrawer.tsx`, `src/services/soundService.ts`, `src/services/deviceReminders.ts`, `src/services/notificationService.ts`, reminder tests, Android sound assets and version metadata, and README.
+
+</details>
+
+<details>
 <summary><strong>22:37 07.10.2026 GMT+5 (Tashkent) — Settings registration, coffee support, and web polish</strong></summary>
 
 - Added a web-only cursor-following beam effect that respects pointer type and reduced-motion preferences.
