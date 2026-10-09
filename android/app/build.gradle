@@ -1,5 +1,8 @@
 apply plugin: 'com.android.application'
 
+def mmvKeystorePath = System.getenv('MMV_ANDROID_KEYSTORE_PATH')
+def mmvKeystorePassword = System.getenv('MMV_ANDROID_KEYSTORE_PASSWORD')
+
 android {
     namespace = "com.mainmmv.subs"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -7,8 +10,8 @@ android {
         applicationId "com.mainmmv.subs"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 6
-        versionName "1.6.0"
+        versionCode 7
+        versionName "1.7.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -16,8 +19,19 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        mmvHub {
+            if (mmvKeystorePath && mmvKeystorePassword) {
+                storeFile file(mmvKeystorePath)
+                storePassword mmvKeystorePassword
+                keyAlias System.getenv('MMV_ANDROID_KEY_ALIAS') ?: 'mmvhub'
+                keyPassword System.getenv('MMV_ANDROID_KEY_PASSWORD') ?: mmvKeystorePassword
+            }
+        }
+    }
     buildTypes {
         release {
+            signingConfig signingConfigs.mmvHub
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }

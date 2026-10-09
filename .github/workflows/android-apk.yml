@@ -5,6 +5,11 @@ on:
     branches: [main, 'codex/**']
   workflow_dispatch:
     inputs:
+      publish_release:
+        description: Publish the signed APK to GitHub Releases after Firebase signing fingerprints are registered
+        required: false
+        type: boolean
+        default: false
       release_tag:
         description: Optional release tag that receives the built APK (for example, v1.3.0)
         required: false
@@ -33,7 +38,34 @@ jobs:
       - run: npm run lint
       - run: npm test
       - run: npm run android:sync
+      - name: Check release signing
+        id: signing
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: |
+          if [ -n "$ANDROID_KEYSTORE_BASE64" ] && [ -n "$ANDROID_KEYSTORE_PASSWORD" ]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Signed APK publishing is waiting for Android signing secrets."
+          fi
+      - name: Prepare release keystore
+        if: steps.signing.outputs.available == 'true'
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          keystore_path="$RUNNER_TEMP/mmv-hub-release.jks"
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$keystore_path"
+          chmod 600 "$keystore_path"
+          echo "MMV_ANDROID_KEYSTORE_PATH=$keystore_path" >> "$GITHUB_ENV"
       - run: ./gradlew assembleDebug --no-daemon
+        working-directory: android
+      - name: Build signed release APK
+        if: steps.signing.outputs.available == 'true'
+        env:
+          MMV_ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: ./gradlew assembleRelease --no-daemon
         working-directory: android
       - uses: actions/upload-artifact@v4
         with:
@@ -41,20 +73,27 @@ jobs:
           path: android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 30
+      - uses: actions/upload-artifact@v4
+        if: steps.signing.outputs.available == 'true'
+        with:
+          name: mmv-hub-signed-release-apk
+          path: android/app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
+          retention-days: 30
       - name: Publish APK release
-        if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && inputs.release_tag != '')
+        if: steps.signing.outputs.available == 'true' && github.event_name == 'workflow_dispatch' && inputs.publish_release == true
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ inputs.release_tag }}
         run: |
           release_tag="${RELEASE_TAG:-v$(node -p "require('./package.json').version")}"
           apk_path="MMV-Hub-${release_tag}.apk"
-          cp android/app/build/outputs/apk/debug/app-debug.apk "$apk_path"
+          cp android/app/build/outputs/apk/release/app-release.apk "$apk_path"
           if gh release view "$release_tag" >/dev/null 2>&1; then
             gh release upload "$release_tag" "$apk_path#MMV Hub ${release_tag} Android APK" --clobber
           else
             gh release create "$release_tag" "$apk_path#MMV Hub ${release_tag} Android APK" \
               --target "$GITHUB_SHA" \
               --title "MMV Hub ${release_tag}" \
-              --notes "Installable Android build with Firebase integration, MMV Classics, responsive navigation, reminders, calendar access, and creation-flow fixes."
+              --notes "Installable signed Android build with MMV Hub account, payments, reminders, calendar, and productivity features."
           fi

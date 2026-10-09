@@ -62,7 +62,7 @@ cd android
 ./gradlew assembleDebug
 ```
 
-The APK is created at `android/app/build/outputs/apk/debug/app-debug.apk`. GitHub Actions also builds an installable debug APK after pushes to `main` and `codex/**` branches. A Play Store release requires a separately managed release signing key.
+The debug APK is created at `android/app/build/outputs/apk/debug/app-debug.apk`. GitHub Actions builds a debug artifact after source updates. A signed release is published only through a manual workflow run after the two signing secrets described in [Android Google sign-in setup](docs/ANDROID_GOOGLE_SIGN_IN.md) are configured. The prepared release key is kept outside Git.
 
 After installing the APK, grant notification and calendar permissions when requested. To sync events to Google Calendar without a file download, select a Google-backed calendar already configured on the Android device.
 
@@ -99,6 +99,18 @@ For Telegram Login on the web, open `@BotFather`, run `/setdomain`, select the M
 Each published update is recorded newest first using `HH:mm DD.MM.YYYY GMT+5 (Tashkent)`.
 
 <details open>
+<summary><strong>10:47 09.10.2026 GMT+5 (Tashkent) — Android Google sign-in release preparation</strong></summary>
+
+- Prepared a stable Android release keystore outside Git and recorded its public Firebase signing fingerprints.
+- Configured Gradle and GitHub Actions to sign Android releases when signing secrets are present; publication requires a deliberate manual workflow run, while debug builds remain CI artifacts.
+- Advanced Android source to version 1.7.0 and documented Firebase fingerprint, refreshed configuration, secret setup, and existing APK data migration.
+- Signed APK publication is pending Firebase certificate registration and GitHub Actions secret access.
+
+Modified areas: Android signing configuration, APK workflow, version metadata, signing setup guide, Git ignore rules, and README.
+
+</details>
+
+<details>
 <summary><strong>10:19 09.10.2026 GMT+5 (Tashkent) — Google registration and account data</strong></summary>
 
 - Added Google account registration in Settings, linking an existing anonymous Firebase account when possible.
@@ -316,7 +328,7 @@ Still requiring external account configuration:
 1. In `@BotFather`, set the Telegram Login domain to `mmv-subs-1-0.vercel.app` with `/setdomain`.
 2. Connect Render access, create a credential for the dedicated `mmv-hub-telegram` service account, store it only as `FIREBASE_SERVICE_ACCOUNT`, confirm the other required variables, and redeploy. No service-account key is stored in this repository.
 3. Publish the Google OAuth consent screen if users outside the project owner's test-user list need Google Calendar access.
-4. Create and securely retain a permanent Android release keystore, register its SHA-1 and SHA-256 fingerprints for `com.mainmmv.subs` in Firebase, then download the refreshed `google-services.json`. The current debug APK workflow does not have a stable signing key; native Google sign-in cannot be verified until this is done.
+4. The permanent Android release keystore is prepared locally. Back it up, register its [SHA-1 and SHA-256 fingerprints](docs/ANDROID_GOOGLE_SIGN_IN.md) for `com.mainmmv.subs` in Firebase, download the refreshed `google-services.json`, and add the two GitHub Actions signing secrets. Native Google sign-in cannot be verified until this is done.
 5. Upgrade Firebase to a billing-enabled plan before enabling point-in-time Firestore recovery, paid backup features, or reCAPTCHA Enterprise. Billing is currently disabled.
 6. Integrate App Check in both web and APK clients and verify metrics before enforcement; enforcing it now would block the current clients.
 
