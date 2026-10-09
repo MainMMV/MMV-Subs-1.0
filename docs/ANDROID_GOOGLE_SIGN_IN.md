@@ -1,6 +1,6 @@
 # Android Google sign-in setup
 
-The Android source includes native Google sign-in. The installable APK needs a stable signing certificate registered with Firebase before Google will accept it.
+The Android source includes native Google sign-in. Its stable signing certificate was registered with Firebase on 09.10.2026, and the refreshed Android configuration is in `android/app/google-services.json`.
 
 ## Signing key prepared
 
@@ -15,22 +15,26 @@ The new release key and password are in `.local-secrets/` in this workspace. The
 
 ## Firebase configuration
 
-1. Open Firebase Console → project `micro-pilot-465509-m3` → Project settings → General → Your apps → Android app `com.mainmmv.subs`.
-2. Select **Add fingerprint** and add the SHA-1 above. Add the SHA-256 as a second fingerprint.
-3. Download the refreshed `google-services.json` for the Android app and replace `android/app/google-services.json` in this repository. It should contain an Android OAuth client entry (`client_type: 1`) for this fingerprint.
-4. Confirm Authentication → Sign-in method → Google is enabled.
+Completed for Firebase project `micro-pilot-465509-m3` and Android package `com.mainmmv.subs`:
+
+- Both signing fingerprints above are registered on the Android app.
+- `google-services.json` contains the Android OAuth client (`client_type: 1`) for the SHA-1 above.
+- Google and Anonymous Authentication are enabled. `mmv-subs-1-0.vercel.app` is an authorized domain.
+- The configured Firestore database exists and its deployed owner-only rules match `firestore.rules`.
+
+If the signing key ever changes, register the new SHA-1 and SHA-256 in Firebase Project settings → Your apps → Android app, then download a new `google-services.json` before building.
 
 The fingerprint is public. **Never** upload the keystore or password to Firebase or commit them to Git.
 
 ## Repeatable signed builds
 
-The GitHub Android workflow builds a debug artifact on source updates. It builds and publishes the signed release APK only when these Actions repository secrets exist:
+The GitHub Android workflow builds a debug artifact on source updates. It builds a signed release APK when these Actions repository secrets exist, and publishes it only after a manual workflow run with **Publish release** enabled:
 
 - `ANDROID_KEYSTORE_BASE64`: the single line in `.local-secrets/keystore-base64.txt`.
 - `ANDROID_KEYSTORE_PASSWORD`: the value in `.local-secrets/keystore-password.txt`.
 
-In GitHub, open Repository → Settings → Secrets and variables → Actions → New repository secret. The connected GitHub integration currently returns HTTP 403 for Actions secrets, so these must be added by an account with repository admin access or after that permission is granted to the integration. Do not paste either value into chat.
+In GitHub, open Repository → Settings → Secrets and variables → Actions → New repository secret. The original connected GitHub integration returns HTTP 403 for Actions secrets, so these require an account with repository admin access or a separate GitHub CLI authorization. Do not paste either value into chat.
 
-After both secrets and the refreshed Firebase file are in place, run the **Android APK** workflow on `main` with **Publish release** enabled. The signed `MMV-Hub-v1.7.0.apk` will be attached to the release. Install it and complete a real Google sign-in on the device to verify the configuration. Ordinary pushes only build artifacts and never replace the published APK.
+The refreshed Firebase file is already in the repository. After both secrets are in place, run the **Android APK** workflow on `main` with **Publish release** enabled for future versions. A locally built signed APK can also be attached to a release, but that does not configure automated signing for later builds. Complete a real Google sign-in on an Android device to verify the end-to-end flow. Ordinary pushes only build artifacts and never replace the published APK.
 
-**Existing APK data:** v1.6.0 was published from `assembleDebug` with a runner-generated debug key. Android will usually reject an in-place update signed by the new permanent key. Do not uninstall the old APK until any important local data has been backed up or a migration path has been confirmed. Uninstalling may erase its payment, habit, and goal records.
+**Existing APK data:** v1.6.0 was published from `assembleDebug` with a runner-generated debug key. Android will usually reject an in-place update signed by the new permanent key. If you do not need its local data, uninstall v1.6.0 before installing the signed v1.7.0 APK. Otherwise, keep the old APK until its data is backed up; uninstalling erases local records.

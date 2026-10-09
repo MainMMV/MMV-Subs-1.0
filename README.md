@@ -62,7 +62,7 @@ cd android
 ./gradlew assembleDebug
 ```
 
-The debug APK is created at `android/app/build/outputs/apk/debug/app-debug.apk`. GitHub Actions builds a debug artifact after source updates. A signed release is published only through a manual workflow run after the two signing secrets described in [Android Google sign-in setup](docs/ANDROID_GOOGLE_SIGN_IN.md) are configured. The prepared release key is kept outside Git.
+The debug APK is created at `android/app/build/outputs/apk/debug/app-debug.apk`. GitHub Actions builds a debug artifact after source updates. Automated signed releases need the two signing secrets described in [Android Google sign-in setup](docs/ANDROID_GOOGLE_SIGN_IN.md); a signed APK can also be built locally and attached to a GitHub Release. The release key is kept outside Git.
 
 After installing the APK, grant notification and calendar permissions when requested. To sync events to Google Calendar without a file download, select a Google-backed calendar already configured on the Android device.
 
@@ -97,6 +97,18 @@ For Telegram Login on the web, open `@BotFather`, run `/setdomain`, select the M
 
 <!-- Add every new published update above older entries. Use: HH:mm DD.MM.YYYY GMT+5 (Tashkent). Keep each release inside a details block. -->
 Each published update is recorded newest first using `HH:mm DD.MM.YYYY GMT+5 (Tashkent)`.
+
+<details open>
+<summary><strong>11:25 09.10.2026 GMT+5 (Tashkent) — Android Google registration configuration</strong></summary>
+
+- Registered the stable APK signing key's SHA-1 and SHA-256 in Firebase and refreshed the Android `google-services.json` with its OAuth client.
+- Confirmed Google and Anonymous Authentication, the web authorized domain, Firestore database, and owner-only rules.
+- Built and verified the signed Android 1.7.0 APK locally. A real device sign-in check is still needed.
+- Automated GitHub signing still requires repository Actions secrets.
+
+Modified areas: Android Firebase configuration, setup guide, and README.
+
+</details>
 
 <details open>
 <summary><strong>10:47 09.10.2026 GMT+5 (Tashkent) — Android Google sign-in release preparation</strong></summary>
