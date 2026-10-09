@@ -5,7 +5,12 @@ import type { User } from "firebase/auth";
 import type { CloudData } from "./services/cloudData";
 import firebaseConfig from "../firebase-applet-config.json";
 
-export const app = initializeApp(firebaseConfig);
+const firstPartyAuthDomain = "mmv-subs-1-0.vercel.app";
+const appConfig = typeof window !== "undefined" && window.location.hostname === firstPartyAuthDomain
+  ? { ...firebaseConfig, authDomain: firstPartyAuthDomain }
+  : firebaseConfig;
+
+export const app = initializeApp(appConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app, (firebaseConfig as any).firestoreDatabaseId || "ai-studio-mmvsubs-7f61226f-682f-4402-823f-82cb55675031");
 

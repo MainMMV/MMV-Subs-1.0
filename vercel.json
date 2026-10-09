@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/__/auth/:path*",
+      "destination": "https://micro-pilot-465509-m3.firebaseapp.com/__/auth/:path*"
+    }
+  ]
+}
