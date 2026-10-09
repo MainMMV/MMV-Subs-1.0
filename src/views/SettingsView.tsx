@@ -216,6 +216,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
     let active = true;
     void renderGoogleIdentityButton(element, language, (idToken) => {
       if (active) void googleIdTokenHandler.current(idToken);
+    }, (message) => {
+      if (active) setGoogleButtonError(message);
     }).then(() => {
       if (!active) element.replaceChildren();
       else setGoogleButtonError(null);

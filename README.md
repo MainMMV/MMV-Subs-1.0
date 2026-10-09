@@ -81,6 +81,8 @@ The Firebase project must have:
 
 On first use, Google asks the user to choose an account and approve access; MMV Hub then links or restores that account automatically. The Google consent app name is set in [Google Auth Platform Branding](https://console.cloud.google.com/auth/branding?project=micro-pilot-465509-m3). Set it to **MMV Hub** there.
 
+For the web Google account button, the existing Web OAuth client in [Google Auth Platform Clients](https://console.cloud.google.com/auth/clients?project=micro-pilot-465509-m3) must list `https://mmv-subs-1-0.vercel.app` under **Authorized JavaScript origins**. Preserve any existing origins. Without this entry Google will not return a credential to the web app.
+
 For a same-domain Firebase redirect helper, add `https://mmv-subs-1-0.vercel.app/__/auth/handler` to the Web OAuth client's authorized redirect URIs in [Google Auth Platform Clients](https://console.cloud.google.com/auth/clients?project=micro-pilot-465509-m3) before enabling the Vercel auth proxy. The Web client ID begins `189776208517-1gekjec`.
 
 ### Telegram worker
@@ -106,6 +108,17 @@ For Telegram Login on the web, open `@BotFather`, run `/setdomain`, select the M
 Each published update is recorded newest first using `HH:mm DD.MM.YYYY GMT+5 (Tashkent)`.
 
 <details open>
+<summary><strong>14:09 09.10.2026 GMT+5 (Tashkent) — Google account message fix</strong></summary>
+
+- Cleared the obsolete redirect failure that could remain visible beside the newer Google sign-in button.
+- Added an explicit message if Google returns no identity credential to the button.
+- Documented the required authorized JavaScript origin for the Google web button.
+
+Modified areas: Google account service, Google Identity button, Settings, and README.
+
+</details>
+
+<details>
 <summary><strong>13:50 09.10.2026 GMT+5 (Tashkent) — Google setup guidance</strong></summary>
 
 - Clarified that Google asks for account selection and permission on first use, then MMV Hub links or restores the account.

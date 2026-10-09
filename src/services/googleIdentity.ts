@@ -49,6 +49,7 @@ export async function renderGoogleIdentityButton(
   element: HTMLElement,
   locale: string,
   onCredential: (idToken: string) => void,
+  onError: (message: string) => void,
 ): Promise<void> {
   await loadGoogleIdentity();
   if (!window.google?.accounts?.id) throw new Error("Google sign-in is unavailable in this browser.");
@@ -57,6 +58,7 @@ export async function renderGoogleIdentityButton(
     client_id: firebaseConfig.oAuthClientId,
     callback: ({ credential }) => {
       if (credential) onCredential(credential);
+      else onError("Google did not return a sign-in credential. Please try again.");
     },
     use_fedcm_for_button: true,
   });

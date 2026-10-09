@@ -106,7 +106,12 @@ export function completeGoogleAccountRedirect() {
   redirectCompletion = (async () => {
     try {
       const result = await getRedirectResult(auth);
-      if (!result) throw new Error("Google sign-in did not finish. Please try again or allow pop-ups in your browser.");
+      // A redirect started by the older account flow can remain in sessionStorage
+      // after the web app switches to the direct Google Identity button. Firebase
+      // returns null for that abandoned redirect; it is not a failure of the new
+      // button and should not be shown as one.
+      if (!result && purpose === "account") return null;
+      if (!result) throw new Error("Google Calendar connection did not finish. Please try again.");
       return { purpose, result, error: null };
     } catch (error: any) {
       if (error?.code === "auth/credential-already-in-use" || error?.code === "auth/email-already-in-use") {
