@@ -2,6 +2,7 @@ import "dotenv/config";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { allItems, activeGoals, addCalendarDays, daysBetween, findUserByChatId, formatMoney, getLocalClock, isHabitComplete, isHabitScheduled, listUserStates, markHabitDone, rememberDelivery, wasDelivered, type UserState } from "./data.js";
 import { answerCallbackQuery, escapeHtml, getBotProfile, mainKeyboard, sendMessage, telegram, verifyTelegramLogin, type Keyboard, type TelegramBotProfile } from "./telegram.js";
+import { dueWithinLookback } from "./schedule.js";
 import type { Goal, Habit, ItemReminder, PaymentItem } from "./types.js";
 
 if (!process.env.TELEGRAM_BOT_TOKEN) throw new Error("TELEGRAM_BOT_TOKEN is required.");
@@ -192,15 +193,20 @@ async function checkPayments(state: UserState, clock = getLocalClock(undefined, 
     const telegramReminders = (item.reminders || []).filter((reminder) => reminder.enabled && (reminder.channel === "telegram" || reminder.channel === "both"));
     for (const reminder of telegramReminders) {
       const target = reminderMoment(item, reminder);
-      if (target.date === clock.date && target.time === clock.time) {
+      if (dueWithinLookback(target, clock)) {
         await sendOnce(state, `payment:${item.id}:${item.date}:${reminder.id}`, paymentMessage(item, "Payment reminder"), paymentKeyboard(item));
       }
     }
     // Global notification days are a simple fallback for items without their own Telegram reminder.
-    if (telegramReminders.length === 0 && config.remindDaysBefore?.includes(daysBetween(clock.date, item.date)) && clock.time === (item.time || "09:00")) {
-      await sendOnce(state, `payment:${item.id}:${item.date}:global:${daysBetween(clock.date, item.date)}`, paymentMessage(item, daysBetween(clock.date, item.date) === 0 ? "Payment due today" : "Upcoming payment"), paymentKeyboard(item));
+    if (telegramReminders.length === 0) {
+      for (const days of config.remindDaysBefore || []) {
+        const target = { date: addCalendarDays(item.date, -days), time: item.time || "09:00" };
+        if (dueWithinLookback(target, clock)) {
+          await sendOnce(state, `payment:${item.id}:${item.date}:global:${days}`, paymentMessage(item, days === 0 ? "Payment due today" : "Upcoming payment"), paymentKeyboard(item));
+        }
+      }
     }
-    if (config.notifyPastDue && clock.date === addCalendarDays(item.date, 1) && clock.time === (item.time || "09:00")) {
+    if (config.notifyPastDue && dueWithinLookback({ date: addCalendarDays(item.date, 1), time: item.time || "09:00" }, clock)) {
       await sendOnce(state, `overdue:${item.id}:${item.date}`, paymentMessage(item, "Payment overdue"), paymentKeyboard(item));
     }
   }
@@ -212,7 +218,7 @@ async function checkHabits(state: UserState, clock = getLocalClock(undefined, TZ
   for (const habit of state.data.habits || []) {
     if (!isHabitScheduled(habit, clock)) continue;
     for (const reminder of habit.reminders || []) {
-      if (!reminder.enabled || reminder.time !== clock.time || (reminder.days && !reminder.days.includes(clock.weekday))) continue;
+      if (!reminder.enabled || !dueWithinLookback({ date: clock.date, time: reminder.time }, clock) || (reminder.days && !reminder.days.includes(clock.weekday))) continue;
       if (reminder.incompleteOnly && isHabitComplete(state.data, habit, clock.date)) continue;
       const target = habit.targetValue ? `\nTarget: ${habit.targetValue}${habit.unit ? ` ${escapeHtml(habit.unit)}` : ""}` : "";
       await sendOnce(state, `habit:${habit.id}:${clock.date}:${reminder.id}`, `Habit reminder\n\n<b>${escapeHtml(habit.name)}</b>${target}${habit.description ? `\n${escapeHtml(habit.description)}` : ""}`, habitKeyboard(habit, clock.date));
@@ -222,7 +228,7 @@ async function checkHabits(state: UserState, clock = getLocalClock(undefined, TZ
 
 async function checkGoals(state: UserState, clock = getLocalClock(undefined, TZ)) {
   const config = state.data.telegramConfig;
-  if (!config?.isEnabled || !config.chatId || clock.time !== "09:00") return;
+  if (!config?.isEnabled || !config.chatId || !dueWithinLookback({ date: clock.date, time: "09:00" }, clock)) return;
   for (const goal of activeGoals(state.data.goals || [])) {
     if (!goal.deadline) continue;
     const days = daysBetween(clock.date, goal.deadline);

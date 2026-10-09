@@ -13,7 +13,7 @@ services:
       - key: NODE_VERSION
         value: "22"
       - key: TIME_ZONE
-        value: Asia/Samarkand
+        value: Asia/Tashkent
       - key: TELEGRAM_BOT_TOKEN
         sync: false
       - key: FIREBASE_SERVICE_ACCOUNT

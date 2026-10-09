@@ -91,12 +91,25 @@ The Telegram worker runs from `telegram-bot/` and requires these environment var
 
 For Render, use `telegram-bot` as the root directory, `npm ci` as the build command, `npm start` as the start command, and `/health` as the health-check path. Run only one bot instance because Telegram long polling must have one active owner.
 
+The current Render Free service may sleep when no requests arrive. When it wakes, the bot catches up Telegram reminders from the previous 24 hours; continuous delivery requires an always-on plan.
+
 For Telegram Login on the web, open `@BotFather`, run `/setdomain`, select the MMV Hub bot, and set the domain to `mmv-subs-1-0.vercel.app`. The app verifies every Telegram Login signature on the Render worker before accepting the Telegram user ID. The Android APK opens the registered bot directly because Telegram's web Login Widget is domain-based.
 
 ## Change history
 
 <!-- Add every new published update above older entries. Use: HH:mm DD.MM.YYYY GMT+5 (Tashkent). Keep each release inside a details block. -->
 Each published update is recorded newest first using `HH:mm DD.MM.YYYY GMT+5 (Tashkent)`.
+
+<details open>
+<summary><strong>12:18 09.10.2026 GMT+5 (Tashkent) — Render Telegram reminder reliability</strong></summary>
+
+- Confirmed the existing Render Free bot is live, registered with Telegram, and serving its health and login endpoints.
+- Added a 24-hour reminder catch-up window for payments, habits, and goals after the free service wakes, with existing delivery records preventing repeats.
+- Set the Render configuration time zone to Asia/Tashkent and documented that Free cannot guarantee continuous delivery.
+
+Modified areas: Telegram bot schedule and tests, Render Blueprint, bot setup guide, and README.
+
+</details>
 
 <details open>
 <summary><strong>11:25 09.10.2026 GMT+5 (Tashkent) — Android Google registration configuration</strong></summary>

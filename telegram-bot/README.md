@@ -11,6 +11,7 @@ The bot is a separate service for the MMV Hub app. The current Blueprint deploys
 - Sends one overdue payment alert on the day after its due date when past-due alerts are enabled.
 - Sends habit reminders only on scheduled days, respects incomplete-only reminders, and lets the user mark a habit done from Telegram.
 - Sends goal deadline reminders 7 days before, 1 day before, and on the deadline.
+- On a free Render service, catches up Telegram reminders scheduled within the previous 24 hours when the service wakes. Delivery records prevent repeat sends; older missed reminders cannot be recovered by this window.
 
 ## Link the bot
 
@@ -31,7 +32,8 @@ The bot token belongs only in the background worker's `TELEGRAM_BOT_TOKEN` varia
 - Start command: `npm start`
 - Environment variables: `TELEGRAM_BOT_TOKEN`, `FIREBASE_SERVICE_ACCOUNT`, and optional `TIME_ZONE=Asia/Tashkent`
 - Health check path: `/health`
+- Time zone: `TIME_ZONE=Asia/Tashkent`
 
 The worker also exposes `GET /bot-info` for the public bot username and `POST /auth/telegram` for signed Telegram Login verification. The bot token is never returned by either endpoint.
 
-Run one instance only. Telegram long polling and reminder delivery must have one active owner. Render's free web service can sleep after inactivity; the first request after sleep may have a cold start. Use the Starter worker plan when guaranteed continuous operation is required.
+Run one instance only. Telegram long polling and reminder delivery must have one active owner. Render's free web service can sleep after inactivity, which pauses polling and scheduled reminders until a request wakes it. The catch-up window improves delivery after waking but cannot guarantee 24/7 reminders. An always-on paid instance is required for that guarantee.
