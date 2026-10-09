@@ -39,6 +39,8 @@ interface GoogleCalendarSyncModalProps {
   onClose: () => void;
   items: PaymentItem[];
   syncState: GoogleCalendarSyncState;
+  redirectError?: string | null;
+  onClearRedirectError?: () => void;
   onSyncStateChange: (state: GoogleCalendarSyncState) => void;
   onAccountConnecting?: () => void;
   onAccountConnected?: (user: User) => void;
@@ -50,6 +52,8 @@ export const GoogleCalendarSyncModal: React.FC<GoogleCalendarSyncModalProps> = (
   onClose,
   items,
   syncState,
+  redirectError,
+  onClearRedirectError,
   onSyncStateChange,
   onAccountConnecting,
   onAccountConnected,
@@ -144,6 +148,7 @@ export const GoogleCalendarSyncModal: React.FC<GoogleCalendarSyncModalProps> = (
   const handleSignIn = async () => {
     setIsSigningIn(true);
     setErrorMessage(null);
+    onClearRedirectError?.();
     onAccountConnecting?.();
     try {
       const res = await signInGoogleCalendar();
@@ -240,10 +245,10 @@ export const GoogleCalendarSyncModal: React.FC<GoogleCalendarSyncModalProps> = (
 
         {/* Scrollable Body */}
         <div className="p-5 overflow-y-auto space-y-4 flex-1">
-          {errorMessage && (
+          {(errorMessage || redirectError) && (
             <div className="p-3 rounded-lg border border-rose-200 bg-rose-50/60 text-xs text-rose-700 flex items-start gap-2">
               <AlertCircle size={15} className="shrink-0 mt-0.5" />
-              <span>{errorMessage}</span>
+              <span>{errorMessage || redirectError}</span>
             </div>
           )}
 

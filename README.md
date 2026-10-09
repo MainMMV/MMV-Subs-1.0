@@ -14,6 +14,7 @@ MMV Hub is a responsive personal dashboard for subscriptions, recurring bills, o
 - Add reminders directly to a calendar on Android after granting calendar access.
 - Connect Google Calendar from the web or export standards-compliant `.ics` calendar files.
 - Register with Google in Settings → Account to synchronize payments, payment history, habits, and goals through Firebase. When device and cloud data differ, choose which to keep before cloud writes resume.
+- On the web, use full-page Google sign-in when a browser blocks pop-ups. A blocked sign-in attempt switches to the full-page flow automatically.
 - Track habits, completion history, goals, budgets, payment history, and cash-flow forecasts.
 - Choose from five themes (Dark, Light, Graphite, Mint, and Rose) with responsive layouts for phones, tablets, and desktops.
 - Choose Google Sans, Inter, Poppins, Manrope, Space Grotesk, JetBrains Mono, or the system font in Settings. Also adjust text size, corner radius, spacing, and motion; view modes and filters can be remembered on each device.
@@ -101,6 +102,17 @@ For Telegram Login on the web, open `@BotFather`, run `/setdomain`, select the M
 Each published update is recorded newest first using `HH:mm DD.MM.YYYY GMT+5 (Tashkent)`.
 
 <details open>
+<summary><strong>13:18 09.10.2026 GMT+5 (Tashkent) — Google sign-in redirect</strong></summary>
+
+- Added a full-page Google sign-in option and automatic redirect when a browser blocks the account or Calendar popup.
+- Restored the account or Calendar connection after the browser returns, including errors and the Calendar access token.
+- Added Uzbek, Russian, and English button labels and checked the web build.
+
+Modified areas: Google authentication services, Settings, Calendar connection, translations, and README.
+
+</details>
+
+<details>
 <summary><strong>12:47 09.10.2026 GMT+5 (Tashkent) — Signed Android APK published</strong></summary>
 
 - Published the verified, signed MMV Hub 1.7.0 APK to GitHub Releases with installation notes.

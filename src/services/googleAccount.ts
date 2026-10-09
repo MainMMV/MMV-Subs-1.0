@@ -1,21 +1,48 @@
 import { Capacitor } from "@capacitor/core";
 import {
   GoogleAuthProvider,
+  getRedirectResult,
   linkWithCredential,
   linkWithPopup,
+  linkWithRedirect,
   reauthenticateWithPopup,
+  reauthenticateWithRedirect,
   signInWithCredential,
   signInWithPopup,
+  signInWithRedirect,
   type User,
   type UserCredential,
 } from "firebase/auth";
 import { auth } from "../firebase";
 
+export type GoogleRedirectPurpose = "account" | "calendar";
+export type GoogleAccountResult = UserCredential | { user: User; credential: null };
+
+const REDIRECT_PURPOSE_KEY = "mmv_hub_google_redirect_purpose";
+let redirectCompletion: Promise<{ purpose: GoogleRedirectPurpose; result: UserCredential | null; error: unknown | null } | null> | null = null;
+
 export function isGoogleAccount(user: User | null): boolean {
   return Boolean(user && !user.isAnonymous && user.providerData.some((provider) => provider.providerId === "google.com"));
 }
 
-export async function connectGoogleAccount(provider = new GoogleAuthProvider(), requireFreshConsent = false): Promise<UserCredential | { user: User; credential: null }> {
+async function startGoogleRedirect(provider: GoogleAuthProvider, current: User | null, requireFreshConsent: boolean, purpose: GoogleRedirectPurpose): Promise<void> {
+  sessionStorage.setItem(REDIRECT_PURPOSE_KEY, purpose);
+  try {
+    if (current?.isAnonymous) await linkWithRedirect(current, provider);
+    else if (isGoogleAccount(current) && requireFreshConsent) await reauthenticateWithRedirect(current!, provider);
+    else await signInWithRedirect(auth, provider);
+  } catch (error) {
+    sessionStorage.removeItem(REDIRECT_PURPOSE_KEY);
+    throw error;
+  }
+}
+
+export async function connectGoogleAccount(
+  provider = new GoogleAuthProvider(),
+  requireFreshConsent = false,
+  mode: "popup" | "redirect" = "popup",
+  purpose: GoogleRedirectPurpose = "account",
+): Promise<GoogleAccountResult | null> {
   const current = auth.currentUser;
   if (isGoogleAccount(current) && !requireFreshConsent) return { user: current!, credential: null };
 
@@ -35,21 +62,63 @@ export async function connectGoogleAccount(provider = new GoogleAuthProvider(), 
     return signInWithCredential(auth, credential);
   }
 
-  if (current?.isAnonymous) {
-    try {
-      return await linkWithPopup(current, provider);
-    } catch (error: any) {
-      if (error?.code !== "auth/credential-already-in-use" && error?.code !== "auth/email-already-in-use") throw error;
-    }
+  if (mode === "redirect") {
+    await startGoogleRedirect(provider, current, requireFreshConsent, purpose);
+    return null;
   }
-  if (isGoogleAccount(current) && requireFreshConsent) return reauthenticateWithPopup(current!, provider);
-  return signInWithPopup(auth, provider);
+
+  try {
+    if (current?.isAnonymous) {
+      try {
+        return await linkWithPopup(current, provider);
+      } catch (error: any) {
+        if (error?.code !== "auth/credential-already-in-use" && error?.code !== "auth/email-already-in-use") throw error;
+        const credential = GoogleAuthProvider.credentialFromError(error);
+        if (credential) return signInWithCredential(auth, credential);
+      }
+    }
+    if (isGoogleAccount(current) && requireFreshConsent) return await reauthenticateWithPopup(current!, provider);
+    return await signInWithPopup(auth, provider);
+  } catch (error: any) {
+    if (error?.code !== "auth/popup-blocked") throw error;
+    await startGoogleRedirect(provider, auth.currentUser, requireFreshConsent, purpose);
+    return null;
+  }
+}
+
+export function completeGoogleAccountRedirect() {
+  if (redirectCompletion) return redirectCompletion;
+  const purpose = sessionStorage.getItem(REDIRECT_PURPOSE_KEY) as GoogleRedirectPurpose | null;
+  if (purpose !== "account" && purpose !== "calendar") return Promise.resolve(null);
+  redirectCompletion = (async () => {
+    try {
+      const result = await getRedirectResult(auth);
+      if (!result) throw new Error("Google sign-in did not finish. Please try again or allow pop-ups in your browser.");
+      return { purpose, result, error: null };
+    } catch (error: any) {
+      if (error?.code === "auth/credential-already-in-use" || error?.code === "auth/email-already-in-use") {
+        const credential = GoogleAuthProvider.credentialFromError(error);
+        if (credential) {
+          try {
+            const result = await signInWithCredential(auth, credential);
+            return { purpose, result, error: null };
+          } catch (signInError) {
+            return { purpose, result: null, error: signInError };
+          }
+        }
+      }
+      return { purpose, result: null, error };
+    } finally {
+      sessionStorage.removeItem(REDIRECT_PURPOSE_KEY);
+    }
+  })();
+  return redirectCompletion;
 }
 
 export function googleAccountError(error: unknown): string {
   const code = (error as { code?: string })?.code;
   if (code === "auth/popup-closed-by-user" || code === "auth/cancelled-popup-request") return "Google sign-in was canceled.";
-  if (code === "auth/popup-blocked") return "Allow pop-ups for MMV Hub, then try again.";
+  if (code === "auth/popup-blocked") return "Your browser blocked Google sign-in. Use full-page sign-in or allow pop-ups, then try again.";
   if (code === "auth/unauthorized-domain") return "This website domain needs to be added to Firebase Authentication authorized domains.";
   if (code === "auth/operation-not-allowed") return "Enable the Google provider in Firebase Authentication.";
   if (code === "auth/account-exists-with-different-credential") return "This email already uses another sign-in method. Sign in with that method first.";

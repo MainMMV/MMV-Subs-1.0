@@ -15,9 +15,9 @@ import {
 } from "./types";
 import { getItemStatus, getNextRecurrenceDate } from "./utils/calculations";
 import { auth, readCloudData, syncToFirebase } from "./firebase";
-import { connectGoogleAccount, googleAccountError } from "./services/googleAccount";
+import { completeGoogleAccountRedirect, connectGoogleAccount, googleAccountError } from "./services/googleAccount";
 import { resolveCloudData, type CloudData } from "./services/cloudData";
-import { initGoogleCalendarAuth } from "./services/googleCalendar";
+import { finishGoogleCalendarRedirect, initGoogleCalendarAuth } from "./services/googleCalendar";
 import { syncDeviceReminders } from "./services/deviceReminders";
 import { generateInAppNotifications, getActiveInAppAlertKeys, triggerBrowserDueAlerts } from "./services/notificationService";
 import { initializeAppSounds, playAppSound } from "./services/soundService";
@@ -244,6 +244,7 @@ export default function App() {
   const [accountUser, setAccountUser] = useState<User | null>(null);
   const [accountStatus, setAccountStatus] = useState<"loading" | "local" | "connected" | "needs-choice" | "error">("loading");
   const [accountError, setAccountError] = useState<string | null>(null);
+  const [showAccountAfterRedirect, setShowAccountAfterRedirect] = useState(false);
   const [pendingCloudData, setPendingCloudData] = useState<Partial<CloudData> | null>(null);
   const [cloudReady, setCloudReady] = useState(false);
   const localCloudDataRef = useRef<CloudData>(null!);
@@ -275,6 +276,7 @@ export default function App() {
 
   // Google Calendar Synchronization State
   const [isCalendarSyncModalOpen, setIsCalendarSyncModalOpen] = useState(false);
+  const [calendarRedirectError, setCalendarRedirectError] = useState<string | null>(null);
   const [calendarSyncState, setCalendarSyncState] = useState<GoogleCalendarSyncState>({
     isConnected: false,
     userEmail: null,
@@ -355,13 +357,51 @@ export default function App() {
     });
   }, [loadAccountData]);
 
-  const handleGoogleSignIn = async () => {
+  useEffect(() => {
+    if (nativeApp) return;
+    let active = true;
+    void completeGoogleAccountRedirect().then((completion) => {
+      if (!active || !completion) return;
+      if (completion.purpose === "calendar") {
+        setCurrentPage("calendar");
+        setIsCalendarSyncModalOpen(true);
+        try {
+          if (completion.error || !completion.result) throw completion.error || new Error("Google Calendar connection did not finish.");
+          setCalendarSyncState(finishGoogleCalendarRedirect(completion.result));
+          setCalendarRedirectError(null);
+        } catch (error) {
+          setCalendarRedirectError(googleAccountError(error));
+        }
+        return;
+      }
+      setShowAccountAfterRedirect(true);
+      setCurrentPage("settings");
+      if (completion.error) {
+        setAccountError(googleAccountError(completion.error));
+        if (!auth.currentUser || auth.currentUser.isAnonymous) {
+          setAccountStatus("local");
+          setCloudReady(true);
+        }
+      }
+    }).catch((error) => {
+      if (!active) return;
+      setShowAccountAfterRedirect(true);
+      setCurrentPage("settings");
+      setAccountError(googleAccountError(error));
+      setAccountStatus("local");
+      setCloudReady(true);
+    });
+    return () => { active = false; };
+  }, [nativeApp]);
+
+  const handleGoogleSignIn = async (mode: "popup" | "redirect" = "popup") => {
     const originalUser = auth.currentUser;
     setCloudReady(false);
     setAccountStatus("loading");
     setAccountError(null);
     try {
-      const result = await connectGoogleAccount();
+      const result = await connectGoogleAccount(undefined, false, mode);
+      if (!result) return;
       if (originalUser?.isAnonymous && result.user.uid === originalUser.uid) {
         setAccountUser(result.user);
         setAccountStatus("connected");
@@ -1130,6 +1170,7 @@ export default function App() {
               accountUser={accountUser}
               accountStatus={accountStatus}
               accountError={accountError}
+              showAccountOnMount={showAccountAfterRedirect}
               onGoogleSignIn={handleGoogleSignIn}
               onAccountSignOut={handleAccountSignOut}
               onChooseCloud={handleChooseCloud}
@@ -1288,6 +1329,8 @@ export default function App() {
         onClose={() => setIsCalendarSyncModalOpen(false)}
         items={items}
         syncState={calendarSyncState}
+        redirectError={calendarRedirectError}
+        onClearRedirectError={() => setCalendarRedirectError(null)}
         onSyncStateChange={setCalendarSyncState}
         onAccountConnecting={() => setCloudReady(false)}
         onAccountConnected={(user) => {

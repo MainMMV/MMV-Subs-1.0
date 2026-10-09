@@ -67,7 +67,8 @@ export const signInGoogleCalendar = async (): Promise<{
 } | null> => {
   try {
     isSigningIn = true;
-    const result = await connectGoogleAccount(googleProvider, true);
+    const result = await connectGoogleAccount(googleProvider, true, "popup", "calendar");
+    if (!result) return null;
     const credential = GoogleAuthProvider.credentialFromResult(result as UserCredential);
     if (!credential?.accessToken) {
       throw new Error("Failed to obtain Google Calendar access token.");
@@ -92,6 +93,22 @@ export const signInGoogleCalendar = async (): Promise<{
   } finally {
     isSigningIn = false;
   }
+};
+
+export const finishGoogleCalendarRedirect = (result: UserCredential): GoogleCalendarSyncState => {
+  const credential = GoogleAuthProvider.credentialFromResult(result);
+  if (!credential?.accessToken) throw new Error("Google Calendar access was not granted. Please try connecting again.");
+  cachedAccessToken = credential.accessToken;
+  const state: GoogleCalendarSyncState = {
+    isConnected: true,
+    userEmail: result.user.email,
+    userName: result.user.displayName,
+    userPhoto: result.user.photoURL,
+    lastSyncedAt: getStoredSyncTimestamp(),
+    syncedEventCount: getStoredSyncedCount(),
+  };
+  saveStoredCalendarState(state);
+  return state;
 };
 
 /**

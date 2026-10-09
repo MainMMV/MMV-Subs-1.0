@@ -40,7 +40,8 @@ interface SettingsViewProps {
   accountUser: User | null;
   accountStatus: "loading" | "local" | "connected" | "needs-choice" | "error";
   accountError: string | null;
-  onGoogleSignIn: () => Promise<void>;
+  showAccountOnMount?: boolean;
+  onGoogleSignIn: (mode?: "popup" | "redirect") => Promise<void>;
   onAccountSignOut: () => Promise<void>;
   onChooseCloud: () => void;
   onKeepDevice: () => void;
@@ -163,6 +164,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   accountUser,
   accountStatus,
   accountError,
+  showAccountOnMount = false,
   onGoogleSignIn,
   onAccountSignOut,
   onChooseCloud,
@@ -171,7 +173,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 }) => {
   const { language, setLanguage, t } = useI18n();
   const uiPreferences = useUiPreferences();
-  const [activeGroup, setActiveGroup] = useState<SettingsGroup>("appearance");
+  const [activeGroup, setActiveGroup] = useState<SettingsGroup>(showAccountOnMount ? "account" : "appearance");
+  useEffect(() => {
+    if (showAccountOnMount) setActiveGroup("account");
+  }, [showAccountOnMount]);
   const [rateInput, setRateInput] = useState(exchangeRateUsdToUzs.toString());
   const [browserPushActive, setBrowserPushActive] = useState<boolean>(() => isBrowserPushEnabled());
   const [pushStatus, setPushStatus] = useState<string | null>(null);
@@ -410,9 +415,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
             <button type="button" onClick={() => void onAccountSignOut()} className="rounded-lg border border-neutral-200 px-3 py-1.5 text-xs">{t("signOutAccount")}</button>
           </div>
         ) : (
-          <button type="button" disabled={accountStatus === "loading"} onClick={() => void onGoogleSignIn()} className="self-start rounded-lg bg-neutral-900 px-3 py-2 text-xs font-medium text-white disabled:opacity-50">
-            {accountStatus === "loading" ? t("connectingGoogle") : t("continueWithGoogle")}
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <button type="button" disabled={accountStatus === "loading"} onClick={() => void onGoogleSignIn()} className="rounded-lg bg-neutral-900 px-3 py-2 text-xs font-medium text-white disabled:opacity-50">
+              {accountStatus === "loading" ? t("connectingGoogle") : t("continueWithGoogle")}
+            </button>
+            {!nativeApp ? <button type="button" disabled={accountStatus === "loading"} onClick={() => void onGoogleSignIn("redirect")} className="rounded-lg border border-neutral-300 px-3 py-2 text-xs disabled:opacity-50">{t("fullPageGoogleSignIn")}</button> : null}
+          </div>
         )}
         {accountStatus === "connected" ? <p className="text-xs opacity-70">{t("cloudSyncActive")}</p> : null}
         {accountStatus === "needs-choice" ? (
