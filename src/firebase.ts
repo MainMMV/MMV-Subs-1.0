@@ -1,6 +1,8 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, signInAnonymously } from "firebase/auth";
-import { getFirestore, doc, setDoc } from "firebase/firestore";
+import { getFirestore, doc, getDoc, setDoc } from "firebase/firestore";
+import type { User } from "firebase/auth";
+import type { CloudData } from "./services/cloudData";
 import firebaseConfig from "../firebase-applet-config.json";
 
 export const app = initializeApp(firebaseConfig);
@@ -12,13 +14,7 @@ export const db = getFirestore(app, (firebaseConfig as any).firestoreDatabaseId 
  * Telegram credentials are intentionally not required by the worker: its one
  * bot token belongs only in the worker's environment variables.
  */
-export const syncToFirebase = async (
-  items: any,
-  telegramConfig: any,
-  habits: any[] = [],
-  habitLogs: Record<string, any> = {},
-  goals: any[] = []
-) => {
+export const syncToFirebase = async (data: CloudData) => {
   try {
     let user = auth.currentUser;
     if (!user) {
@@ -26,18 +22,16 @@ export const syncToFirebase = async (
       user = cred.user;
     }
     const syncRef = doc(db, `users/${user.uid}/sync/data`);
-    const { botToken: _ignoredBotToken, ...safeTelegramConfig } = telegramConfig || {};
+    const { botToken: _ignoredBotToken, ...safeTelegramConfig } = data.telegramConfig;
     await setDoc(syncRef, {
-      items,
-      // Kept for compatibility with the first server-cron implementation.
-      subscriptions: items,
+      ...data,
       telegramConfig: safeTelegramConfig,
-      habits,
-      habitLogs,
-      goals,
+      // Kept for compatibility with the first server-cron implementation.
+      subscriptions: data.items,
       updatedAt: new Date().toISOString()
     }, { merge: true });
     console.log("Synced to Firebase backend for Telegram Cron jobs");
+    return true;
   } catch (error: any) {
     if (error?.code === 'auth/admin-restricted-operation' || error?.code === 'auth/operation-not-allowed') {
       console.warn("⚠️ Firebase Sync Skipped: Anonymous Authentication is disabled.");
@@ -45,8 +39,26 @@ export const syncToFirebase = async (
     } else {
       console.warn("⚠️ Firebase sync skipped:", error?.message || error);
     }
+    return false;
   }
 };
+
+export async function readCloudData(user: User): Promise<Partial<CloudData> | null> {
+  const snapshot = await getDoc(doc(db, `users/${user.uid}/sync/data`));
+  if (!snapshot.exists()) return null;
+  const data = snapshot.data();
+  return {
+    items: Array.isArray(data.items) ? data.items : [],
+    history: Array.isArray(data.history) ? data.history : [],
+    habits: Array.isArray(data.habits) ? data.habits : [],
+    habitLogs: data.habitLogs && typeof data.habitLogs === "object" ? data.habitLogs : {},
+    goals: Array.isArray(data.goals) ? data.goals : [],
+    telegramConfig: data.telegramConfig,
+    displayCurrency: data.displayCurrency,
+    exchangeRateUsdToUzs: data.exchangeRateUsdToUzs,
+    theme: data.theme,
+  } as Partial<CloudData>;
+}
 
 export const requestTelegramTest = async (chatId: string): Promise<void> => {
   let user = auth.currentUser;

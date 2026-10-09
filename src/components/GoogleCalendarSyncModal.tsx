@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import type { User } from "firebase/auth";
 import { 
   X, 
   Calendar as CalendarIcon, 
@@ -31,6 +32,7 @@ import {
 import { formatDateDDMMYYYY } from "../utils/dateFormat";
 import { formatCurrency } from "../utils/calculations";
 import { addToDeviceCalendar, isNativeApp, requestDeviceCalendars, type DeviceCalendar } from "../services/deviceCalendar";
+import { auth } from "../firebase";
 
 interface GoogleCalendarSyncModalProps {
   isOpen: boolean;
@@ -38,6 +40,9 @@ interface GoogleCalendarSyncModalProps {
   items: PaymentItem[];
   syncState: GoogleCalendarSyncState;
   onSyncStateChange: (state: GoogleCalendarSyncState) => void;
+  onAccountConnecting?: () => void;
+  onAccountConnected?: (user: User) => void;
+  onAccountConnectionFailed?: () => void;
 }
 
 export const GoogleCalendarSyncModal: React.FC<GoogleCalendarSyncModalProps> = ({
@@ -46,6 +51,9 @@ export const GoogleCalendarSyncModal: React.FC<GoogleCalendarSyncModalProps> = (
   items,
   syncState,
   onSyncStateChange,
+  onAccountConnecting,
+  onAccountConnected,
+  onAccountConnectionFailed,
 }) => {
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
@@ -136,9 +144,11 @@ export const GoogleCalendarSyncModal: React.FC<GoogleCalendarSyncModalProps> = (
   const handleSignIn = async () => {
     setIsSigningIn(true);
     setErrorMessage(null);
+    onAccountConnecting?.();
     try {
       const res = await signInGoogleCalendar();
       if (res) {
+        onAccountConnected?.(res.user);
         onSyncStateChange({
           isConnected: true,
           userEmail: res.user.email,
@@ -149,6 +159,8 @@ export const GoogleCalendarSyncModal: React.FC<GoogleCalendarSyncModalProps> = (
         });
       }
     } catch (err: any) {
+      if (auth.currentUser && !auth.currentUser.isAnonymous) onAccountConnected?.(auth.currentUser);
+      else onAccountConnectionFailed?.();
       setErrorMessage(err?.message || "Failed to sign in with Google Calendar");
     } finally {
       setIsSigningIn(false);

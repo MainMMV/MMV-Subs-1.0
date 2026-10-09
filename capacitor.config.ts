@@ -5,6 +5,10 @@ const config: CapacitorConfig = {
   appName: "MMV Hub",
   webDir: "dist",
   plugins: {
+    FirebaseAuthentication: {
+      skipNativeAuth: true,
+      providers: ["google.com"],
+    },
     LocalNotifications: {
       iconColor: "#39795E",
     },

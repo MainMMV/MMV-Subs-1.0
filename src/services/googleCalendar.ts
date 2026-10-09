@@ -1,11 +1,11 @@
 import { 
   GoogleAuthProvider, 
-  signInWithPopup, 
   onAuthStateChanged, 
-  signOut, 
-  User 
+  User,
+  type UserCredential,
 } from "firebase/auth";
 import { auth } from "../firebase";
+import { connectGoogleAccount, googleAccountError } from "./googleAccount";
 import { PaymentItem, GoogleCalendarSyncState } from "../types";
 import { formatCurrency } from "../utils/calculations";
 import { APP_TIME_ZONE } from "../utils/timezone";
@@ -67,8 +67,8 @@ export const signInGoogleCalendar = async (): Promise<{
 } | null> => {
   try {
     isSigningIn = true;
-    const result = await signInWithPopup(auth, googleProvider);
-    const credential = GoogleAuthProvider.credentialFromResult(result);
+    const result = await connectGoogleAccount(googleProvider, true);
+    const credential = GoogleAuthProvider.credentialFromResult(result as UserCredential);
     if (!credential?.accessToken) {
       throw new Error("Failed to obtain Google Calendar access token.");
     }
@@ -88,17 +88,16 @@ export const signInGoogleCalendar = async (): Promise<{
     if (error?.code === "auth/operation-not-allowed") {
       throw new Error("Google Sign-In is not enabled in Firebase Console. Use the Phone Calendar export below.");
     }
-    throw new Error(error?.message || "Failed to sign in with Google Calendar. Please try Phone Calendar export instead.");
+    throw new Error(googleAccountError(error));
   } finally {
     isSigningIn = false;
   }
 };
 
 /**
- * Disconnect Google Calendar & clear auth
+ * Disconnect Calendar access without signing the user out of their account.
  */
 export const disconnectGoogleCalendar = async (): Promise<void> => {
-  await signOut(auth);
   cachedAccessToken = null;
   localStorage.removeItem(STORAGE_KEY_CALENDAR_STATE);
 };

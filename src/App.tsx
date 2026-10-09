@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import { onAuthStateChanged, signOut, type User } from "firebase/auth";
 import { 
   AppPage, 
   PaymentItem, 
@@ -13,7 +14,9 @@ import {
   AppTheme
 } from "./types";
 import { getItemStatus, getNextRecurrenceDate } from "./utils/calculations";
-import { syncToFirebase } from "./firebase";
+import { auth, readCloudData, syncToFirebase } from "./firebase";
+import { connectGoogleAccount, googleAccountError } from "./services/googleAccount";
+import { resolveCloudData, type CloudData } from "./services/cloudData";
 import { initGoogleCalendarAuth } from "./services/googleCalendar";
 import { syncDeviceReminders } from "./services/deviceReminders";
 import { generateInAppNotifications, getActiveInAppAlertKeys, triggerBrowserDueAlerts } from "./services/notificationService";
@@ -238,6 +241,14 @@ export default function App() {
     }
   });
 
+  const [accountUser, setAccountUser] = useState<User | null>(null);
+  const [accountStatus, setAccountStatus] = useState<"loading" | "local" | "connected" | "needs-choice" | "error">("loading");
+  const [accountError, setAccountError] = useState<string | null>(null);
+  const [pendingCloudData, setPendingCloudData] = useState<Partial<CloudData> | null>(null);
+  const [cloudReady, setCloudReady] = useState(false);
+  const localCloudDataRef = useRef<CloudData>(null!);
+  localCloudDataRef.current = { items, history: records, habits, habitLogs, goals, telegramConfig, displayCurrency, exchangeRateUsdToUzs, theme };
+
   // Modal States
   const [isItemModalOpen, setIsItemModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<PaymentItem | null>(null);
@@ -282,6 +293,111 @@ export default function App() {
       if (typeof unsub === "function") unsub();
     };
   }, []);
+
+  const applyCloudData = useCallback((remote: Partial<CloudData>) => {
+    setItems(remote.items || []);
+    setRecords(remote.history || []);
+    setHabits(remote.habits || []);
+    setHabitLogs(remote.habitLogs || {});
+    setGoals(remote.goals || []);
+    if (remote.telegramConfig) setTelegramConfig((previous) => ({ ...previous, ...remote.telegramConfig, botToken: previous.botToken }));
+    if (remote.displayCurrency === "default" || remote.displayCurrency === "USD" || remote.displayCurrency === "UZS") setDisplayCurrency(remote.displayCurrency);
+    if (typeof remote.exchangeRateUsdToUzs === "number" && remote.exchangeRateUsdToUzs > 0) setExchangeRateUsdToUzs(remote.exchangeRateUsdToUzs);
+    if (remote.theme && APP_THEMES.includes(remote.theme)) setTheme(remote.theme);
+  }, []);
+
+  const loadAccountData = useCallback(async (user: User) => {
+    setCloudReady(false);
+    setAccountStatus("loading");
+    setAccountError(null);
+    try {
+      const remote = await readCloudData(user);
+      if (auth.currentUser?.uid !== user.uid) return;
+      const decision = resolveCloudData(localCloudDataRef.current, remote);
+      if (decision === "choose") {
+        setPendingCloudData(remote);
+        setAccountStatus("needs-choice");
+        setCurrentPage("settings");
+        return;
+      }
+      if (decision === "restore" && remote) applyCloudData(remote);
+      setPendingCloudData(null);
+      setAccountStatus("connected");
+      setCloudReady(true);
+    } catch (error) {
+      setAccountError(error instanceof Error ? error.message : "Could not read account data.");
+      setAccountStatus("error");
+    }
+  }, [applyCloudData]);
+
+  useEffect(() => {
+    let previousAnonymousUid: string | null = null;
+    return onAuthStateChanged(auth, (user) => {
+      setAccountUser(user);
+      if (!user || user.isAnonymous) {
+        previousAnonymousUid = user?.uid || null;
+        setPendingCloudData(null);
+        setAccountStatus("local");
+        setCloudReady(true);
+        return;
+      }
+      if (previousAnonymousUid === user.uid) {
+        previousAnonymousUid = null;
+        setAccountStatus("connected");
+        setCloudReady(true);
+        return;
+      }
+      void loadAccountData(user);
+    }, (error) => {
+      setAccountError(error.message);
+      setAccountStatus("error");
+      setCloudReady(false);
+    });
+  }, [loadAccountData]);
+
+  const handleGoogleSignIn = async () => {
+    const originalUser = auth.currentUser;
+    setCloudReady(false);
+    setAccountStatus("loading");
+    setAccountError(null);
+    try {
+      const result = await connectGoogleAccount();
+      if (originalUser?.isAnonymous && result.user.uid === originalUser.uid) {
+        setAccountUser(result.user);
+        setAccountStatus("connected");
+        setCloudReady(true);
+      }
+    } catch (error) {
+      setAccountError(googleAccountError(error));
+      setAccountStatus(auth.currentUser && !auth.currentUser.isAnonymous ? "connected" : "local");
+      setCloudReady(true);
+    }
+  };
+
+  const handleAccountSignOut = async () => {
+    setCloudReady(false);
+    setAccountError(null);
+    try {
+      await signOut(auth);
+    } catch (error) {
+      setAccountError(error instanceof Error ? error.message : "Could not sign out.");
+      setCloudReady(true);
+    }
+  };
+
+  const handleChooseCloud = () => {
+    if (!pendingCloudData) return;
+    applyCloudData(pendingCloudData);
+    setPendingCloudData(null);
+    setAccountStatus("connected");
+    setCloudReady(true);
+  };
+
+  const handleKeepDevice = () => {
+    setPendingCloudData(null);
+    setAccountStatus("connected");
+    setCloudReady(true);
+  };
 
   // Trigger browser push alerts for due items on load/item changes
   useEffect(() => {
@@ -440,11 +556,16 @@ export default function App() {
 
   // Sync bot-visible data for Telegram reminders.
   useEffect(() => {
+    if (!cloudReady) return;
+    let active = true;
     const timer = setTimeout(() => {
-      syncToFirebase(items, telegramConfig, habits, habitLogs, goals);
+      void syncToFirebase({ items, history: records, telegramConfig, habits, habitLogs, goals, displayCurrency, exchangeRateUsdToUzs, theme }).then((saved) => {
+        if (!active || !auth.currentUser || auth.currentUser.isAnonymous) return;
+        setAccountError(saved ? null : "Cloud save failed. Your data is still on this device.");
+      });
     }, 1500);
-    return () => clearTimeout(timer);
-  }, [items, telegramConfig, habits, habitLogs, goals]);
+    return () => { active = false; clearTimeout(timer); };
+  }, [cloudReady, items, records, telegramConfig, habits, habitLogs, goals, displayCurrency, exchangeRateUsdToUzs, theme]);
 
   // Handler: Open Add Modal or New Item Chooser Modal
   const handleOpenAddModal = (presetType?: ItemType) => {
@@ -1006,6 +1127,14 @@ export default function App() {
               calendarSyncState={calendarSyncState}
               theme={theme}
               onChangeTheme={setTheme}
+              accountUser={accountUser}
+              accountStatus={accountStatus}
+              accountError={accountError}
+              onGoogleSignIn={handleGoogleSignIn}
+              onAccountSignOut={handleAccountSignOut}
+              onChooseCloud={handleChooseCloud}
+              onKeepDevice={handleKeepDevice}
+              onRetryCloud={() => { if (accountUser) void loadAccountData(accountUser); }}
             />
           )}
 
@@ -1160,6 +1289,18 @@ export default function App() {
         items={items}
         syncState={calendarSyncState}
         onSyncStateChange={setCalendarSyncState}
+        onAccountConnecting={() => setCloudReady(false)}
+        onAccountConnected={(user) => {
+          if (accountUser?.uid === user.uid && (accountUser.isAnonymous || accountStatus === "connected")) {
+            setAccountUser(user);
+            setAccountStatus("connected");
+            setCloudReady(true);
+          } else if (accountUser?.uid !== user.uid) {
+            setAccountUser(user);
+            void loadAccountData(user);
+          }
+        }}
+        onAccountConnectionFailed={() => setCloudReady(true)}
       />
 
       {/* NEW ITEM TYPE SELECTOR MODAL */}

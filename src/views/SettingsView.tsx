@@ -1,4 +1,5 @@
 import React, { useCallback, useState, useEffect } from "react";
+import type { User } from "firebase/auth";
 import { Send, Check, Download, RotateCcw, CalendarSync, Bell, ShieldCheck, Palette, Terminal, Languages, UserRound, Coffee, Copy, MessageSquare, Sparkles, X, Heart, Trophy, Volume2 } from "lucide-react";
 import { motion } from "motion/react";
 import { CurrencyDisplayMode, TelegramConfig, PaymentItem, GoogleCalendarSyncState, AppTheme } from "../types";
@@ -36,6 +37,14 @@ interface SettingsViewProps {
   calendarSyncState?: GoogleCalendarSyncState;
   theme?: AppTheme;
   onChangeTheme?: (theme: AppTheme) => void;
+  accountUser: User | null;
+  accountStatus: "loading" | "local" | "connected" | "needs-choice" | "error";
+  accountError: string | null;
+  onGoogleSignIn: () => Promise<void>;
+  onAccountSignOut: () => Promise<void>;
+  onChooseCloud: () => void;
+  onKeepDevice: () => void;
+  onRetryCloud: () => void;
 }
 
 interface LocalProfile {
@@ -151,6 +160,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   calendarSyncState,
   theme = "warm-dark",
   onChangeTheme,
+  accountUser,
+  accountStatus,
+  accountError,
+  onGoogleSignIn,
+  onAccountSignOut,
+  onChooseCloud,
+  onKeepDevice,
+  onRetryCloud,
 }) => {
   const { language, setLanguage, t } = useI18n();
   const uiPreferences = useUiPreferences();
@@ -179,6 +196,15 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const [feedbackStatus, setFeedbackStatus] = useState<string | null>(null);
   const [showCoffeePopup, setShowCoffeePopup] = useState(false);
   const nativeApp = isNativeApp();
+
+  useEffect(() => {
+    if (!accountUser || accountUser.isAnonymous) return;
+    setProfileForm((previous) => ({
+      ...previous,
+      name: previous.name || accountUser.displayName || "",
+      email: previous.email || accountUser.email || "",
+    }));
+  }, [accountUser]);
 
   const handleSoundPreference = (preference: SoundPreference, enabled: boolean) => {
     setSoundEnabled(preference, enabled);
@@ -370,6 +396,37 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         <div className="settings-content">
       {activeGroup === "account" ? <>
 
+      <div className="settings-block space-y-3">
+        <div className="flex items-start gap-2">
+          <UserRound size={17} className="mt-0.5 shrink-0" />
+          <div className="min-w-0">
+            <h3 className="text-sm font-medium">{t("googleAccount")}</h3>
+            <p className="text-xs opacity-70">{t("googleAccountDescription")}</p>
+          </div>
+        </div>
+        {accountUser && !accountUser.isAnonymous ? (
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <span className="min-w-0 break-all text-xs">{accountUser.displayName ? `${accountUser.displayName} · ` : ""}{accountUser.email}</span>
+            <button type="button" onClick={() => void onAccountSignOut()} className="rounded-lg border border-neutral-200 px-3 py-1.5 text-xs">{t("signOutAccount")}</button>
+          </div>
+        ) : (
+          <button type="button" disabled={accountStatus === "loading"} onClick={() => void onGoogleSignIn()} className="self-start rounded-lg bg-neutral-900 px-3 py-2 text-xs font-medium text-white disabled:opacity-50">
+            {accountStatus === "loading" ? t("connectingGoogle") : t("continueWithGoogle")}
+          </button>
+        )}
+        {accountStatus === "connected" ? <p className="text-xs opacity-70">{t("cloudSyncActive")}</p> : null}
+        {accountStatus === "needs-choice" ? (
+          <div className="space-y-2 rounded-lg bg-neutral-500/10 p-3 text-xs">
+            <p>{t("cloudDataConflict")}</p>
+            <div className="flex flex-wrap gap-2">
+              <button type="button" onClick={onChooseCloud} className="rounded-lg bg-neutral-900 px-3 py-1.5 font-medium text-white">{t("useCloudData")}</button>
+              <button type="button" onClick={onKeepDevice} className="rounded-lg border border-neutral-300 px-3 py-1.5">{t("keepDeviceData")}</button>
+            </div>
+          </div>
+        ) : null}
+        {accountError ? <div role="alert" className="space-y-2 text-xs text-rose-600"><p>{accountError}</p>{accountStatus === "error" && accountUser && !accountUser.isAnonymous ? <button type="button" onClick={onRetryCloud} className="underline">{t("retryCloud")}</button> : null}</div> : null}
+      </div>
+
       {showCoffeePopup ? (
         <motion.div
           initial={{ opacity: 0, y: -10, scale: 0.98 }}
@@ -413,8 +470,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         <div className="flex items-start gap-2">
           <UserRound size={16} className="mt-0.5 text-neutral-700" />
           <div>
-            <h3 className="text-sm font-medium text-neutral-900">Local registration</h3>
-            <p className="mt-0.5 text-[11px] text-neutral-500">Stores your profile on this device so new records, feedback, and future sync can remember who created them.</p>
+            <h3 className="text-sm font-medium text-neutral-900">{t("deviceProfile")}</h3>
+            <p className="mt-0.5 text-[11px] text-neutral-500">{t("deviceProfileDescription")}</p>
           </div>
         </div>
         <form onSubmit={handleSaveProfile} className="grid grid-cols-1 gap-3 sm:grid-cols-3">
