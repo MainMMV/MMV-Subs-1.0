@@ -3,7 +3,7 @@
 MMV Hub is a responsive personal dashboard for subscriptions, recurring bills, one-time purchases, habits, goals, and payment reminders. It runs as a web app and as an installable Android app.
 
 - Live web app: [mmv-subs-1-0.vercel.app](https://mmv-subs-1-0.vercel.app)
-- Android downloads: [GitHub Releases](https://github.com/MainMMV/MMV-Subs-1.0/releases)
+- Android download: [MMV Hub v1.7.0 APK](https://github.com/MainMMV/MMV-Subs-1.0/releases/download/v1.7.0/MMV-Hub-v1.7.0.apk) ([release notes](https://github.com/MainMMV/MMV-Subs-1.0/releases/tag/v1.7.0))
 
 ## Features
 
@@ -101,6 +101,16 @@ For Telegram Login on the web, open `@BotFather`, run `/setdomain`, select the M
 Each published update is recorded newest first using `HH:mm DD.MM.YYYY GMT+5 (Tashkent)`.
 
 <details open>
+<summary><strong>12:47 09.10.2026 GMT+5 (Tashkent) — Signed Android APK published</strong></summary>
+
+- Published the verified, signed MMV Hub 1.7.0 APK to GitHub Releases with installation notes.
+- Added its direct download link and updated setup status. Android Google sign-in still needs a real-device check; automated signed builds still need GitHub Actions signing secrets.
+
+Modified areas: GitHub Release, APK publication workflow, and README.
+
+</details>
+
+<details>
 <summary><strong>12:18 09.10.2026 GMT+5 (Tashkent) — Render Telegram reminder reliability</strong></summary>
 
 - Confirmed the existing Render Free bot is live, registered with Telegram, and serving its health and login endpoints.
@@ -111,7 +121,7 @@ Modified areas: Telegram bot schedule and tests, Render Blueprint, bot setup gui
 
 </details>
 
-<details open>
+<details>
 <summary><strong>11:25 09.10.2026 GMT+5 (Tashkent) — Android Google registration configuration</strong></summary>
 
 - Registered the stable APK signing key's SHA-1 and SHA-256 in Firebase and refreshed the Android `google-services.json` with its OAuth client.
@@ -123,7 +133,7 @@ Modified areas: Android Firebase configuration, setup guide, and README.
 
 </details>
 
-<details open>
+<details>
 <summary><strong>10:47 09.10.2026 GMT+5 (Tashkent) — Android Google sign-in release preparation</strong></summary>
 
 - Prepared a stable Android release keystore outside Git and recorded its public Firebase signing fingerprints.
@@ -351,16 +361,15 @@ The app uses anonymous Firebase registration until a user connects Google in Set
 Still requiring external account configuration:
 
 1. In `@BotFather`, set the Telegram Login domain to `mmv-subs-1-0.vercel.app` with `/setdomain`.
-2. Connect Render access, create a credential for the dedicated `mmv-hub-telegram` service account, store it only as `FIREBASE_SERVICE_ACCOUNT`, confirm the other required variables, and redeploy. No service-account key is stored in this repository.
-3. Publish the Google OAuth consent screen if users outside the project owner's test-user list need Google Calendar access.
-4. The permanent Android release keystore is prepared locally. Back it up, register its [SHA-1 and SHA-256 fingerprints](docs/ANDROID_GOOGLE_SIGN_IN.md) for `com.mainmmv.subs` in Firebase, download the refreshed `google-services.json`, and add the two GitHub Actions signing secrets. Native Google sign-in cannot be verified until this is done.
-5. Upgrade Firebase to a billing-enabled plan before enabling point-in-time Firestore recovery, paid backup features, or reCAPTCHA Enterprise. Billing is currently disabled.
-6. Integrate App Check in both web and APK clients and verify metrics before enforcement; enforcing it now would block the current clients.
+2. Publish the Google OAuth consent screen if users outside the project owner's test-user list need Google Calendar access.
+3. Back up the permanent Android release keystore, add the two [GitHub Actions signing secrets](docs/ANDROID_GOOGLE_SIGN_IN.md) for repeatable signed builds, and verify native Google sign-in on a real device. The signing fingerprints and refreshed Android Firebase configuration are already registered.
+4. Upgrade Firebase to a billing-enabled plan before enabling point-in-time Firestore recovery, paid backup features, or reCAPTCHA Enterprise. Billing is currently disabled.
+5. Integrate App Check in both web and APK clients and verify metrics before enforcement; enforcing it now would block the current clients.
 
 ## Deployment status
 
 - Vercel production: deployed from `main`
-- Render Telegram service: configured at [mmv-subs-telegram-bot.onrender.com/health](https://mmv-subs-telegram-bot.onrender.com/health); the latest health check timed out and requires a Render status/log check
+- Render Telegram service: live at [mmv-subs-telegram-bot.onrender.com/health](https://mmv-subs-telegram-bot.onrender.com/health) on the Free plan; reminders catch up for 24 hours after a service wake
 - Android CI: TypeScript, reminder tests, Capacitor sync, native Gradle build, and APK artifact upload are enabled
 
 See [MOBILE.md](MOBILE.md) for Android behavior and [telegram-bot/README.md](telegram-bot/README.md) for bot details.
