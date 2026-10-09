@@ -1,0 +1,32 @@
+name: Publish signed Android APK
+
+on:
+  push:
+    branches: [apk-downloads]
+    paths:
+      - 'downloads/MMV-Hub-v1.7.0.apk'
+      - 'downloads/RELEASE_NOTES-v1.7.0.md'
+      - '.github/workflows/publish-signed-apk.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify signed APK checksum
+        run: echo '2031fb217850c0c1fd17ac978eed4e48063fdfd79f8ae1732f8e38d5f2a56b5d  downloads/MMV-Hub-v1.7.0.apk' | sha256sum --check
+      - name: Upload signed APK to GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view v1.7.0 >/dev/null 2>&1; then
+            gh release upload v1.7.0 'downloads/MMV-Hub-v1.7.0.apk#MMV-Hub-v1.7.0.apk' --clobber
+          else
+            gh release create v1.7.0 'downloads/MMV-Hub-v1.7.0.apk#MMV-Hub-v1.7.0.apk' \
+              --target main \
+              --title 'MMV Hub v1.7.0' \
+              --notes-file downloads/RELEASE_NOTES-v1.7.0.md
+          fi
