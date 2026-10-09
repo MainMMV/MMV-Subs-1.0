@@ -6,6 +6,7 @@ import { CurrencyDisplayMode, TelegramConfig, PaymentItem, GoogleCalendarSyncSta
 import { isBrowserPushEnabled, requestBrowserPushPermission } from "../services/notificationService";
 import { isSoundEnabled, playAppSound, setSoundEnabled, type SoundPreference } from "../services/soundService";
 import { isNativeApp } from "../services/deviceCalendar";
+import { renderGoogleIdentityButton } from "../services/googleIdentity";
 import { areDeviceRemindersEnabled, enableDeviceReminders, syncDeviceReminders } from "../services/deviceReminders";
 import { requestTelegramTest } from "../firebase";
 import { TelegramConnectButton, type TelegramIdentity } from "../components/TelegramConnectButton";
@@ -42,6 +43,7 @@ interface SettingsViewProps {
   accountError: string | null;
   showAccountOnMount?: boolean;
   onGoogleSignIn: (mode?: "popup" | "redirect") => Promise<void>;
+  onGoogleIdToken: (idToken: string) => Promise<void>;
   onAccountSignOut: () => Promise<void>;
   onChooseCloud: () => void;
   onKeepDevice: () => void;
@@ -166,6 +168,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   accountError,
   showAccountOnMount = false,
   onGoogleSignIn,
+  onGoogleIdToken,
   onAccountSignOut,
   onChooseCloud,
   onKeepDevice,
@@ -174,6 +177,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const { language, setLanguage, t } = useI18n();
   const uiPreferences = useUiPreferences();
   const [activeGroup, setActiveGroup] = useState<SettingsGroup>(showAccountOnMount ? "account" : "appearance");
+  const googleButtonRef = React.useRef<HTMLDivElement>(null);
+  const googleIdTokenHandler = React.useRef(onGoogleIdToken);
+  googleIdTokenHandler.current = onGoogleIdToken;
+  const [googleButtonError, setGoogleButtonError] = useState<string | null>(null);
   useEffect(() => {
     if (showAccountOnMount) setActiveGroup("account");
   }, [showAccountOnMount]);
@@ -201,6 +208,22 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const [feedbackStatus, setFeedbackStatus] = useState<string | null>(null);
   const [showCoffeePopup, setShowCoffeePopup] = useState(false);
   const nativeApp = isNativeApp();
+
+  useEffect(() => {
+    if (nativeApp || activeGroup !== "account" || (accountUser && !accountUser.isAnonymous) || accountStatus === "loading") return;
+    const element = googleButtonRef.current;
+    if (!element) return;
+    let active = true;
+    void renderGoogleIdentityButton(element, language, (idToken) => {
+      if (active) void googleIdTokenHandler.current(idToken);
+    }).then(() => {
+      if (!active) element.replaceChildren();
+      else setGoogleButtonError(null);
+    }).catch((error) => {
+      if (active) setGoogleButtonError(error instanceof Error ? error.message : "Google sign-in could not load.");
+    });
+    return () => { active = false; element.replaceChildren(); };
+  }, [nativeApp, activeGroup, accountUser?.uid, accountUser?.isAnonymous, accountStatus, language]);
 
   useEffect(() => {
     if (!accountUser || accountUser.isAnonymous) return;
@@ -416,12 +439,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
           </div>
         ) : (
           <div className="flex flex-wrap items-center gap-2">
-            <button type="button" disabled={accountStatus === "loading"} onClick={() => void onGoogleSignIn()} className="rounded-lg bg-neutral-900 px-3 py-2 text-xs font-medium text-white disabled:opacity-50">
-              {accountStatus === "loading" ? t("connectingGoogle") : t("continueWithGoogle")}
-            </button>
-            {!nativeApp ? <button type="button" disabled={accountStatus === "loading"} onClick={() => void onGoogleSignIn("redirect")} className="rounded-lg border border-neutral-300 px-3 py-2 text-xs disabled:opacity-50">{t("fullPageGoogleSignIn")}</button> : null}
+            {nativeApp ? <button type="button" disabled={accountStatus === "loading"} onClick={() => void onGoogleSignIn()} className="rounded-lg bg-neutral-900 px-3 py-2 text-xs font-medium text-white disabled:opacity-50">{accountStatus === "loading" ? t("connectingGoogle") : t("continueWithGoogle")}</button> : <div ref={googleButtonRef} className="min-h-10" />}
+            {!nativeApp && accountStatus === "loading" ? <span className="text-xs opacity-70">{t("connectingGoogle")}</span> : null}
+            {!nativeApp && googleButtonError ? <button type="button" onClick={() => void onGoogleSignIn()} className="rounded-lg border border-neutral-300 px-3 py-2 text-xs">{t("continueWithGoogle")}</button> : null}
           </div>
         )}
+        {googleButtonError ? <p role="alert" className="text-xs text-rose-600">{googleButtonError}</p> : null}
         {accountStatus === "connected" ? <p className="text-xs opacity-70">{t("cloudSyncActive")}</p> : null}
         {accountStatus === "needs-choice" ? (
           <div className="space-y-2 rounded-lg bg-neutral-500/10 p-3 text-xs">

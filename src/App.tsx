@@ -15,7 +15,7 @@ import {
 } from "./types";
 import { getItemStatus, getNextRecurrenceDate } from "./utils/calculations";
 import { auth, readCloudData, syncToFirebase } from "./firebase";
-import { completeGoogleAccountRedirect, connectGoogleAccount, googleAccountError } from "./services/googleAccount";
+import { completeGoogleAccountRedirect, connectGoogleAccount, connectGoogleAccountWithIdToken, googleAccountError } from "./services/googleAccount";
 import { resolveCloudData, type CloudData } from "./services/cloudData";
 import { finishGoogleCalendarRedirect, initGoogleCalendarAuth } from "./services/googleCalendar";
 import { syncDeviceReminders } from "./services/deviceReminders";
@@ -402,6 +402,25 @@ export default function App() {
     try {
       const result = await connectGoogleAccount(undefined, false, mode);
       if (!result) return;
+      if (originalUser?.isAnonymous && result.user.uid === originalUser.uid) {
+        setAccountUser(result.user);
+        setAccountStatus("connected");
+        setCloudReady(true);
+      }
+    } catch (error) {
+      setAccountError(googleAccountError(error));
+      setAccountStatus(auth.currentUser && !auth.currentUser.isAnonymous ? "connected" : "local");
+      setCloudReady(true);
+    }
+  };
+
+  const handleGoogleIdToken = async (idToken: string) => {
+    const originalUser = auth.currentUser;
+    setCloudReady(false);
+    setAccountStatus("loading");
+    setAccountError(null);
+    try {
+      const result = await connectGoogleAccountWithIdToken(idToken);
       if (originalUser?.isAnonymous && result.user.uid === originalUser.uid) {
         setAccountUser(result.user);
         setAccountStatus("connected");
@@ -1172,6 +1191,7 @@ export default function App() {
               accountError={accountError}
               showAccountOnMount={showAccountAfterRedirect}
               onGoogleSignIn={handleGoogleSignIn}
+              onGoogleIdToken={handleGoogleIdToken}
               onAccountSignOut={handleAccountSignOut}
               onChooseCloud={handleChooseCloud}
               onKeepDevice={handleKeepDevice}

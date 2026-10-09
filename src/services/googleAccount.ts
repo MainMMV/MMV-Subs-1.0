@@ -25,6 +25,19 @@ export function isGoogleAccount(user: User | null): boolean {
   return Boolean(user && !user.isAnonymous && user.providerData.some((provider) => provider.providerId === "google.com"));
 }
 
+export async function connectGoogleAccountWithIdToken(idToken: string): Promise<UserCredential> {
+  const credential = GoogleAuthProvider.credential(idToken);
+  const current = auth.currentUser;
+  if (current?.isAnonymous) {
+    try {
+      return await linkWithCredential(current, credential);
+    } catch (error: any) {
+      if (error?.code !== "auth/credential-already-in-use" && error?.code !== "auth/email-already-in-use") throw error;
+    }
+  }
+  return signInWithCredential(auth, credential);
+}
+
 async function startGoogleRedirect(provider: GoogleAuthProvider, current: User | null, requireFreshConsent: boolean, purpose: GoogleRedirectPurpose): Promise<void> {
   sessionStorage.setItem(REDIRECT_PURPOSE_KEY, purpose);
   try {
