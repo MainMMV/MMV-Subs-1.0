@@ -79,6 +79,10 @@ The Firebase project must have:
 - `mmv-subs-1-0.vercel.app` added to Firebase Authentication authorized domains.
 - Google Calendar API and the `calendar.events` OAuth scope enabled for the configured OAuth client.
 
+On first use, Google asks the user to choose an account and approve access; MMV Hub then links or restores that account automatically. The Google consent app name is set in [Google Auth Platform Branding](https://console.cloud.google.com/auth/branding?project=micro-pilot-465509-m3). Set it to **MMV Hub** there.
+
+For a same-domain Firebase redirect helper, add `https://mmv-subs-1-0.vercel.app/__/auth/handler` to the Web OAuth client's authorized redirect URIs in [Google Auth Platform Clients](https://console.cloud.google.com/auth/clients?project=micro-pilot-465509-m3) before enabling the Vercel auth proxy. The Web client ID begins `189776208517-1gekjec`.
+
 ### Telegram worker
 
 The Telegram worker runs from `telegram-bot/` and requires these environment variables:
@@ -102,7 +106,17 @@ For Telegram Login on the web, open `@BotFather`, run `/setdomain`, select the M
 Each published update is recorded newest first using `HH:mm DD.MM.YYYY GMT+5 (Tashkent)`.
 
 <details open>
-<summary><strong>13:45 09.10.2026 GMT+5 (Tashkent) — Direct Google account sign-in</strong></summary>
+<summary><strong>13:50 09.10.2026 GMT+5 (Tashkent) — Google setup guidance</strong></summary>
+
+- Clarified that Google asks for account selection and permission on first use, then MMV Hub links or restores the account.
+- Added direct Console links and the exact OAuth redirect URI needed before the first-party Calendar auth proxy can be enabled.
+
+Modified areas: README setup guide and change history.
+
+</details>
+
+<details>
+<summary><strong>13:46 09.10.2026 GMT+5 (Tashkent) — Direct Google account sign-in</strong></summary>
 
 - Replaced the web account popup with Google's sign-in button and direct Firebase credential linking, so the app can complete sign-in without a cross-site redirect result.
 - Preserved anonymous account linking and existing Google account restore; Android's native sign-in remains available.
